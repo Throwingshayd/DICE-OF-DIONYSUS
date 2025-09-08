@@ -1,0 +1,49 @@
+{
+  "name": "dice-of-dionysus",
+  "version": "1.4.0",
+  "description": "An elegant dice strategy game of pips, favour, and devotion",
+  "main": "main.js",
+  "scripts": {
+    "start": "electron .",
+    "build": "electron-builder",
+    "dist": "electron-builder --publish=never"
+  },
+  "keywords": [
+    "dice",
+    "game",
+    "strategy",
+    "mythology",
+    "greek"
+  ],
+  "author": "Dice of Dionysus Team",
+  "license": "UNLICENSED",
+  "devDependencies": {
+    "electron": "^28.0.0",
+    "electron-builder": "^24.9.1"
+  },
+  "build": {
+    "appId": "com.diceofdionysus.game",
+    "productName": "Dice of Dionysus",
+    "directories": {
+      "output": "dist"
+    },
+    "files": [
+      "main.js",
+      "index.html",
+      "css/**/*",
+      "js/**/*",
+      "ART/**/*",
+      "!node_modules/**/*"
+    ],
+    "win": {
+      "target": "portable",
+      "icon": "ART/Title art.png"
+    },
+    "portable": {
+      "artifactName": "DiceOfDionysus-v1.4-Portable.exe"
+    }
+  }
+}
+
+
+
