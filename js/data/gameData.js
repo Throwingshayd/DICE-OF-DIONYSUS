@@ -599,6 +599,16 @@ const CardData = {
             description: "The betrayer of Troy - your boons fear you.",
             god: "Paris",
             timing: {} // Special - triggers at ante end
+        },
+        { 
+            id: "eruption_of_etna", 
+            name: "Eruption of Etna", 
+            rarity: "vibrant", 
+            cost: 5, 
+            sellValue: 1, 
+            effect: "If 3+ Boons trigger on same turn, +×1 Favour (stacks, doesn't reset).",
+            description: "Volcanic eruption - when many boons align, explosive power!",
+            timing: { before_score: true }
         }
     ],
 

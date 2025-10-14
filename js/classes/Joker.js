@@ -69,6 +69,11 @@ class Joker extends Card {
             return eventData;
         }
 
+        // Track boon triggers for Eruption of Etna
+        if (timingEvent === 'before_score' && this.id !== 'eruption_of_etna') {
+            gameState.boonTriggersThisTurn = (gameState.boonTriggersThisTurn || 0) + 1;
+        }
+
         // Apply the joker's effect based on timing
         const result = this.applyTimingEffect(timingEvent, gameState, eventData);
         
@@ -744,6 +749,25 @@ class Joker extends Card {
                     result.pips += 500;
                     gameState.odysseyAwarded = true;
                     window.game?.showMessage?.(`🏆 THE ODYSSEY COMPLETE! +500 Pips! (${odysseyTotal}/${odysseyTotal})`, 6000);
+                }
+                break;
+            
+            case 'eruption_of_etna':
+                // If 3+ boons triggered this turn, +1 favour (cumulative, doesn't reset)
+                const etnaTriggersThisTurn = gameState.boonTriggersThisTurn || 0;
+                
+                if (etnaTriggersThisTurn >= 3) {
+                    if (!this.etnaFavourStacks) {
+                        this.etnaFavourStacks = 0;
+                    }
+                    this.etnaFavourStacks += 1;
+                    window.game?.showMessage?.(`🌋 Eruption of Etna: +×1 Favour (${etnaTriggersThisTurn} boons)!`);
+                }
+                
+                // Apply accumulated favour
+                if (this.etnaFavourStacks > 0) {
+                    result.favour += this.etnaFavourStacks;
+                    this.dynamicStats.favour = this.etnaFavourStacks;
                 }
                 break;
 

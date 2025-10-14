@@ -1097,7 +1097,7 @@ class UIManager {
         // Update UI
         this.updateAllUI();
         if (this.dom.shopGold) {
-            this.dom.shopGold.textContent = gameState.gold;
+        this.dom.shopGold.textContent = gameState.gold;
         }
         
         // Remove the card from shop
@@ -1585,7 +1585,7 @@ class UIManager {
         
         element.remove();
         if (this.dom.shopGold) {
-            this.dom.shopGold.textContent = gameState.gold;
+        this.dom.shopGold.textContent = gameState.gold;
         }
         
         gameEngine.applyArtifactEffects();
@@ -1665,7 +1665,7 @@ class UIManager {
         }
         
         if (this.dom.shopGold) {
-            this.dom.shopGold.textContent = gameState.gold;
+        this.dom.shopGold.textContent = gameState.gold;
         }
         gameEngine.updateAllUI();
         
@@ -1734,9 +1734,9 @@ class UIManager {
         // Wait for flip animation before regenerating
         setTimeout(() => {
             gameEngine.updateGoldAnimated(-GAME_BALANCE.SHOP_REROLL_COST, "reroll");
-            this.generateShopStock(gameState, gameEngine);
+        this.generateShopStock(gameState, gameEngine);
             if (this.dom.shopGold) {
-                this.dom.shopGold.textContent = gameState.gold;
+        this.dom.shopGold.textContent = gameState.gold;
             }
         }, 400);
     }
