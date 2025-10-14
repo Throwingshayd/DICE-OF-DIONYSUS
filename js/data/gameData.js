@@ -546,6 +546,17 @@ const CardData = {
             effect: "Selling a Boon gives you a random Libation.",
             description: "Transform the divine into sacred wine - alchemical conversion.",
             timing: {} // Special - triggers on sell action
+        },
+        { 
+            id: "proteus_disguise", 
+            name: "Proteus' Disguise", 
+            rarity: "vibrant", 
+            cost: 5, 
+            sellValue: 1, 
+            effect: "Each turn, this Boon mimics the effect of a random other Boon you own (cannot repeat).",
+            description: "The shape-shifter takes many forms - never the same twice.",
+            god: "Proteus",
+            timing: { turn_start: true }
         }
     ],
 

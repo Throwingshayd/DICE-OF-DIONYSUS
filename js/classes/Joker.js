@@ -55,6 +55,11 @@ class Joker extends Card {
 
     // Balatro-inspired timing system
     onTimingEvent(timingEvent, gameState, eventData = null) {
+        // Special handling for Proteus' Disguise - mimics other boons
+        if (this.id === 'proteus_disguise') {
+            return this.applyProteusEffect(timingEvent, gameState, eventData);
+        }
+        
         if (!this.canUse() || !this.timing[timingEvent]) {
             return eventData;
         }
@@ -838,6 +843,28 @@ class Joker extends Card {
                 break;
         }
         return result;
+    }
+    
+    // Special handler for Proteus - mimics other boons
+    applyProteusEffect(timingEvent, gameState, eventData) {
+        // Get the boon to mimic this turn
+        if (!gameState.proteusMimicId) {
+            return eventData; // No mimic selected yet
+        }
+        
+        // Find the boon to mimic
+        const mimickedBoon = gameState.jokers?.find(b => b.id === gameState.proteusMimicId);
+        if (!mimickedBoon || !mimickedBoon.timing[timingEvent]) {
+            return eventData; // Boon not found or doesn't have this timing
+        }
+        
+        // Execute the mimicked boon's timing effect
+        try {
+            return mimickedBoon.applyTimingEffect(timingEvent, gameState, eventData);
+        } catch (error) {
+            Logger.error(`Proteus failed to mimic ${gameState.proteusMimicId}:`, error);
+            return eventData;
+        }
     }
 
     applyBeforeScoreEffect(gameState, result) {
