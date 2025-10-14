@@ -642,6 +642,24 @@ class Joker extends Card {
                     window.game?.showMessage?.(`Divine Synergy: +${synergyBonus} Pips!`);
                 }
                 break;
+            
+            case 'first_blood':
+                // First score each ante gives +50 Pips
+                const categoriesScored = Object.keys(gameState.scorecard).length;
+                
+                if (categoriesScored === 0) {
+                    result.pips += 50;
+                    window.game?.showMessage?.("First Blood: +50 Pips!");
+                }
+                break;
+            
+            case 'midnight_oil':
+                // Turn 12+ gives +24 Pips
+                if (gameState.turn >= 12) {
+                    result.pips += 24;
+                    window.game?.showMessage?.("Midnight Oil: +24 Pips!");
+                }
+                break;
 
             default:
                 // Unknown joker effect - log for debugging but don't break the game
@@ -1003,6 +1021,14 @@ class Joker extends Card {
                     gameState.hereticStacks = 0;
                 }
                 gameState.hereticStacks += 2;
+                break;
+            
+            case 'midnight_oil':
+                // Turn 12+: lose 1 roll
+                if (gameState.turn >= 12) {
+                    gameState.rollsLeft = Math.max(1, gameState.rollsLeft - 1);
+                    window.game?.showMessage?.("Midnight Oil: -1 roll!");
+                }
                 break;
         }
         // No return value needed for turn_start effects

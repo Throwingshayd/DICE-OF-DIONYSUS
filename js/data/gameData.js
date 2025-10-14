@@ -454,6 +454,26 @@ const CardData = {
             effect: "Boons of the same rarity amplify each other (+5 Pips per matching rarity).",
             description: "Similar rarities harmonize together.",
             timing: { before_score: true }
+        },
+        { 
+            id: "first_blood", 
+            name: "First Blood", 
+            rarity: "rustic", 
+            cost: 3, 
+            sellValue: 1, 
+            effect: "Your first score each Ante gives +50 Pips.",
+            description: "Strike first, strike hard.",
+            timing: { before_score: true }
+        },
+        { 
+            id: "midnight_oil", 
+            name: "Midnight Oil", 
+            rarity: "rustic", 
+            cost: 5, 
+            sellValue: 1, 
+            effect: "Turn 12+ gives +24 Pips but you lose 1 roll each turn.",
+            description: "Burning the midnight oil - working harder at the end.",
+            timing: { before_score: true, turn_start: true }
         }
     ],
 
