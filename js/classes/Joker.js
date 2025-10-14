@@ -584,6 +584,32 @@ class Joker extends Card {
                     gameState.typhonBonus = 0; // Reset after use
                 }
                 break;
+            
+            case 'early_bird':
+                // Turns 1-3: +20 Pips, turns 6-13: -5 Pips
+                if (gameState.turn >= 1 && gameState.turn <= 3) {
+                    result.pips += 20;
+                    window.game?.showMessage?.("Early Bird: +20 Pips!");
+                } else if (gameState.turn >= 6 && gameState.turn <= 13) {
+                    result.pips -= 5;
+                    window.game?.showMessage?.("Early Bird: -5 Pips (late game penalty)");
+                }
+                break;
+            
+            case 'the_symposium':
+                // Each 4 of a kind or greater gives +×1 Favour
+                const symposiumFaceCounts = {};
+                gameState.dice.forEach(die => {
+                    symposiumFaceCounts[die.face] = (symposiumFaceCounts[die.face] || 0) + 1;
+                });
+                
+                const hasFourOfKind = Object.values(symposiumFaceCounts).some(count => count >= 4);
+                
+                if (hasFourOfKind) {
+                    result.favour += 1;
+                    window.game?.showMessage?.("The Symposium: +×1 Favour!");
+                }
+                break;
 
             default:
                 // Unknown joker effect - log for debugging but don't break the game
@@ -870,6 +896,18 @@ class Joker extends Card {
                     window.game?.showMessage?.("Gambler's Charm: +2 Gold! Lucky!");
                 } else {
                     window.game?.showMessage?.("Gambler's Charm: No luck this time.");
+                }
+                break;
+            
+            case 'early_bird':
+                // Turns 4-5: +2 Gold
+                if (gameState.turn === 4 || gameState.turn === 5) {
+                    if (window.game && typeof window.game.updateGoldAnimated === 'function') {
+                        window.game.updateGoldAnimated(2, "Early Bird");
+                    } else {
+                        gameState.gold += 2;
+                    }
+                    window.game?.showMessage?.("Early Bird: +2 Gold!");
                 }
                 break;
         }

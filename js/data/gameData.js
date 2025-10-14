@@ -414,6 +414,26 @@ const CardData = {
             description: "The father of monsters - catastrophic luck!",
             god: "Typhon",
             timing: { after_roll: true, before_score: true }
+        },
+        { 
+            id: "early_bird", 
+            name: "Early Bird Gets the Worm", 
+            rarity: "rustic", 
+            cost: 3, 
+            sellValue: 1, 
+            effect: "Turns 1-3: +20 Pips, turns 4-5 gain 2 gold, Turns 6-13: -5 Pips.",
+            description: "Front-loaded power that fades over time.",
+            timing: { before_score: true, after_score: true }
+        },
+        { 
+            id: "the_symposium", 
+            name: "The Symposium", 
+            rarity: "vibrant", 
+            cost: 5, 
+            sellValue: 1, 
+            effect: "Each 4 of a kind or greater of matching dice gives +×1 Favour.",
+            description: "A gathering of equals - celebration of multiples.",
+            timing: { before_score: true }
         }
     ],
 
