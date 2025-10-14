@@ -1273,22 +1273,58 @@ class GameEngine {
                 break;
                 
             case "Three of a Kind":
-                if (Object.values(counts).some(c => c >= SCORING_THRESHOLDS.THREE_OF_KIND_REQUIRED)) {
-                    pips = faces.reduce((a, b) => a + b, 0);
-                    if (this.state.pipsBonuses.threeOfKindBonus) {
-                        pips += this.state.pipsBonuses.threeOfKindBonus;
+                {
+                    let threeKindThreshold = SCORING_THRESHOLDS.THREE_OF_KIND_REQUIRED;
+                    
+                    // Bellows of War: virtual +1 die (need one less to qualify)
+                    const hasBellows = this.state.jokers?.some(j => j.id === 'bellows_of_war');
+                    if (hasBellows) {
+                        threeKindThreshold -= 1; // 3 required becomes 2 (pair works!)
                     }
-                    isValid = true;
+                    
+                    if (Object.values(counts).some(c => c >= threeKindThreshold)) {
+                        pips = faces.reduce((a, b) => a + b, 0);
+                        
+                        // Add virtual die value
+                        if (hasBellows) {
+                            const matchValue = parseInt(Object.keys(counts).find(k => counts[k] >= threeKindThreshold));
+                            pips += matchValue; // Add one more matching die
+                            window.game?.showMessage?.("Bellows of War: Virtual die added!", 2000);
+                        }
+                        
+                        if (this.state.pipsBonuses.threeOfKindBonus) {
+                            pips += this.state.pipsBonuses.threeOfKindBonus;
+                        }
+                        isValid = true;
+                    }
                 }
                 break;
                 
             case "Four of a Kind":
-                if (Object.values(counts).some(c => c >= SCORING_THRESHOLDS.FOUR_OF_KIND_REQUIRED)) {
-                    pips = faces.reduce((a, b) => a + b, 0);
-                    if (this.state.pipsBonuses.fourOfKindBonus) {
-                        pips += this.state.pipsBonuses.fourOfKindBonus;
+                {
+                    let fourKindThreshold = SCORING_THRESHOLDS.FOUR_OF_KIND_REQUIRED;
+                    
+                    // Bellows of War: virtual +1 die (need one less to qualify)
+                    const hasBellows = this.state.jokers?.some(j => j.id === 'bellows_of_war');
+                    if (hasBellows) {
+                        fourKindThreshold -= 1; // 4 required becomes 3
                     }
-                    isValid = true;
+                    
+                    if (Object.values(counts).some(c => c >= fourKindThreshold)) {
+                        pips = faces.reduce((a, b) => a + b, 0);
+                        
+                        // Add virtual die value
+                        if (hasBellows) {
+                            const matchValue = parseInt(Object.keys(counts).find(k => counts[k] >= fourKindThreshold));
+                            pips += matchValue; // Add one more matching die
+                            window.game?.showMessage?.("Bellows of War: Virtual die added!", 2000);
+                        }
+                        
+                        if (this.state.pipsBonuses.fourOfKindBonus) {
+                            pips += this.state.pipsBonuses.fourOfKindBonus;
+                        }
+                        isValid = true;
+                    }
                 }
                 break;
                 

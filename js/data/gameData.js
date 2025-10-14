@@ -629,6 +629,17 @@ const CardData = {
             effect: "If you have empty other Boon slots, gain +×1 Favour for each.",
             description: "Less is more - the ascetic finds power in emptiness.",
             timing: { before_score: true }
+        },
+        { 
+            id: "bellows_of_war", 
+            name: "Bellows of War", 
+            rarity: "epic", 
+            cost: 8, 
+            sellValue: 2, 
+            effect: "Three/Four of Kind categories score as if you had one more matching die.",
+            description: "The forge's bellows create phantom duplicates - virtual power.",
+            god: "Hephaestus",
+            timing: {} // Special - modifies scoring logic
         }
     ],
 
