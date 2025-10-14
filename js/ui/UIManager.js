@@ -610,35 +610,25 @@ class UIManager {
             const scoreDisplay = row.querySelector('.potential-score');
             
             if (gameState.scorecard[category] !== undefined) {
+                // Category already scored - show final score
                 row.classList.add('used');
                 row.classList.remove('available-category');
                 scoreDisplay.textContent = gameState.scorecard[category];
             } else {
+                // Category not scored - don't show preview (that's what Gnosis is for!)
                 row.classList.remove('used');
+                scoreDisplay.textContent = '-';
                 
+                // Add pulse if category is available to score
                 if (gameState.hasRolled && window.game) {
-                    let { pips, favour, isValid } = window.game.calculateScore(category);
+                    let { isValid } = window.game.calculateScore(category);
                     
                     if (isValid) {
-                        // Apply BEFORE_SCORE joker effects to the potential score display (Balatro-inspired timing)
-                        let eventData = { category, pips, favour };
-                        gameState.jokers.forEach(joker => {
-                            eventData = joker.onTimingEvent('before_score', gameState, eventData);
-                        });
-                        
-                        pips = eventData.pips;
-                        favour = eventData.favour;
-                        
-                        scoreDisplay.innerHTML = `${pips} <span style="color: var(--accent-red-desat)">(x${favour})</span>`;
-                        
-                        // Add Balatro-style pulse for available categories
                         row.classList.add('available-category');
                     } else {
-                        scoreDisplay.textContent = '-';
                         row.classList.remove('available-category');
                     }
                 } else {
-                    scoreDisplay.textContent = '-';
                     row.classList.remove('available-category');
                 }
             }

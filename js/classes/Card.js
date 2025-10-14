@@ -80,18 +80,19 @@ class Card {
             el.classList.add('disabled');
         }
 
-        // Add Balatro-style buy/sell labels
+        // Add Balatro-style buy/sell/take labels
         let labelHtml = '';
         if (isShopItem) {
             if (isDirectSale) {
-                labelHtml = `<div class="buy-sell-label buy" data-action="buy" data-cost="${this.cost}">Buy ${this.cost}g</div>`;
+                // Shop purchase - green "Buy" button
+                labelHtml = `<div class="buy-sell-label buy" data-action="buy" data-cost="${this.cost}">${this.cost}g</div>`;
             } else {
-                // For pack cards, create a button that can be converted to "Take"
-                labelHtml = `<div class="buy-sell-label buy" data-action="take">Take</div>`;
+                // Pack cards - blue "Take" button
+                labelHtml = `<div class="buy-sell-label take" data-action="take">Take</div>`;
             }
         } else {
-            // For cards in inventory, show sell label
-            labelHtml = `<div class="buy-sell-label sell" data-action="sell" data-value="${this.sellValue}">Sell ${this.sellValue}g</div>`;
+            // Inventory - red "Sell" button
+            labelHtml = `<div class="buy-sell-label sell" data-action="sell" data-value="${this.sellValue}">${this.sellValue}g</div>`;
         }
 
         // Uses counter for limited use cards
