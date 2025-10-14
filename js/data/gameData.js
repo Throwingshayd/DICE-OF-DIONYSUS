@@ -112,6 +112,235 @@ const CardData = {
             sellValue: 2, 
             effect: "Gain +1 Favour for each Worship card you have used this run.",
             timing: { after_score: true }
+        },
+        
+        // === EPIC TIER - Game Changers ===
+        { 
+            id: "sisyphus_boulder", 
+            name: "Sisyphus' Boulder", 
+            rarity: "epic", 
+            cost: 8, 
+            sellValue: 2, 
+            effect: "+5 Pips for every time you've rerolled this turn. Resets each turn.",
+            god: "Sisyphus",
+            timing: { before_score: true }
+        },
+        { 
+            id: "hephaestus_forge", 
+            name: "Hephaestus' Forge", 
+            rarity: "epic", 
+            cost: 8, 
+            sellValue: 2, 
+            effect: "Pairs (2 of same number) count as Three of a Kind.",
+            god: "Hephaestus",
+            description: "The master craftsman forges duplicates into triplicates.",
+            timing: { before_score: true }
+        },
+        { 
+            id: "kronos_hourglass", 
+            name: "Kronos' Hourglass", 
+            rarity: "epic", 
+            cost: 8, 
+            sellValue: 2, 
+            effect: "Gain +2 Rolls permanently, but score threshold increases by 20% each Ante.",
+            god: "Kronos",
+            timing: { turn_start: true }
+        },
+        { 
+            id: "the_fates_loom", 
+            name: "The Fates' Loom", 
+            rarity: "epic", 
+            cost: 8, 
+            sellValue: 2, 
+            effect: "All dice that show consecutive numbers give ×3 Favour instead of ×2.",
+            god: "The Fates",
+            description: "The three sisters weave destiny in sequential patterns.",
+            timing: { before_score: true }
+        },
+        { 
+            id: "pandoras_jar", 
+            name: "Pandora's Jar", 
+            rarity: "epic", 
+            cost: 8, 
+            sellValue: 2, 
+            effect: "Every 3rd turn, randomly destroy a Boon and gain ×4 Favour for that turn.",
+            god: "Pandora",
+            timing: { before_score: true, turn_start: true }
+        },
+        
+        // === VIBRANT TIER - Interesting Mechanics ===
+        { 
+            id: "demeters_harvest", 
+            name: "Demeter's Harvest", 
+            rarity: "vibrant", 
+            cost: 5, 
+            sellValue: 1, 
+            effect: "Each turn, one random die permanently gains +1 to its value (max 9).",
+            god: "Demeter",
+            timing: { turn_start: true }
+        },
+        { 
+            id: "medusas_gaze", 
+            name: "Medusa's Gaze", 
+            rarity: "vibrant", 
+            cost: 5, 
+            sellValue: 1, 
+            effect: "Any die showing 6 cannot be rerolled (acts as automatic hold).",
+            god: "Medusa",
+            timing: { after_roll: true }
+        },
+        { 
+            id: "dionysus_revelry", 
+            name: "Dionysus' Revelry", 
+            rarity: "vibrant", 
+            cost: 5, 
+            sellValue: 1, 
+            effect: "After scoring, randomly set one die to a random value 1-6 for next turn.",
+            god: "Dionysus",
+            timing: { after_score: true }
+        },
+        { 
+            id: "apollos_oracle", 
+            name: "Apollo's Oracle", 
+            rarity: "vibrant", 
+            cost: 5, 
+            sellValue: 1, 
+            effect: "Before rolling, see what the next roll will be. Can choose to skip it.",
+            god: "Apollo",
+            description: "The god of prophecy grants foresight.",
+            timing: { before_roll: true }
+        },
+        { 
+            id: "hydras_heads", 
+            name: "Hydra's Heads", 
+            rarity: "vibrant", 
+            cost: 5, 
+            sellValue: 1, 
+            effect: "Whenever you score with exactly 2 dice, gain +30 Pips.",
+            god: "Hydra",
+            timing: { before_score: true }
+        },
+        { 
+            id: "tantalus_curse", 
+            name: "Tantalus' Curse", 
+            rarity: "vibrant", 
+            cost: 5, 
+            sellValue: 1, 
+            effect: "+1 Favour for each gold you have, but cannot spend gold while active.",
+            god: "Tantalus",
+            description: "Punishment eternal: wealth you cannot touch.",
+            timing: { before_score: true }
+        },
+        { 
+            id: "pegasus_flight", 
+            name: "Pegasus' Flight", 
+            rarity: "vibrant", 
+            cost: 5, 
+            sellValue: 1, 
+            effect: "Dice with values 5+ give ×0.5 extra Favour when scored.",
+            god: "Pegasus",
+            timing: { before_score: true }
+        },
+        { 
+            id: "cerberus_watch", 
+            name: "Cerberus' Watch", 
+            rarity: "vibrant", 
+            cost: 5, 
+            sellValue: 1, 
+            effect: "The first 3 dice you hold each turn gain +5 Pips each when scored.",
+            god: "Cerberus",
+            description: "The three-headed guardian blesses what you protect.",
+            timing: { before_score: true }
+        },
+        { 
+            id: "orpheus_lyre", 
+            name: "Orpheus' Lyre", 
+            rarity: "vibrant", 
+            cost: 5, 
+            sellValue: 1, 
+            effect: "Scoring the same category twice in a row gives ×2 Favour the second time.",
+            god: "Orpheus",
+            timing: { before_score: true }
+        },
+        { 
+            id: "trojan_horse", 
+            name: "The Trojan Horse", 
+            rarity: "vibrant", 
+            cost: 5, 
+            sellValue: 1, 
+            effect: "After Turn 10, all your Boons give ×2 their normal effect.",
+            description: "Hidden power revealed when the time is right.",
+            timing: { before_score: true }
+        },
+        
+        // === RUSTIC TIER - Simple but Effective ===
+        { 
+            id: "lucky_dice_bag", 
+            name: "Lucky Dice Bag", 
+            rarity: "rustic", 
+            cost: 3, 
+            sellValue: 1, 
+            effect: "Whenever you roll a 1, reroll that die automatically (once per die per turn).",
+            timing: { after_roll: true }
+        },
+        { 
+            id: "weighted_dice", 
+            name: "Weighted Dice", 
+            rarity: "rustic", 
+            cost: 3, 
+            sellValue: 1, 
+            effect: "+1 to all dice values when scoring (after rolling complete).",
+            timing: { before_score: true }
+        },
+        { 
+            id: "philosophers_stone", 
+            name: "Philosopher's Stone", 
+            rarity: "rustic", 
+            cost: 3, 
+            sellValue: 1, 
+            effect: "Convert +3 Favour into +1 Gold when scoring (automatic).",
+            description: "Alchemical transformation of divine favor into earthly wealth.",
+            timing: { after_score: true }
+        },
+        { 
+            id: "gamblers_charm", 
+            name: "Gambler's Charm", 
+            rarity: "rustic", 
+            cost: 3, 
+            sellValue: 1, 
+            effect: "50% chance to gain +2 Gold when scoring, 50% chance to gain nothing.",
+            timing: { after_score: true }
+        },
+        { 
+            id: "marathon_runner", 
+            name: "Marathon Runner", 
+            rarity: "rustic", 
+            cost: 3, 
+            sellValue: 1, 
+            effect: "Gain +2 Pips per turn completed this Ante (stacks).",
+            description: "Named for Pheidippides, who ran from Marathon to Athens.",
+            timing: { before_score: true }
+        },
+        { 
+            id: "golden_touch", 
+            name: "Golden Touch", 
+            rarity: "vibrant", 
+            cost: 5, 
+            sellValue: 1, 
+            effect: "Interest is calculated at 1 gold per 3 saved (instead of 5).",
+            god: "Midas",
+            description: "Better interest rate on saved gold.",
+            timing: { turn_start: true }
+        },
+        { 
+            id: "the_pantheon", 
+            name: "The Pantheon", 
+            rarity: "epic", 
+            cost: 8, 
+            sellValue: 2, 
+            effect: "For each unique god represented in your Boons, gain +0.5 Favour.",
+            description: "The collective power of all the gods.",
+            timing: { before_score: true }
         }
     ],
 

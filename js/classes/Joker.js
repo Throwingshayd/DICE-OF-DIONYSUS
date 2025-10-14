@@ -354,6 +354,173 @@ class Joker extends Card {
                 window.game?.showMessage?.("Antikythra: +1 Boon slot!");
                 break;
 
+            // === NEW BOONS - Epic Tier ===
+            case 'sisyphus_boulder':
+                // +5 Pips for every time you've rerolled this turn
+                const totalRerolls = (GAME_BALANCE.STARTING_ROLLS - gameState.rollsLeft);
+                const boulderBonus = totalRerolls * 5;
+                result.pips += boulderBonus;
+                this.dynamicStats.pips = boulderBonus;
+                if (boulderBonus > 0) {
+                    window.game?.showMessage?.(`Sisyphus' Boulder: +${boulderBonus} Pips!`);
+                }
+                break;
+            
+            case 'hephaestus_forge':
+                // Pairs (2 of same number) count as Three of a Kind - handled in scoring logic
+                window.game?.showMessage?.("Hephaestus' Forge: Pairs count as Three of a Kind!");
+                break;
+            
+            case 'kronos_hourglass':
+                // +2 Rolls permanently (handled in turn_start), score threshold +20% per ante
+                break;
+            
+            case 'the_fates_loom':
+                // All dice that show consecutive numbers give ×3 Favour instead of ×2
+                // Check for consecutive numbers
+                const sortedFaces = [...gameState.dice].map(d => d.face).sort((a, b) => a - b);
+                let hasConsecutive = false;
+                for (let i = 0; i < sortedFaces.length - 1; i++) {
+                    if (sortedFaces[i + 1] === sortedFaces[i] + 1) {
+                        hasConsecutive = true;
+                        break;
+                    }
+                }
+                if (hasConsecutive) {
+                    result.favour += 3; // +3 instead of normal +2
+                    window.game?.showMessage?.("The Fates' Loom: ×3 Favour for consecutive dice!");
+                }
+                break;
+            
+            case 'pandoras_jar':
+                // Every 3rd turn, randomly destroy a Boon and gain ×4 Favour
+                if (gameState.turn % 3 === 0 && gameState.boons && gameState.boons.length > 1) {
+                    result.favour += 4;
+                    window.game?.showMessage?.("Pandora's Jar: ×4 Favour! (Boon destroyed)");
+                    // Destruction handled in turn_start
+                }
+                break;
+            
+            // === NEW BOONS - Vibrant Tier ===
+            case 'demeters_harvest':
+                // Each turn, one random die permanently gains +1 (handled in turn_start)
+                break;
+            
+            case 'medusas_gaze':
+                // Any die showing 6 cannot be rerolled (handled in after_roll)
+                break;
+            
+            case 'dionysus_revelry':
+                // After scoring, randomly set one die (handled in after_score)
+                break;
+            
+            case 'apollos_oracle':
+                // Before rolling, see next roll (handled in before_roll)
+                break;
+            
+            case 'hydras_heads':
+                // Whenever you score with exactly 2 dice, gain +30 Pips
+                const diceUsedCount = gameState.dice.filter(d => d.face > 0).length;
+                if (diceUsedCount === 2) {
+                    result.pips += 30;
+                    window.game?.showMessage?.("Hydra's Heads: +30 Pips for using 2 dice!");
+                }
+                break;
+            
+            case 'tantalus_curse':
+                // +1 Favour for each gold, but cannot spend gold
+                const tantalusFavour = Math.floor(gameState.gold * 1);
+                result.favour += tantalusFavour;
+                this.dynamicStats.favour = tantalusFavour;
+                if (tantalusFavour > 0) {
+                    window.game?.showMessage?.(`Tantalus' Curse: +${tantalusFavour} Favour from gold!`);
+                }
+                // Gold blocking handled in shop
+                break;
+            
+            case 'pegasus_flight':
+                // Dice with values 5+ give ×0.5 extra Favour
+                const highDice = gameState.dice.filter(d => d.face >= 5).length;
+                if (highDice > 0) {
+                    result.favour += highDice * 0.5;
+                    window.game?.showMessage?.(`Pegasus' Flight: +${highDice * 0.5} Favour from high dice!`);
+                }
+                break;
+            
+            case 'cerberus_watch':
+                // The first 3 dice you hold each turn gain +5 Pips each
+                const heldDice = gameState.dice.filter(d => d.held).slice(0, 3);
+                const cerberusBonus = heldDice.length * 5;
+                result.pips += cerberusBonus;
+                if (cerberusBonus > 0) {
+                    window.game?.showMessage?.(`Cerberus' Watch: +${cerberusBonus} Pips for held dice!`);
+                }
+                break;
+            
+            case 'orpheus_lyre':
+                // Scoring same category twice in a row gives ×2 Favour
+                if (gameState.lastScoredCategory === result.category) {
+                    result.favour += 2;
+                    window.game?.showMessage?.("Orpheus' Lyre: ×2 Favour for repeat category!");
+                }
+                break;
+            
+            case 'trojan_horse':
+                // After Turn 10, all Boons give ×2 effect
+                if (gameState.turn > 10) {
+                    result.pips *= 2;
+                    result.favour *= 2;
+                    window.game?.showMessage?.("The Trojan Horse: ×2 to all Boon effects!");
+                }
+                break;
+            
+            // === NEW BOONS - Rustic Tier ===
+            case 'lucky_dice_bag':
+                // Reroll 1s automatically (handled in after_roll)
+                break;
+            
+            case 'weighted_dice':
+                // +1 to all dice values when scoring
+                result.pips += gameState.dice.length;
+                window.game?.showMessage?.(`Weighted Dice: +${gameState.dice.length} Pips!`);
+                break;
+            
+            case 'philosophers_stone':
+                // Convert +3 Favour into +1 Gold (handled in after_score)
+                break;
+            
+            case 'gamblers_charm':
+                // 50% chance +2 Gold (handled in after_score)
+                break;
+            
+            case 'marathon_runner':
+                // Gain +2 Pips per turn completed this Ante
+                const marathonBonus = (gameState.turn - 1) * 2;
+                result.pips += marathonBonus;
+                this.dynamicStats.pips = marathonBonus;
+                if (marathonBonus > 0) {
+                    window.game?.showMessage?.(`Marathon Runner: +${marathonBonus} Pips!`);
+                }
+                break;
+            
+            case 'golden_touch':
+                // Better interest rate (handled in shop/economy)
+                break;
+            
+            case 'the_pantheon':
+                // +0.5 Favour for each unique god in Boons
+                const gods = new Set();
+                gameState.boons.forEach(boon => {
+                    if (boon.god) gods.add(boon.god);
+                });
+                const pantheonFavour = gods.size * 0.5;
+                result.favour += pantheonFavour;
+                this.dynamicStats.favour = pantheonFavour;
+                if (pantheonFavour > 0) {
+                    window.game?.showMessage?.(`The Pantheon: +${pantheonFavour} Favour from ${gods.size} gods!`);
+                }
+                break;
+
             default:
                 // Unknown joker effect - log for debugging but don't break the game
                 Logger.warn(`Unknown joker effect: ${this.id} - this boon may not function correctly`);
@@ -386,7 +553,26 @@ class Joker extends Card {
     applyAfterRollEffect(gameState, result) {
         // Effects that trigger after dice are rolled
         switch (this.id) {
-            // Add after-roll effects here
+            case 'lucky_dice_bag':
+                // Reroll any 1s automatically (once per die per turn)
+                gameState.dice.forEach(die => {
+                    if (die.face === 1 && !die.hasBeenRerolled) {
+                        die.roll();
+                        die.hasBeenRerolled = true;
+                        window.game?.showMessage?.("Lucky Dice Bag: Rerolled a 1!");
+                    }
+                });
+                break;
+            
+            case 'medusas_gaze':
+                // Any die showing 6 cannot be rerolled (auto-hold)
+                gameState.dice.forEach(die => {
+                    if (die.face === 6) {
+                        die.held = true;
+                    }
+                });
+                window.game?.showMessage?.("Medusa's Gaze: All 6s are held!");
+                break;
         }
         return result;
     }
@@ -557,6 +743,42 @@ class Joker extends Card {
                     window.game?.showMessage?.("Strategic Mind: +1 hold capacity next turn!");
                 }
                 break;
+            
+            // === NEW BOONS - After Score ===
+            case 'dionysus_revelry':
+                // After scoring, randomly set one die to random value 1-6 for next turn
+                const revelryDie = gameState.dice[Math.floor(Math.random() * gameState.dice.length)];
+                const randomValue = Math.floor(Math.random() * 6) + 1;
+                revelryDie.face = randomValue;
+                window.game?.showMessage?.(`Dionysus' Revelry: One die set to ${randomValue}!`);
+                break;
+            
+            case 'philosophers_stone':
+                // Convert +3 Favour into +1 Gold
+                if (result.favour >= 3) {
+                    const goldGained = Math.floor(result.favour / 3);
+                    if (window.game && typeof window.game.updateGoldAnimated === 'function') {
+                        window.game.updateGoldAnimated(goldGained, "Philosopher's Stone");
+                    } else {
+                        gameState.gold += goldGained;
+                    }
+                    window.game?.showMessage?.(`Philosopher's Stone: +${goldGained} Gold from Favour!`);
+                }
+                break;
+            
+            case 'gamblers_charm':
+                // 50% chance to gain +2 Gold
+                if (Math.random() < 0.5) {
+                    if (window.game && typeof window.game.updateGoldAnimated === 'function') {
+                        window.game.updateGoldAnimated(2, "Gambler's Charm");
+                    } else {
+                        gameState.gold += 2;
+                    }
+                    window.game?.showMessage?.("Gambler's Charm: +2 Gold! Lucky!");
+                } else {
+                    window.game?.showMessage?.("Gambler's Charm: No luck this time.");
+                }
+                break;
         }
         return result;
     }
@@ -574,6 +796,35 @@ class Joker extends Card {
                 // Prometheus' Gift: one less re-roll each turn
                 gameState.rollsLeft = Math.max(1, gameState.rollsLeft - 1);
                 window.game?.showMessage?.("Prometheus' Gift: -1 re-roll!");
+                break;
+            
+            // === NEW BOONS - Turn Start ===
+            case 'kronos_hourglass':
+                // +2 Rolls permanently
+                gameState.rollsLeft = (GAME_BALANCE.STARTING_ROLLS + 2);
+                window.game?.showMessage?.("Kronos' Hourglass: +2 rolls!");
+                break;
+            
+            case 'pandoras_jar':
+                // Every 3rd turn, randomly destroy a Boon
+                if (gameState.turn % 3 === 0 && gameState.boons && gameState.boons.length > 1) {
+                    const randomIndex = Math.floor(Math.random() * gameState.boons.length);
+                    const destroyed = gameState.boons.splice(randomIndex, 1)[0];
+                    window.game?.showMessage?.(`Pandora's Jar: ${destroyed.name} destroyed!`, 3000);
+                }
+                break;
+            
+            case 'demeters_harvest':
+                // Each turn, one random die permanently gains +1 (max 9)
+                const harvestDie = gameState.dice[Math.floor(Math.random() * gameState.dice.length)];
+                const faceKeys = Object.keys(harvestDie.faces);
+                const randomFaceKey = faceKeys[Math.floor(Math.random() * faceKeys.length)];
+                const currentValue = harvestDie.faces[randomFaceKey].modifiedValue || harvestDie.faces[randomFaceKey].value;
+                
+                if (currentValue < 9) {
+                    harvestDie.faces[randomFaceKey].modifiedValue = currentValue + 1;
+                    window.game?.showMessage?.(`Demeter's Harvest: Die face ${randomFaceKey} → ${currentValue + 1}!`);
+                }
                 break;
         }
         // No return value needed for turn_start effects
