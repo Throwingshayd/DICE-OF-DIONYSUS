@@ -299,8 +299,8 @@ const CardData = {
             rarity: "rustic", 
             cost: 3, 
             sellValue: 1, 
-            effect: "Prime number dice (2,3,5,7) give +5 Pips each.",
-            description: "The elegance of prime numbers.",
+            effect: "Prime dice (2,3,5,7) give bonus: 1 prime=+1, 2=+2, 3=+3, 4=+5, 5=+7 pips.",
+            description: "Primes scored on primes - the more primes, the higher the prime bonus!",
             timing: { before_score: true }
         },
         { 
@@ -514,9 +514,10 @@ const CardData = {
             rarity: "vibrant", 
             cost: 5, 
             sellValue: 1, 
-            effect: "Gain pips equal to the square root of the number of categories scored (rounded up).",
-            description: "The journey grows with each step - progress compounds.",
-            timing: { before_score: true }
+            effect: "At end of Ante, if ALL categories filled with NO scratches, gain (total categories)² pips.",
+            description: "Complete the perfect journey - 13² = 169, 14² = 196, 15² = 225, 16² = 256 pips.",
+            god: "Odysseus",
+            timing: {} // Special - triggers at ante end
         },
         { 
             id: "message_in_a_bottle", 

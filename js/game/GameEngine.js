@@ -1641,9 +1641,6 @@ class GameEngine {
         // Reset The Zealot's last worship god at end of ante
         this.state.lastWorshipGod = null;
         
-        // Reset The Odyssey completion flag at end of ante
-        this.state.odysseyAwarded = false;
-        
         // The Investor/Cornucopia of Ploutos: multiply gold at end of ante
         const hasInvestor = this.state.jokers?.some(j => j.id === 'cornucopia_of_ploutos');
         if (hasInvestor && this.state.gold > 0) {
@@ -1654,6 +1651,41 @@ class GameEngine {
             this.state.gold = investorGold;
             this.showMessage(`Cornucopia of Ploutos: Gold ×1.5! (+${gained}g)`, 4000);
             Logger.info(`Cornucopia triggered: ${originalGold}g → ${investorGold}g (+${gained}g)`);
+        }
+        
+        // The Odyssey: perfect completion bonus at end of ante
+        const hasOdyssey = this.state.jokers?.some(j => j.id === 'the_odyssey');
+        if (hasOdyssey) {
+            // Build list of all required categories
+            const requiredCategories = [
+                'Ones', 'Twos', 'Threes', 'Fours', 'Fives', 'Sixes',
+                'Three of a Kind', 'Four of a Kind', 'Full House',
+                'Small Straight', 'Large Straight', 'Yahtzee', 'Chance'
+            ];
+            
+            // Add unlocked categories (7s, 8s, 9s)
+            if (this.state.unlockedCategories?.Sevens) requiredCategories.push('Sevens');
+            if (this.state.unlockedCategories?.Eights) requiredCategories.push('Eights');
+            if (this.state.unlockedCategories?.Nines) requiredCategories.push('Nines');
+            
+            // Check if ALL categories are filled (not undefined)
+            const allFilled = requiredCategories.every(cat => this.state.scorecard[cat] !== undefined);
+            
+            // Check if NO scratches (all scores > 0)
+            const noScratches = requiredCategories.every(cat => 
+                this.state.scorecard[cat] !== undefined && this.state.scorecard[cat] > 0
+            );
+            
+            if (allFilled && noScratches) {
+                const totalCategories = requiredCategories.length;
+                const odysseyBonus = totalCategories * totalCategories; // (total)²
+                
+                this.state.totalScore += odysseyBonus;
+                this.showMessage(`🏛️ THE ODYSSEY: Perfect Completion! +${odysseyBonus} Pips! (${totalCategories}² categories)`, 6000);
+                Logger.info(`The Odyssey triggered: ${totalCategories} categories completed perfectly = ${odysseyBonus} pips`);
+            } else {
+                Logger.debug(`The Odyssey not triggered - allFilled: ${allFilled}, noScratches: ${noScratches}`);
+            }
         }
         
         // Message in a Bottle: solo boon bonus at end of ante

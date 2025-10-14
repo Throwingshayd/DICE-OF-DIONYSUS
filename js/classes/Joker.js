@@ -642,7 +642,7 @@ class Joker extends Card {
                 break;
             
             case 'prime_time':
-                // Prime number dice (2,3,5,7) give +5 Pips each (only if unlocked)
+                // Prime dice (2,3,5,7) give bonus based on count: [1,2,3,5,7]
                 const primes = [2, 3, 5];
                 // Add 7 only if Sevens unlocked
                 if (gameState.unlockedCategories?.Sevens) {
@@ -651,8 +651,11 @@ class Joker extends Card {
                 
                 const primeCount = gameState.dice.filter(die => primes.includes(die.face)).length;
                 
+                // Bonus sequence: 1 prime=+1, 2=+2, 3=+3, 4=+5, 5=+7
+                const primeBonusSequence = [0, 1, 2, 3, 5, 7]; // Index 0 unused, index 1-5 are bonuses
+                
                 if (primeCount > 0) {
-                    const primeBonus = primeCount * 5;
+                    const primeBonus = primeBonusSequence[primeCount] || 0;
                     result.pips += primeBonus;
                     this.dynamicStats.pips = primeBonus;
                     window.game?.showMessage?.(`Prime Time: +${primeBonus} Pips from ${primeCount} primes!`);
@@ -846,29 +849,6 @@ class Joker extends Card {
                         result.favour += 1;
                         window.game?.showMessage?.(`The Zealot: +×1 Favour (${gameState.lastWorshipGod})!`);
                     }
-                }
-                break;
-            
-            case 'the_odyssey':
-                // Gain pips equal to square root of number of categories scored (rounded up)
-                const allCategories = [
-                    'Ones', 'Twos', 'Threes', 'Fours', 'Fives', 'Sixes',
-                    'Three of a Kind', 'Four of a Kind', 'Full House',
-                    'Small Straight', 'Large Straight', 'Yahtzee', 'Chance'
-                ];
-                
-                // Add unlocked categories (7s, 8s, 9s)
-                if (gameState.unlockedCategories?.Sevens) allCategories.push('Sevens');
-                if (gameState.unlockedCategories?.Eights) allCategories.push('Eights');
-                if (gameState.unlockedCategories?.Nines) allCategories.push('Nines');
-                
-                const odysseyScored = allCategories.filter(cat => gameState.scorecard[cat] !== undefined).length;
-                const odysseyBonus = Math.ceil(Math.sqrt(odysseyScored));
-                
-                if (odysseyBonus > 0) {
-                    result.pips += odysseyBonus;
-                    this.dynamicStats.pips = odysseyBonus;
-                    window.game?.showMessage?.(`The Odyssey: +${odysseyBonus} Pips (√${odysseyScored} categories)!`);
                 }
                 break;
             
