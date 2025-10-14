@@ -1083,7 +1083,7 @@ class GameEngine {
     startNewRun() {
         // Clear saved game
         if (this.dataManager) {
-            this.dataManager.clearSave();
+            this.dataManager.deleteSave('auto');
         }
         
         // Reload the page to start fresh
