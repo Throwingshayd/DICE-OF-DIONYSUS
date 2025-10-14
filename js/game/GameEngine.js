@@ -826,6 +826,20 @@ class GameEngine {
      * @param {Function} callback - Called when complete
      */
     animateNumberCount(element, start, end, duration, callback) {
+        if (!element) {
+            Logger.warn('animateNumberCount: No element provided');
+            if (callback) callback();
+            return;
+        }
+        
+        // Validate numbers
+        if (typeof start !== 'number' || typeof end !== 'number' || isNaN(start) || isNaN(end)) {
+            Logger.error(`Invalid numbers for animation: start=${start}, end=${end}`);
+            element.textContent = end || 0;
+            if (callback) callback();
+            return;
+        }
+        
         const startTime = Date.now();
         const difference = end - start;
         
@@ -897,9 +911,17 @@ class GameEngine {
      * @param {string} reason - Optional reason for the change
      */
     updateGoldAnimated(change, reason = null) {
-        const oldGold = this.state.gold;
-        const newGold = oldGold + change;
+        // Defensive: Validate inputs
+        if (typeof change !== 'number' || isNaN(change)) {
+            Logger.error(`Invalid gold change: ${change}`);
+            return;
+        }
+        
+        const oldGold = this.state.gold || 0;
+        const newGold = Math.max(0, oldGold + change); // Prevent negative gold
         this.state.gold = newGold;
+        
+        Logger.debug(`Gold: ${oldGold} → ${newGold} (${change >= 0 ? '+' : ''}${change}) [${reason || 'unknown'}]`);
         
         // Get gold display elements
         const goldDisplays = [
@@ -907,6 +929,11 @@ class GameEngine {
             document.getElementById('shopGold'),
             ...document.querySelectorAll('.gold-display')
         ].filter(el => el !== null);
+        
+        if (goldDisplays.length === 0) {
+            Logger.warn('No gold display elements found');
+            return;
+        }
         
         goldDisplays.forEach(goldElement => {
             // Flash color
@@ -918,8 +945,13 @@ class GameEngine {
                 this.showFloatingGold(`${change}g`, goldElement, 'negative');
             }
             
-            // Animate count
-            this.animateNumberCount(goldElement, oldGold, newGold, 500);
+            // Animate count only if both values are valid numbers
+            if (!isNaN(oldGold) && !isNaN(newGold)) {
+                this.animateNumberCount(goldElement, oldGold, newGold, 500);
+            } else {
+                // Fallback: Just set the value directly
+                goldElement.textContent = newGold;
+            }
             
             // Reset color after animation
             setTimeout(() => {
@@ -927,8 +959,8 @@ class GameEngine {
             }, 600);
         });
         
-        // Update UI
-        this.updateAllUI();
+        // Don't call updateAllUI() here - it can interrupt animations
+        // The UI will update naturally after animations complete
     }
     
     /**
