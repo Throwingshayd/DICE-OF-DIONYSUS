@@ -183,192 +183,13 @@ class Joker extends Card {
     }
 
     // Apply the specific effect of this joker
+    // DEPRECATED: Legacy method - all boons should use timing-based system
+    // This is kept for artifacts and special cases only
     applyEffect(event, gameState, eventData) {
         const result = { ...eventData };
 
         switch (this.id) {
-            // Boons from CSV database only
-            case 'hestias_hearth':
-                // If all 5 of your dice are odd or all 5 are even the hand gains +3 Favour
-                const allOdd = gameState.dice.every(d => d.face % 2 === 1);
-                const allEven = gameState.dice.every(d => d.face % 2 === 0);
-                if (allOdd || allEven) {
-                    result.favour += 3;
-                    window.game?.showMessage?.("Hestia's Hearth: +3 Favour!");
-                }
-                break;
-
-            case 'charons_ferry_fare':
-                // Gain +1 Gold after scoring any hand (does not trigger on a scratch)
-                if (result.pips > 0) {
-                    gameState.gold += 1;
-                    window.game?.showMessage?.("Charon's Ferry Fare: +1 Gold!");
-                }
-                break;
-
-            case 'achilles_heel':
-                // All scores gain +10 Pips but you lose 1 Gold at the start of each roll
-                result.pips += 10;
-                // Gold loss handled in turn start
-                break;
-
-            case 'midas_touch':
-                // Gain +5 pips for every 10 Gold you have when scoring
-                const goldBonus = Math.floor(gameState.gold / 10) * 5;
-                result.pips += goldBonus;
-                if (goldBonus > 0) {
-                    window.game?.showMessage?.(`Midas Touch: +${goldBonus} Pips!`);
-                }
-                break;
-
-            case 'icarus_wings':
-                // Each unused re-roll at the end of a turn gives +10 Pips to the score. Chance to break after turn 1 in 6
-                const unusedRerolls = gameState.rollsLeft;
-                const rerollBonus = Math.max(0, unusedRerolls * 10);
-                result.pips += rerollBonus;
-                if (rerollBonus > 0) {
-                    window.game?.showMessage?.(`Icarus' Wings: +${rerollBonus} Pips!`);
-                }
-                // Break chance handled in turn end
-                break;
-
-            case 'lethe_waters':
-                // All dice with a value of 2 or less are not counted for scoring but your final score gains +15 Pips
-                const lowDice = gameState.dice.filter(d => d.face <= 2);
-                if (lowDice.length > 0) {
-                    result.pips += 15;
-                    window.game?.showMessage?.("Lethe Waters: +15 Pips!");
-                }
-                break;
-
-            case 'forge_of_hephaestus':
-                // Gain x0.5 Favour for each unused re-roll you have at the end of the turn (Max x1.5)
-                const unusedRerollsForge = gameState.rollsLeft;
-                const favourBonus = Math.min(Math.max(0, unusedRerollsForge) * 0.5, 1.5);
-                result.favour += favourBonus;
-                if (favourBonus > 0) {
-                    window.game?.showMessage?.(`Forge of Hephaestus: +${favourBonus} Favour!`);
-                }
-                break;
-
-            case 'prometheus_gift':
-                // Gives +3 Favour to all hands but you have one less re-roll each turn
-                result.favour += 3;
-                // Reroll penalty handled in turn start
-                break;
-
-            case 'chaos_primordial':
-                // All Favour gains are increased by 50% but Pips are randomized (1-40)
-                result.favour = Math.floor(result.favour * 1.5);
-                result.pips = Math.floor(Math.random() * 40) + 1;
-                window.game?.showMessage?.("Chaos Primordial: Favour +50%, Pips randomized!");
-                break;
-
-            case 'artemis_common':
-                // Gain +1 Gold whenever you score 'Ones'
-                if (result.category === 'Ones') {
-                    gameState.gold += 1;
-                    window.game?.showMessage?.("Artemis' Blessing: +1 Gold!");
-                }
-                break;
-
-            case 'persephone_common':
-                // Twos give +2 Pips each when scored
-                if (result.category === 'Twos') {
-                    const twos = gameState.dice.filter(d => d.face === 2).length;
-                    result.pips += twos * 2;
-                }
-                break;
-
-            case 'persephone_uncommon':
-                // After scoring 'Twos' gain +1 Gold per 2 in the hand
-                if (result.category === 'Twos') {
-                    const twos = gameState.dice.filter(d => d.face === 2).length;
-                    gameState.gold += twos;
-                    window.game?.showMessage?.(`Spring's Return: +${twos} Gold!`);
-                }
-                break;
-
-            case 'morpheus_common':
-                // Threes give +1 Favour each when scored
-                if (result.category === 'Threes') {
-                    const threes = gameState.dice.filter(d => d.face === 3).length;
-                    result.favour += threes;
-                }
-                break;
-
-            case 'heracles_rare':
-                // gains x1 favour per worship used
-                const worshipCount = Object.values(gameState.worshipLevels || {}).reduce((sum, level) => sum + level, 0);
-                result.favour += worshipCount;
-                if (worshipCount > 0) {
-                    window.game?.showMessage?.(`Mt Olympus: +${worshipCount} Favour!`);
-                }
-                break;
-
-            case 'hera_uncommon':
-                // After scoring 'Fours' all other dice in your hand are re-rolled. Add their new values as bonus Pips
-                if (result.category === 'Fours') {
-                    const nonFours = gameState.dice.filter(d => d.face !== 4);
-                    const rerollBonus = nonFours.reduce((sum, die) => sum + Math.floor(Math.random() * 6) + 1, 0);
-                    result.pips += rerollBonus;
-                    window.game?.showMessage?.(`Queen's Authority: +${rerollBonus} Pips!`);
-                }
-                break;
-
-            case 'athena_common':
-                // For every 5 in a scored 'Fives' hand gain +10 Pips
-                if (result.category === 'Fives') {
-                    const fives = gameState.dice.filter(d => d.face === 5).length;
-                    result.pips += fives * 10;
-                }
-                break;
-
-            case 'athena_uncommon':
-                // After scoring 'Fives' you may hold one extra die above the normal limit for the next turn
-                if (result.category === 'Fives') {
-                    // Extra hold handled in turn start
-                    window.game?.showMessage?.("Strategic Mind: +1 hold capacity next turn!");
-                }
-                break;
-
-            case 'poseidon_eights_rare':
-                // Eights count as 10s for scoring
-                if (result.category === 'Eights') {
-                    const eights = gameState.dice.filter(d => d.face === 8).length;
-                    result.pips += eights * 2; // +2 per eight (8 becomes 10)
-                }
-                break;
-
-            case 'scaled_of_justice':
-                // Balance pips as dice to the average value (rounded)
-                const totalPips = gameState.dice.reduce((sum, die) => sum + die.face, 0);
-                const averagePips = Math.round(totalPips / 5);
-                result.pips = averagePips * 5;
-                window.game?.showMessage?.(`Scales of Justice: Balanced to ${averagePips} average!`);
-                break;
-
-            case 'parmenides':
-                // Lowest 2 dice show -1 (min 0); highest 2 dice show +1 (max 9)
-                const sortedDice = [...gameState.dice].sort((a, b) => a.face - b.face);
-                const lowestTwo = sortedDice.slice(0, 2);
-                const highestTwo = sortedDice.slice(-2);
-                
-                let adjustment = 0;
-                lowestTwo.forEach(die => {
-                    if (die.face > 0) adjustment -= 1;
-                });
-                highestTwo.forEach(die => {
-                    if (die.face < 9) adjustment += 1;
-                });
-                
-                result.pips += adjustment;
-                if (adjustment !== 0) {
-                    window.game?.showMessage?.(`Parmenides: ${adjustment > 0 ? '+' : ''}${adjustment} Pips!`);
-                }
-                break;
-
-            // Divine Artifacts from CSV database
+            // === ARTIFACTS ONLY (not boons) ===
             case 'artifact_temple_market':
                 // Shop inventory size increased by 1
                 gameState.shopInventorySize = (gameState.shopInventorySize || 3) + 1;
@@ -398,11 +219,311 @@ class Joker extends Card {
                 window.game?.showMessage?.("Antikythra: +1 Boon slot!");
                 break;
 
-            // === NEW BOONS - Epic Tier ===
+            // === ALL BOONS NOW USE TIMING SYSTEM ===
+            // All boon effects removed from legacy applyEffect() method
+            // They are now handled in applyBeforeScoreEffect(), applyAfterScoreEffect(), etc.
+            
+            default:
+                // Unknown effect - log for debugging
+                if (this.id && !this.id.startsWith('artifact_')) {
+                    Logger.debug(`Boon ${this.id} using timing system (not legacy applyEffect)`);
+                }
+                break;
+        }
+
+        return result;
+    }
+
+    // Balatro-inspired timing system
+    onTimingEvent(timingEvent, gameState, eventData = null) {
+        // Special handling for Proteus' Disguise - mimics other boons
+        if (this.id === 'proteus_disguise') {
+            return this.applyProteusEffect(timingEvent, gameState, eventData);
+        }
+        
+        if (!this.canUse() || !this.timing[timingEvent]) {
+            return eventData;
+        }
+
+        // Check conditions if any exist
+        if (!this.checkConditions(gameState, eventData)) {
+            return eventData;
+        }
+
+        // Track boon triggers for Eruption of Etna
+        if (timingEvent === 'before_score' && this.id !== 'eruption_of_etna') {
+            gameState.boonTriggersThisTurn = (gameState.boonTriggersThisTurn || 0) + 1;
+        }
+
+        // Apply the joker's effect based on timing
+        let result = this.applyTimingEffect(timingEvent, gameState, eventData);
+        
+        // Reflection of Narcissus: Apply effect a second time (but not for narcissus itself)
+        const hasNarcissus = gameState.jokers?.some(j => j.id === 'reflection_of_narcissus');
+        if (hasNarcissus && this.id !== 'reflection_of_narcissus' && !gameState.narcissusDoubling) {
+            try {
+                gameState.narcissusDoubling = true; // Prevent infinite loops
+                result = this.applyTimingEffect(timingEvent, gameState, result);
+            } finally {
+                gameState.narcissusDoubling = false; // Always clear flag
+            }
+        }
+        
+        // Track usage
+        if (result !== eventData) {
+            this.use();
+            this.totalValue += this.calculateValueAdded(eventData, result);
+        }
+
+        return result;
+    }
+
+    // Apply effects based on timing events
+    applyTimingEffect(timingEvent, gameState, eventData) {
+        // For turn_start events, we don't need to track value changes
+        if (timingEvent === 'turn_start') {
+            this.applyTurnStartEffect(gameState, eventData || {});
+            return eventData; // Return unchanged to avoid value tracking
+        }
+        
+        const result = eventData ? { ...eventData } : {};
+
+        let processedResult;
+        switch (timingEvent) {
+            case 'before_roll':
+                processedResult = this.applyBeforeRollEffect(gameState, result);
+                break;
+            case 'after_roll':
+                processedResult = this.applyAfterRollEffect(gameState, result);
+                break;
+            case 'before_score':
+                processedResult = this.applyBeforeScoreEffect(gameState, result);
+                break;
+            case 'after_score':
+                processedResult = this.applyAfterScoreEffect(gameState, result);
+                break;
+            case 'turn_end':
+                processedResult = this.applyTurnEndEffect(gameState, result);
+                break;
+            case 'shop_enter':
+                processedResult = this.applyShopEnterEffect(gameState, result);
+                break;
+            case 'shop_exit':
+                processedResult = this.applyShopExitEffect(gameState, result);
+                break;
+            case 'hand_effect':
+                processedResult = this.applyHandEffect(gameState, result);
+                break;
+            default:
+                processedResult = result;
+                break;
+        }
+        
+        // Apply The Trojan Horse artifact multiplier (if active)
+        const multiplier = gameState.boonMultiplier || 1;
+        if (multiplier !== 1 && processedResult) {
+            if (processedResult.pips !== undefined) {
+                processedResult.pips = Math.floor(processedResult.pips * multiplier);
+            }
+            if (processedResult.favour !== undefined) {
+                processedResult.favour = processedResult.favour * multiplier;
+            }
+            if (processedResult.gold !== undefined) {
+                processedResult.gold = Math.floor(processedResult.gold * multiplier);
+            }
+        }
+        
+        return processedResult;
+    }
+
+    // Check if conditions are met for activation
+    checkConditions(gameState, eventData) {
+        for (const [condition, value] of Object.entries(this.conditions)) {
+            if (!this.checkCondition(condition, value, gameState, eventData)) {
+                return false;
+            }
+        }
+        return true;
+    }
+
+    // Check a specific condition
+    checkCondition(condition, value, gameState, eventData) {
+        switch (condition) {
+            case 'category':
+                return eventData.category === value;
+            case 'minPips':
+                return eventData.pips >= value;
+            case 'maxPips':
+                return eventData.pips <= value;
+            case 'minDice':
+                return gameState.dice.filter(d => d.face === value).length >= this.conditions.minCount;
+            case 'turn':
+                return gameState.turn === value;
+            case 'ante':
+                return gameState.ante === value;
+            default:
+                return true;
+        }
+    }
+
+    // === TIMING-BASED EFFECT METHODS (Main Implementation) ===
+
+    // Apply effects before rolling dice
+    applyBeforeRollEffect(gameState, result) {
+        switch (this.id) {
+            case 'achilles_heel':
+                // Achilles Heel: lose 1 Gold at the start of each roll
+                if (gameState.gold > 0) {
+                    gameState.gold -= 1;
+                    window.game?.showMessage?.("Achilles' Heel: -1 Gold!");
+                }
+                break;
+            case 'prometheus_gift':
+                // Prometheus' Gift: one less re-roll each turn
+                gameState.rollsLeft = Math.max(1, gameState.rollsLeft - 1);
+                window.game?.showMessage?.("Prometheus' Gift: -1 re-roll!");
+                break;
+        }
+        return result;
+    }
+
+    applyAfterRollEffect(gameState, result) {
+        // Effects that trigger after dice are rolled
+        switch (this.id) {
+            case 'lucky_dice_bag':
+                // Reroll any 1s automatically (once per die per turn)
+                gameState.dice.forEach(die => {
+                    if (die.face === 1 && !die.hasBeenRerolled) {
+                        die.roll();
+                        die.hasBeenRerolled = true;
+                        window.game?.showMessage?.("Lucky Dice Bag: Rerolled a 1!");
+                    }
+                });
+                break;
+            
+            case 'medusas_gaze':
+                // Any die showing 6 cannot be rerolled (auto-hold)
+                let medusaSixes = 0;
+                gameState.dice.forEach(die => {
+                    if (die.face === 6) {
+                        die.held = true;
+                        medusaSixes++;
+                    }
+                });
+                if (medusaSixes > 0) {
+                    window.game?.showMessage?.(`Medusa's Gaze: ${medusaSixes} sixes held!`);
+                }
+                break;
+            
+            case 'the_locksmith':
+                // Track rolls held for each die
+                gameState.dice.forEach(die => {
+                    if (die.held) {
+                        die.rollsHeld = (die.rollsHeld || 0) + 1;
+                    }
+                });
+                break;
+            
+            case 'reckless_abandon':
+                // Force all dice to be unheld - no strategy allowed!
+                gameState.dice.forEach(die => {
+                    die.held = false;
+                });
+                break;
+            
+            case 'symmetry':
+                // Detect palindromic dice patterns and add permanent favour
+                const symmetryValues = gameState.dice.map(d => d.face);
+                const isSymmetric = symmetryValues.every((val, idx) => 
+                    val === symmetryValues[symmetryValues.length - 1 - idx]
+                );
+                
+                if (isSymmetric) {
+                    if (!this.symmetryFavour) {
+                        this.symmetryFavour = 0;
+                    }
+                    this.symmetryFavour += 0.5;
+                    
+                    window.game?.showMessage?.(`✨ Symmetry: Palindrome detected! [${symmetryValues.join('-')}] Card gains +0.5 Favour!`, 4000);
+                    Logger.info(`Symmetry triggered! Pattern: [${symmetryValues.join('-')}], Total favour: ${this.symmetryFavour}`);
+                }
+                break;
+            
+            case 'typhon':
+                // Check if this is the first roll of the turn and all dice show 1
+                const isFirstRoll = (gameState.rollsLeft === (GAME_BALANCE.STARTING_ROLLS - 1));
+                const allOnes = gameState.dice.every(die => die.face === 1);
+                
+                if (isFirstRoll && allOnes) {
+                    const typhonBonus = Math.floor(gameState.scoreThreshold * 0.9);
+                    gameState.typhonBonus = typhonBonus;
+                    window.game?.showMessage?.(`🌋 TYPHON AWAKENS! All 1s = +${typhonBonus} Pips!`, 6000);
+                    Logger.info(`Typhon triggered! Incredibly rare event - 1 in 7,776 chance!`);
+                }
+                break;
+            
+            case 'smog_of_morpheus':
+                // After final roll, transform 2s and 4s to 3s
+                if (gameState.rollsLeft === 0) {
+                    let morpheusTransformed = 0;
+                    
+                    gameState.dice.forEach(die => {
+                        if (die.face === 2 || die.face === 4) {
+                            die.face = 3;
+                            morpheusTransformed++;
+                        }
+                    });
+                    
+                    if (morpheusTransformed > 0) {
+                        window.game?.showMessage?.(`Smog of Morpheus: ${morpheusTransformed} dice → 3 (final roll)!`, 3000);
+                    }
+                }
+                break;
+            
+            case 'marathon_runner':
+                // Increment pips after each roll
+                if (!this.marathonPips) {
+                    this.marathonPips = 0;
+                }
+                this.marathonPips += 1;
+                
+                // Update dynamic display to show progress towards 42km goal
+                this.dynamicStats.pips = this.marathonPips;
+                const scratchCount = this.marathonScratches || 0;
+                this.dynamicStats.other = scratchCount > 0 ? `💀${scratchCount}/3` : `${this.marathonPips}/42`;
+                break;
+        }
+        return result;
+    }
+    
+    // Special handler for Proteus - mimics other boons
+    applyProteusEffect(timingEvent, gameState, eventData) {
+        // Get the boon to mimic this turn
+        if (!gameState.proteusMimicId) {
+            return eventData; // No mimic selected yet
+        }
+        
+        // Find the boon to mimic
+        const mimickedBoon = gameState.jokers?.find(b => b.id === gameState.proteusMimicId);
+        if (!mimickedBoon || !mimickedBoon.timing[timingEvent]) {
+            return eventData; // Boon not found or doesn't have this timing
+        }
+        
+        // Execute the mimicked boon's timing effect
+        try {
+            return mimickedBoon.applyTimingEffect(timingEvent, gameState, eventData);
+        } catch (error) {
+            Logger.error(`Proteus failed to mimic ${gameState.proteusMimicId}:`, error);
+            return eventData;
+        }
+    }
+
+    applyBeforeScoreEffect(gameState, result) {
+        switch (this.id) {
             case 'sisyphus_boulder':
                 // +5 Pips for every time you've rerolled this turn
                 const totalRerolls = (GAME_BALANCE.STARTING_ROLLS - gameState.rollsLeft);
-                const boulderBonus = totalRerolls * 5;
+                const boulderBonus = totalRerolls * BOON_EFFECTS.SISYPHUS_BOULDER.PIPS_PER_REROLL;
                 result.pips += boulderBonus;
                 this.dynamicStats.pips = boulderBonus;
                 if (boulderBonus > 0) {
@@ -417,7 +538,7 @@ class Joker extends Card {
             
             case 'kronos_hourglass':
                 // Reduce score by 20%
-                result.pips = Math.floor(result.pips * 0.8);
+                result.pips = Math.floor(result.pips * BOON_EFFECTS.KRONOS_HOURGLASS.SCORE_PENALTY);
                 window.game?.showMessage?.("Kronos' Hourglass: Score reduced by 20%!");
                 break;
             
@@ -440,7 +561,7 @@ class Joker extends Card {
             
             case 'pandoras_jar':
                 // Every 3rd turn, randomly destroy a Boon and gain ×4 Favour
-                if (gameState.turn % 3 === 0 && gameState.boons && gameState.boons.length > 1) {
+                if (gameState.turn % 3 === 0 && gameState.jokers && gameState.jokers.length > 1) {
                     result.favour += 4;
                     window.game?.showMessage?.("Pandora's Jar: ×4 Favour! (Boon destroyed)");
                     // Destruction handled in turn_start
@@ -448,21 +569,7 @@ class Joker extends Card {
                 break;
             
             // === NEW BOONS - Vibrant Tier ===
-            case 'demeters_harvest':
-                // Each turn, one random die permanently gains +1 (handled in turn_start)
-                break;
-            
-            case 'medusas_gaze':
-                // Any die showing 6 cannot be rerolled (handled in after_roll)
-                break;
-            
-            case 'dionysus_revelry':
-                // After scoring, randomly set one die (handled in after_score)
-                break;
-            
-            case 'apollos_oracle':
-                // Before rolling, see next roll (handled in before_roll)
-                break;
+            // (Placeholder cases removed - effects now in proper timing methods)
             
             case 'hydras_heads':
                 // Whenever you score with exactly 2 dice, gain +3 Favour
@@ -522,11 +629,11 @@ class Joker extends Card {
                 break;
             
             case 'trojan_horse':
-                // After Turn 10, all Boons give ×2 effect
-                if (gameState.turn > 10) {
-                    result.pips *= 2;
-                    result.favour *= 2;
-                    window.game?.showMessage?.("The Trojan Horse: ×2 to all Boon effects!");
+                // After Turn 10, all Boons give ×2 effect (handled by global multiplier in applyTimingEffect)
+                // Show big activation message at turn 11
+                if (gameState.turn === 11) {
+                    window.game?.showMessage?.("🐴 THE TROJAN HORSE ACTIVATES! All boons now ×2!", 5000);
+                    Logger.info("Trojan Horse activated at turn 11 - all boons now doubled!");
                 }
                 break;
             
@@ -567,7 +674,7 @@ class Joker extends Card {
             case 'the_pantheon':
                 // +0.5 Favour for each unique god in Boons
                 const gods = new Set();
-                gameState.boons.forEach(boon => {
+                (gameState.jokers || []).forEach(boon => {
                     if (boon.god) gods.add(boon.god);
                 });
                 const pantheonFavour = gods.size * 0.5;
@@ -628,7 +735,10 @@ class Joker extends Card {
                 if (hereticPips > 0) {
                     result.pips += hereticPips;
                     this.dynamicStats.pips = hereticPips;
-                    window.game?.showMessage?.(`The Heretic: +${hereticPips} Pips!`);
+                    this.dynamicStats.other = `🚫 No Worship`;
+                    window.game?.showMessage?.(`The Heretic: +${hereticPips} Pips (stacking)!`);
+                } else {
+                    this.dynamicStats.other = 'Building...';
                 }
                 break;
             
@@ -651,10 +761,15 @@ class Joker extends Card {
                 // Turns 1-3: +20 Pips, turns 6-13: -5 Pips
                 if (gameState.turn >= 1 && gameState.turn <= 3) {
                     result.pips += 20;
-                    window.game?.showMessage?.("Early Bird: +20 Pips!");
+                    window.game?.showMessage?.("🌅 Early Bird: +20 Pips! (Morning phase)");
+                    this.dynamicStats.other = '☀️ Morning';
                 } else if (gameState.turn >= 6 && gameState.turn <= 13) {
                     result.pips -= 5;
                     window.game?.showMessage?.("Early Bird: -5 Pips (late game penalty)");
+                    this.dynamicStats.other = '🌙 Evening';
+                } else {
+                    // Turns 4-5 (gold phase)
+                    this.dynamicStats.other = '💰 Midday';
                 }
                 break;
             
@@ -710,16 +825,22 @@ class Joker extends Card {
                 const categoriesScored = Object.keys(gameState.scorecard).length;
                 
                 if (categoriesScored === 0) {
-                    result.pips += 50;
-                    window.game?.showMessage?.("First Blood: +50 Pips!");
+                    result.pips += BOON_EFFECTS.FIRST_BLOOD.FIRST_SCORE_BONUS;
+                    window.game?.showMessage?.("⚔️ First Blood: +50 Pips! (First score of Ante)", 3000);
+                    this.dynamicStats.other = '✓ USED';
+                } else {
+                    this.dynamicStats.other = '✗ Next Ante';
                 }
                 break;
             
             case 'midnight_oil':
                 // Turn 12+ gives +24 Pips
-                if (gameState.turn >= 12) {
-                    result.pips += 24;
-                    window.game?.showMessage?.("Midnight Oil: +24 Pips!");
+                if (gameState.turn >= BOON_EFFECTS.MIDNIGHT_OIL.LATE_GAME_TURN) {
+                    result.pips += BOON_EFFECTS.MIDNIGHT_OIL.PIPS_BONUS;
+                    window.game?.showMessage?.("🕯️ Midnight Oil: +24 Pips! (Late game boost)", 2500);
+                    this.dynamicStats.other = '✓ ACTIVE';
+                } else {
+                    this.dynamicStats.other = `T${BOON_EFFECTS.MIDNIGHT_OIL.LATE_GAME_TURN - gameState.turn}`;
                 }
                 break;
             
@@ -813,7 +934,7 @@ class Joker extends Card {
                         this.etnaFavourStacks = 0;
                     }
                     this.etnaFavourStacks += 1;
-                    window.game?.showMessage?.(`🌋 Eruption of Etna: +×1 Favour (${etnaTriggersThisTurn} boons)!`);
+                    window.game?.showMessage?.(`🌋 Eruption of Etna: +×1 Favour (${etnaTriggersThisTurn} boons triggered)!`, 3000);
                 }
                 
                 // Apply accumulated favour
@@ -821,6 +942,9 @@ class Joker extends Card {
                     result.favour += this.etnaFavourStacks;
                     this.dynamicStats.favour = this.etnaFavourStacks;
                 }
+                
+                // Always show trigger count for player feedback
+                this.dynamicStats.other = `🎴${etnaTriggersThisTurn}`;
                 break;
             
             case 'ascetics_vow':
@@ -951,250 +1075,13 @@ class Joker extends Card {
         return result;
     }
 
-    applyAfterRollEffect(gameState, result) {
-        // Effects that trigger after dice are rolled
-        switch (this.id) {
-            case 'lucky_dice_bag':
-                // Reroll any 1s automatically (once per die per turn)
-                gameState.dice.forEach(die => {
-                    if (die.face === 1 && !die.hasBeenRerolled) {
-                        die.roll();
-                        die.hasBeenRerolled = true;
-                        window.game?.showMessage?.("Lucky Dice Bag: Rerolled a 1!");
-                    }
-                });
-                break;
-            
-            case 'medusas_gaze':
-                // Any die showing 6 cannot be rerolled (auto-hold)
-                let medusaSixes = 0;
-                gameState.dice.forEach(die => {
-                    if (die.face === 6) {
-                        die.held = true;
-                        medusaSixes++;
-                    }
-                });
-                if (medusaSixes > 0) {
-                    window.game?.showMessage?.(`Medusa's Gaze: ${medusaSixes} sixes held!`);
-                }
-                break;
-            
-            case 'the_locksmith':
-                // Track rolls held for each die
-                gameState.dice.forEach(die => {
-                    if (die.held) {
-                        die.rollsHeld = (die.rollsHeld || 0) + 1;
-                    }
-                });
-                break;
-            
-            case 'reckless_abandon':
-                // Force all dice to be unheld - no strategy allowed!
-                gameState.dice.forEach(die => {
-                    die.held = false;
-                });
-                break;
-            
-            case 'symmetry':
-                // Detect palindromic dice patterns and add permanent favour
-                const symmetryValues = gameState.dice.map(d => d.face);
-                const isSymmetric = symmetryValues.every((val, idx) => 
-                    val === symmetryValues[symmetryValues.length - 1 - idx]
-                );
-                
-                if (isSymmetric) {
-                    if (!this.symmetryFavour) {
-                        this.symmetryFavour = 0;
-                    }
-                    this.symmetryFavour += 0.5;
-                    
-                    window.game?.showMessage?.(`✨ Symmetry: Palindrome detected! [${symmetryValues.join('-')}] Card gains +0.5 Favour!`, 4000);
-                    Logger.info(`Symmetry triggered! Pattern: [${symmetryValues.join('-')}], Total favour: ${this.symmetryFavour}`);
-                }
-                break;
-            
-            case 'typhon':
-                // Check if this is the first roll of the turn and all dice show 1
-                const isFirstRoll = (gameState.rollsLeft === (GAME_BALANCE.STARTING_ROLLS - 1));
-                const allOnes = gameState.dice.every(die => die.face === 1);
-                
-                if (isFirstRoll && allOnes) {
-                    const typhonBonus = Math.floor(gameState.scoreThreshold * 0.9);
-                    gameState.typhonBonus = typhonBonus;
-                    window.game?.showMessage?.(`🌋 TYPHON AWAKENS! All 1s = +${typhonBonus} Pips!`, 6000);
-                    Logger.info(`Typhon triggered! Incredibly rare event - 1 in 7,776 chance!`);
-                }
-                break;
-            
-            case 'smog_of_morpheus':
-                // After final roll, transform 2s and 4s to 3s
-                if (gameState.rollsLeft === 0) {
-                    let morpheusTransformed = 0;
-                    
-                    gameState.dice.forEach(die => {
-                        if (die.face === 2 || die.face === 4) {
-                            die.face = 3;
-                            morpheusTransformed++;
-                        }
-                    });
-                    
-                    if (morpheusTransformed > 0) {
-                        window.game?.showMessage?.(`Smog of Morpheus: ${morpheusTransformed} dice → 3 (final roll)!`, 3000);
-                    }
-                }
-                break;
-            
-            case 'marathon_runner':
-                // Increment pips after each roll
-                if (!this.marathonPips) {
-                    this.marathonPips = 0;
-                }
-                this.marathonPips += 1;
-                break;
-        }
-        return result;
-    }
-    
-    // Special handler for Proteus - mimics other boons
-    applyProteusEffect(timingEvent, gameState, eventData) {
-        // Get the boon to mimic this turn
-        if (!gameState.proteusMimicId) {
-            return eventData; // No mimic selected yet
-        }
-        
-        // Find the boon to mimic
-        const mimickedBoon = gameState.jokers?.find(b => b.id === gameState.proteusMimicId);
-        if (!mimickedBoon || !mimickedBoon.timing[timingEvent]) {
-            return eventData; // Boon not found or doesn't have this timing
-        }
-        
-        // Execute the mimicked boon's timing effect
-        try {
-            return mimickedBoon.applyTimingEffect(timingEvent, gameState, eventData);
-        } catch (error) {
-            Logger.error(`Proteus failed to mimic ${gameState.proteusMimicId}:`, error);
-            return eventData;
-        }
-    }
-
     applyBeforeScoreEffect(gameState, result) {
+        // All legacy CSV boon implementations removed - they use getCurrentFavourValue() instead
+        // Only NEW boons with timing-based effects remain here
         switch (this.id) {
-            case 'hestias_hearth':
-                // Hestia's Hearth favour is now applied directly in favour calculation
-                // This case is kept for compatibility but doesn't add favour here
-                break;
-
-            case 'achilles_heel':
-                // All scores gain +15 Pips
-                result.pips += 15;
-                break;
-
-            case 'midas_touch':
-                // Gain +5 pips for every 10 Gold you have when scoring
-                const goldBonus = Math.floor(gameState.gold / 10) * 5;
-                result.pips += goldBonus;
-                if (goldBonus > 0) {
-                    window.game?.showMessage?.(`Midas Touch: +${goldBonus} Pips!`);
-                }
-                break;
-
-            case 'icarus_wings':
-                // Each unused re-roll at the end of a turn gives +15 Pips to the score
-                const unusedRerolls = gameState.rollsLeft;
-                const rerollBonus = Math.max(0, unusedRerolls * 15);
-                result.pips += rerollBonus;
-                if (rerollBonus > 0) {
-                    window.game?.showMessage?.(`Icarus' Wings: +${rerollBonus} Pips!`);
-                }
-                break;
-
-            case 'lethe_waters':
-                // All dice with a value of 2 or less are not counted for scoring but your final score gains +25 Pips
-                const lowDice = gameState.dice.filter(d => d.face <= 2);
-                if (lowDice.length > 0) {
-                    result.pips += 25;
-                    window.game?.showMessage?.("Lethe Waters: +25 Pips!");
-                }
-                break;
-
-            case 'forge_of_hephaestus':
-                // Forge of Hephaestus favour is now applied directly in favour calculation
-                // This case is kept for compatibility but doesn't add favour here
-                break;
-
-            case 'prometheus_gift':
-                // Prometheus' Gift favour is now applied directly in favour calculation
-                // This case is kept for compatibility but doesn't add favour here
-                break;
-
-            case 'chaos_primordial':
-                // All Favour gains are increased by 50% but Pips are randomized (1-40)
-                result.favour = Math.floor(result.favour * 1.5);
-                result.pips = Math.floor(Math.random() * 40) + 1;
-                window.game?.showMessage?.("Chaos Primordial: Favour +50%, Pips randomized!");
-                break;
-
-            case 'persephone_common':
-                // Twos give +2 Pips each when scored
-                if (result.category === 'Twos') {
-                    const twos = gameState.dice.filter(d => d.face === 2).length;
-                    result.pips += twos * 2;
-                }
-                break;
-
-            case 'morpheus_common':
-                // Morpheus' Dream favour is now applied directly in favour calculation
-                // This case is kept for compatibility but doesn't add favour here
-                break;
-
-            case 'heracles_rare':
-                // Mt Olympus favour is now applied directly in favour calculation
-                // This case is kept for compatibility but doesn't add favour here
-                break;
-
-            case 'athena_common':
-                // For every 5 in a scored 'Fives' hand gain +10 Pips
-                if (result.category === 'Fives') {
-                    const fives = gameState.dice.filter(d => d.face === 5).length;
-                    result.pips += fives * 10;
-                }
-                break;
-
-            case 'poseidon_eights_rare':
-                // Eights count as 10s for scoring
-                if (result.category === 'Eights') {
-                    const eights = gameState.dice.filter(d => d.face === 8).length;
-                    result.pips += eights * 2; // +2 per eight (8 becomes 10)
-                }
-                break;
-
-            case 'scaled_of_justice':
-                // Balance pips as dice to the average value (rounded)
-                const totalPips = gameState.dice.reduce((sum, die) => sum + die.face, 0);
-                const averagePips = Math.round(totalPips / 5);
-                result.pips = averagePips * 5;
-                window.game?.showMessage?.(`Scales of Justice: Balanced to ${averagePips} average!`);
-                break;
-
-            case 'parmenides':
-                // Lowest 2 dice show -1 (min 0); highest 2 dice show +1 (max 9)
-                const sortedDice = [...gameState.dice].sort((a, b) => a.face - b.face);
-                const lowestTwo = sortedDice.slice(0, 2);
-                const highestTwo = sortedDice.slice(-2);
-                
-                let adjustment = 0;
-                lowestTwo.forEach(die => {
-                    if (die.face > 0) adjustment -= 1;
-                });
-                highestTwo.forEach(die => {
-                    if (die.face < 9) adjustment += 1;
-                });
-                
-                result.pips += adjustment;
-                if (adjustment !== 0) {
-                    window.game?.showMessage?.(`Parmenides: ${adjustment > 0 ? '+' : ''}${adjustment} Pips!`);
-                }
-                break;
+            // === NO MORE LEGACY BOONS HERE ===
+            // Legacy boons (CSV-based) use getCurrentFavourValue() for dynamic favour
+            // All implementations below are NEW boons only
         }
         return result;
     }
@@ -1302,14 +1189,32 @@ class Joker extends Card {
                 break;
             
             case 'marathon_runner':
-                // Check if destroyed (scratched or reached 42+ pips)
-                if (!result.isValid || this.marathonPips >= 42) {
-                    // Destroy this boon
+                // Track scratches (3 strikes, you're out!) or reaching 42km
+                if (!result.isValid) {
+                    // Increment scratch count
+                    this.marathonScratches = (this.marathonScratches || 0) + 1;
+                    
+                    if (this.marathonScratches >= 3) {
+                        // 3 scratches = destroyed!
+                        const marathonIndex = gameState.jokers.findIndex(j => j.id === 'marathon_runner');
+                        if (marathonIndex !== -1) {
+                            gameState.jokers.splice(marathonIndex, 1);
+                            window.game?.showMessage?.("💀 Marathon Runner: 3 scratches! Exhausted and destroyed!", 4000);
+                            Logger.info("Marathon Runner destroyed - 3 scratches");
+                        }
+                    } else {
+                        // Show warning
+                        window.game?.showMessage?.(`⚠️ Marathon Runner: Scratch ${this.marathonScratches}/3!`, 3000);
+                        // Reset pips on scratch
+                        this.marathonPips = 0;
+                    }
+                } else if (this.marathonPips >= 42) {
+                    // Reached 42km - destroy with fanfare!
                     const marathonIndex = gameState.jokers.findIndex(j => j.id === 'marathon_runner');
                     if (marathonIndex !== -1) {
                         gameState.jokers.splice(marathonIndex, 1);
-                        window.game?.showMessage?.("💀 Marathon Runner: Exhausted and destroyed!", 4000);
-                        Logger.info("Marathon Runner destroyed - scratch or 42+ pips reached");
+                        window.game?.showMessage?.("🏅 Marathon Runner: 42km complete! Mission accomplished!", 5000);
+                        Logger.info("Marathon Runner destroyed - 42km (marathon) reached");
                     }
                 }
                 break;
@@ -1318,6 +1223,17 @@ class Joker extends Card {
     }
 
     applyTurnStartEffect(gameState, result) {
+        // Reset dynamic stats at turn start for clean slate
+        this.dynamicStats = {
+            pips: 0,
+            favour: 0,
+            gold: 0,
+            other: null
+        };
+        
+        // Reset boon trigger counter for Eruption of Etna tracking
+        gameState.boonTriggersThisTurn = 0;
+        
         switch (this.id) {
             case 'achilles_heel':
                 // Achilles Heel: lose 1 Gold at the start of each roll
@@ -1332,6 +1248,17 @@ class Joker extends Card {
                 window.game?.showMessage?.("Prometheus' Gift: -1 re-roll!");
                 break;
             
+            case 'dionysus_revelry':
+                // Reset any previously modified faces from last turn
+                gameState.dice.forEach(die => {
+                    Object.keys(die.faces).forEach(faceKey => {
+                        if (die.faces[faceKey].modifiedValue !== undefined) {
+                            delete die.faces[faceKey].modifiedValue;
+                        }
+                    });
+                });
+                break;
+            
             // === NEW BOONS - Turn Start ===
             case 'kronos_hourglass':
                 // +2 Rolls permanently
@@ -1341,10 +1268,19 @@ class Joker extends Card {
             
             case 'pandoras_jar':
                 // Every 3rd turn, randomly destroy a Boon
-                if (gameState.turn % 3 === 0 && gameState.boons && gameState.boons.length > 1) {
-                    const randomIndex = Math.floor(Math.random() * gameState.boons.length);
-                    const destroyed = gameState.boons.splice(randomIndex, 1)[0];
-                    window.game?.showMessage?.(`Pandora's Jar: ${destroyed.name} destroyed!`, 3000);
+                if (gameState.turn % 3 === 0 && gameState.jokers && gameState.jokers.length > 1) {
+                    // Don't destroy Pandora's Jar itself
+                    const otherJokers = gameState.jokers.filter(j => j.id !== 'pandoras_jar');
+                    if (otherJokers.length > 0) {
+                        const randomIndex = Math.floor(Math.random() * otherJokers.length);
+                        const destroyed = otherJokers[randomIndex];
+                        // Remove from main array
+                        const mainIndex = gameState.jokers.findIndex(j => j.id === destroyed.id);
+                        if (mainIndex !== -1) {
+                            gameState.jokers.splice(mainIndex, 1);
+                            window.game?.showMessage?.(`💔 Pandora's Jar: ${destroyed.name} destroyed!`, 3000);
+                        }
+                    }
                 }
                 break;
             
@@ -1407,7 +1343,7 @@ class Joker extends Card {
             
             case 'proteus_disguise':
                 // Pick a random boon to mimic (cannot repeat last turn's choice)
-                const proteusOtherBoons = gameState.jokers.filter(b => 
+                const proteusOtherBoons = (gameState.jokers || []).filter(b => 
                     b.id !== 'proteus_disguise' && b.id !== gameState.proteusLastMimicId
                 );
                 
@@ -1416,10 +1352,14 @@ class Joker extends Card {
                     gameState.proteusLastMimicId = gameState.proteusMimicId; // Store last for next turn
                     gameState.proteusMimicId = randomBoon.id;
                     
-                    window.game?.showMessage?.(`Proteus' Disguise: Now mimicking ${randomBoon.name}!`, 3000);
+                    window.game?.showMessage?.(`🎭 Proteus' Disguise: Transforming into ${randomBoon.name}!`, 3500);
                     Logger.info(`Proteus mimicking: ${randomBoon.name}`);
+                    
+                    // Update dynamic display
+                    this.dynamicStats.other = `→${randomBoon.name}`;
                 } else {
                     gameState.proteusMimicId = null;
+                    this.dynamicStats.other = 'No target';
                 }
                 break;
             
