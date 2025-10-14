@@ -1772,6 +1772,12 @@ class UIManager {
         }
     }
 
+    /**
+     * Balatro-style pack opening with animations
+     * @param {string} packType - Type of pack to open
+     * @param {Object} gameState - Current game state
+     * @param {Object} gameEngine - Game engine reference
+     */
     buyPack(packType, gameState, gameEngine) {
         const packData = CardData.packs.find(p => p.type === packType);
         if (gameState.gold < packData.cost) {
@@ -1781,21 +1787,265 @@ class UIManager {
         
         gameState.gold -= packData.cost;
         
+        // Update gold display with animation
+        if (this.dom.shopGold) {
+            this.dom.shopGold.textContent = gameState.gold;
+        }
+        
+        // Switch to pack opening view
         this.dom.shopDefaultView.classList.add('hidden');
         this.dom.packOpeningView.classList.remove('hidden');
         this.dom.shopOverlay.querySelector('.modal-content').classList.add('pack-opening-stage');
         
         const revealedContainer = document.getElementById('packRevealedCards');
-        revealedContainer.innerHTML = '<h4>Click to Select, Double-Click to Claim</h4>';
+        revealedContainer.innerHTML = '';
         
         this.updatePackConsumables(gameState, gameEngine);
         
-        // Generate pack contents based on type
-        this.generatePackContents(packType, revealedContainer, gameState, gameEngine);
+        // BALATRO-STYLE PACK OPENING ANIMATION
+        this.playPackOpeningAnimation(packType, revealedContainer, gameState, gameEngine);
+    }
+    
+    /**
+     * Balatro-inspired pack opening animation
+     * - Pack rips open
+     * - Cards fly in one by one with stagger
+     * - Cards flip to reveal
+     * - Particles for high rarity
+     */
+    playPackOpeningAnimation(packType, container, gameState, gameEngine) {
+        const packData = CardData.packs.find(p => p.type === packType);
         
-        if (this.dom.shopGold) {
-            this.dom.shopGold.textContent = gameState.gold;
+        // Step 1: Show pack "ripping" animation
+        container.innerHTML = `
+            <div class="pack-opening-container">
+                <div class="pack-rip-animation pack-${packType}">
+                    <div class="pack-image"></div>
+                    <div class="pack-rip-overlay"></div>
+                </div>
+                <div class="pack-opening-title">${packData.name}</div>
+            </div>
+        `;
+        
+        // Animate the pack ripping
+        const packRip = container.querySelector('.pack-rip-animation');
+        setTimeout(() => {
+            packRip.classList.add('ripping');
+        }, 100);
+        
+        // Step 2: After rip animation, reveal cards
+        setTimeout(() => {
+            packRip.classList.add('ripped');
+            
+            // Clear and prepare for cards
+            container.innerHTML = '<div class="pack-cards-revealer"></div>';
+            const cardsContainer = container.querySelector('.pack-cards-revealer');
+            
+            // Generate pack contents
+            this.revealPackCardsWithAnimation(packType, cardsContainer, gameState, gameEngine);
+            
+        }, 1200); // Wait for rip animation
+    }
+    
+    /**
+     * Reveal pack cards with staggered fly-in and flip animation
+     */
+    revealPackCardsWithAnimation(packType, container, gameState, gameEngine) {
+        const cardCount = 3;
+        const generatedCards = this.generatePackCardData(packType, cardCount, gameState, gameEngine);
+        
+        if (!generatedCards || generatedCards.length === 0) {
+            container.innerHTML = '<p style="opacity: 0.7; text-align: center;">No cards available for this pack type.</p>';
+            return;
         }
+        
+        // Create instruction text
+        const instructionDiv = document.createElement('div');
+        instructionDiv.className = 'pack-instruction';
+        instructionDiv.textContent = 'Choose One Card';
+        container.appendChild(instructionDiv);
+        
+        // Create cards container
+        const cardsGrid = document.createElement('div');
+        cardsGrid.className = 'pack-cards-grid';
+        container.appendChild(cardsGrid);
+        
+        let selectedCard = null;
+        
+        // Reveal cards one by one with stagger
+        generatedCards.forEach((cardData, index) => {
+            setTimeout(() => {
+                const cardWrapper = document.createElement('div');
+                cardWrapper.className = 'pack-card-wrapper';
+                cardWrapper.style.animationDelay = `${index * 0.15}s`;
+                
+                // Create card back (initially shown)
+                const cardBack = document.createElement('div');
+                cardBack.className = 'pack-card-back';
+                
+                // Create actual card (hidden initially)
+                const card = cardData.card;
+                const cardEl = card.render(true, false);
+                cardEl.classList.add('pack-card-reveal');
+                cardEl.style.opacity = '0';
+                
+                cardWrapper.appendChild(cardBack);
+                cardWrapper.appendChild(cardEl);
+                cardsGrid.appendChild(cardWrapper);
+                
+                // Flip animation after a brief delay
+                setTimeout(() => {
+                    cardWrapper.classList.add('flipping');
+                    
+                    // Show real card, hide back
+                    setTimeout(() => {
+                        cardBack.style.opacity = '0';
+                        cardEl.style.opacity = '1';
+                        cardWrapper.classList.add('revealed');
+                        
+                        // Add particles for high rarity
+                        if (['epic', 'worship'].includes(card.rarity)) {
+                            this.addCardRevealParticles(cardWrapper);
+                        }
+                    }, 300);
+                    
+                }, 400 + (index * 150)); // Stagger the flip
+                
+                // Click handlers for selection and claiming
+                let clickCount = 0;
+                let clickTimer = null;
+                
+                cardWrapper.addEventListener('click', () => {
+                    clickCount++;
+                    
+                    if (clickCount === 1) {
+                        // First click - select
+                        if (selectedCard && selectedCard !== cardWrapper) {
+                            selectedCard.classList.remove('selected');
+                        }
+                        selectedCard = cardWrapper;
+                        cardWrapper.classList.add('selected');
+                        
+                        // Reset click count after delay
+                        clickTimer = setTimeout(() => {
+                            clickCount = 0;
+                        }, 400);
+                        
+                    } else if (clickCount === 2) {
+                        // Second click (double-click) - claim
+                        clearTimeout(clickTimer);
+                        clickCount = 0;
+                        
+                        cardWrapper.classList.add('claiming');
+                        
+                        // Claim the card after animation
+                        setTimeout(() => {
+                            this.claimCard(card, gameState, gameEngine, cardEl);
+                        }, 300);
+                    }
+                });
+                
+            }, index * 200); // Stagger appearance
+        });
+    }
+    
+    /**
+     * Generate card data for pack (separate from rendering for animation control)
+     */
+    generatePackCardData(packType, cardCount, gameState, gameEngine) {
+        let cardPool, CardClass;
+        
+        switch (packType) {
+            case 'joker':
+                cardPool = CardData.jokers;
+                CardClass = Joker;
+                break;
+            case 'worship':
+                cardPool = CardData.worship;
+                CardClass = WorshipCard;
+                break;
+            case 'libation':
+                cardPool = CardData.libations;
+                CardClass = LibationCard;
+                break;
+            case 'chaos':
+                return this.generateChaosPackCardData(cardCount, gameState, gameEngine);
+        }
+        
+        // Filter cards based on unlocked categories
+        const filteredPool = this.filterCardsByUnlockedCategories(cardPool, gameState);
+        
+        if (filteredPool.length === 0) {
+            return [];
+        }
+        
+        const result = [];
+        const availableCards = [...filteredPool];
+        
+        for (let i = 0; i < cardCount && availableCards.length > 0; i++) {
+            const randomIndex = Math.floor(gameEngine.prng.random() * availableCards.length);
+            const cardData = availableCards.splice(randomIndex, 1)[0];
+            const card = new CardClass(cardData);
+            result.push({ card, cardData });
+        }
+        
+        return result;
+    }
+    
+    /**
+     * Add particle effects for high rarity card reveals
+     */
+    addCardRevealParticles(cardWrapper) {
+        const particleCount = 12;
+        const rect = cardWrapper.getBoundingClientRect();
+        const centerX = rect.left + rect.width / 2;
+        const centerY = rect.top + rect.height / 2;
+        
+        for (let i = 0; i < particleCount; i++) {
+            const particle = document.createElement('div');
+            particle.className = 'pack-reveal-particle';
+            particle.style.left = centerX + 'px';
+            particle.style.top = centerY + 'px';
+            
+            const angle = (i / particleCount) * Math.PI * 2;
+            const distance = 50 + Math.random() * 30;
+            const tx = Math.cos(angle) * distance;
+            const ty = Math.sin(angle) * distance;
+            
+            particle.style.setProperty('--tx', `${tx}px`);
+            particle.style.setProperty('--ty', `${ty}px`);
+            particle.style.animationDelay = `${i * 0.05}s`;
+            
+            document.body.appendChild(particle);
+            
+            setTimeout(() => particle.remove(), 1000);
+        }
+    }
+    
+    /**
+     * Generate card data for chaos pack (mixed types)
+     */
+    generateChaosPackCardData(cardCount, gameState, gameEngine) {
+        const result = [];
+        const cardTypes = [
+            { pool: CardData.jokers, class: Joker },
+            { pool: CardData.worship, class: WorshipCard },
+            { pool: CardData.libations, class: LibationCard }
+        ];
+        
+        for (let i = 0; i < cardCount; i++) {
+            const randomType = cardTypes[Math.floor(gameEngine.prng.random() * cardTypes.length)];
+            const filteredPool = this.filterCardsByUnlockedCategories(randomType.pool, gameState);
+            
+            if (filteredPool.length > 0) {
+                const randomIndex = Math.floor(gameEngine.prng.random() * filteredPool.length);
+                const cardData = filteredPool[randomIndex];
+                const card = new randomType.class(cardData);
+                result.push({ card, cardData });
+            }
+        }
+        
+        return result;
     }
 
     generatePackContents(packType, container, gameState, gameEngine) {

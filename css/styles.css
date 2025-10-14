@@ -3365,3 +3365,371 @@ body::after {
     pointer-events: none;
 }
 
+/* ===== BALATRO-STYLE PACK OPENING SYSTEM ===== */
+/* Exciting pack rip, card fly-in, and flip reveal animations */
+
+/* Pack Opening Container */
+.pack-opening-container {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 40px;
+    min-height: 400px;
+}
+
+.pack-opening-title {
+    font-size: 2rem;
+    color: #ffd700;
+    text-shadow: 0 0 20px rgba(255, 215, 0, 0.6);
+    margin-top: 20px;
+    animation: titlePulse 2s ease-in-out infinite;
+}
+
+@keyframes titlePulse {
+    0%, 100% { transform: scale(1); opacity: 0.9; }
+    50% { transform: scale(1.05); opacity: 1; }
+}
+
+/* Pack Rip Animation */
+.pack-rip-animation {
+    position: relative;
+    width: 200px;
+    height: 280px;
+    perspective: 1000px;
+    transform-style: preserve-3d;
+}
+
+.pack-image {
+    width: 100%;
+    height: 100%;
+    background-size: contain;
+    background-position: center;
+    background-repeat: no-repeat;
+    transition: all 0.8s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+}
+
+/* Pack type backgrounds */
+.pack-rip-animation.pack-joker .pack-image {
+    background-image: url('../ART/boon pack.png');
+}
+
+.pack-rip-animation.pack-worship .pack-image {
+    background-image: url('../ART/worship pack.png');
+}
+
+.pack-rip-animation.pack-libation .pack-image {
+    background-image: url('../ART/Libation pack.png');
+}
+
+.pack-rip-animation.pack-chaos .pack-image {
+    background-image: url('../ART/chaos pack.png');
+}
+
+.pack-rip-overlay {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(135deg, rgba(255, 215, 0, 0) 0%, rgba(255, 215, 0, 0.3) 100%);
+    opacity: 0;
+    transition: opacity 0.3s ease;
+}
+
+/* Ripping animation */
+.pack-rip-animation.ripping {
+    animation: packShake 0.5s ease-in-out;
+}
+
+.pack-rip-animation.ripping .pack-image {
+    transform: scale(1.1) rotateY(5deg);
+}
+
+.pack-rip-animation.ripping .pack-rip-overlay {
+    opacity: 1;
+    animation: ripGlow 0.6s ease-out;
+}
+
+@keyframes packShake {
+    0%, 100% { transform: translateX(0) rotate(0deg); }
+    25% { transform: translateX(-5px) rotate(-2deg); }
+    50% { transform: translateX(5px) rotate(2deg); }
+    75% { transform: translateX(-3px) rotate(-1deg); }
+}
+
+@keyframes ripGlow {
+    0% { opacity: 0; filter: brightness(1); }
+    50% { opacity: 1; filter: brightness(1.5); }
+    100% { opacity: 0.3; filter: brightness(1); }
+}
+
+.pack-rip-animation.ripped {
+    animation: packExplode 0.4s ease-out forwards;
+}
+
+@keyframes packExplode {
+    0% { transform: scale(1); opacity: 1; }
+    100% { transform: scale(0.5); opacity: 0; }
+}
+
+/* Pack Cards Revealer */
+.pack-cards-revealer {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 20px;
+    padding: 20px;
+    animation: revealerFadeIn 0.5s ease-out;
+}
+
+@keyframes revealerFadeIn {
+    0% { opacity: 0; transform: scale(0.9); }
+    100% { opacity: 1; transform: scale(1); }
+}
+
+.pack-instruction {
+    font-size: 1.5rem;
+    color: #ffd700;
+    text-shadow: 0 2px 8px rgba(0, 0, 0, 0.8);
+    margin-bottom: 10px;
+    animation: instructionFloat 3s ease-in-out infinite;
+}
+
+@keyframes instructionFloat {
+    0%, 100% { transform: translateY(0); }
+    50% { transform: translateY(-5px); }
+}
+
+/* Cards Grid */
+.pack-cards-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+    gap: 30px;
+    max-width: 800px;
+    padding: 20px;
+}
+
+/* Pack Card Wrapper (contains card back and front) */
+.pack-card-wrapper {
+    position: relative;
+    width: 160px;
+    height: 220px;
+    perspective: 1000px;
+    transform-style: preserve-3d;
+    cursor: pointer;
+    animation: cardFlyIn 0.6s cubic-bezier(0.34, 1.56, 0.64, 1) backwards;
+}
+
+@keyframes cardFlyIn {
+    0% {
+        transform: translateY(-100px) translateX(-50px) rotate(-20deg) scale(0.5);
+        opacity: 0;
+    }
+    100% {
+        transform: translateY(0) translateX(0) rotate(0deg) scale(1);
+        opacity: 1;
+    }
+}
+
+/* Card Back */
+.pack-card-back {
+    position: absolute;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(135deg, #2a2a3e 0%, #1e1e2e 100%);
+    border: 3px solid #ffd700;
+    border-radius: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.3s ease;
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.6);
+    z-index: 2;
+}
+
+.pack-card-back::before {
+    content: '?';
+    font-size: 4rem;
+    color: #ffd700;
+    text-shadow: 0 0 20px rgba(255, 215, 0, 0.8);
+    animation: questionPulse 1.5s ease-in-out infinite;
+}
+
+@keyframes questionPulse {
+    0%, 100% { transform: scale(1); opacity: 0.8; }
+    50% { transform: scale(1.2); opacity: 1; }
+}
+
+/* Card Flip Animation */
+.pack-card-wrapper.flipping {
+    animation: cardFlip 0.6s ease-in-out forwards;
+}
+
+@keyframes cardFlip {
+    0% { transform: rotateY(0deg); }
+    50% { transform: rotateY(90deg) scale(1.1); }
+    100% { transform: rotateY(180deg); }
+}
+
+.pack-card-wrapper.flipping .pack-card-back {
+    animation: cardBackFlip 0.6s ease-in-out forwards;
+}
+
+@keyframes cardBackFlip {
+    0% { transform: rotateY(0deg); }
+    100% { transform: rotateY(180deg); }
+}
+
+/* Revealed state */
+.pack-card-wrapper.revealed .card {
+    transform: rotateY(180deg);
+}
+
+.pack-card-wrapper.revealed .pack-card-back {
+    opacity: 0;
+    pointer-events: none;
+}
+
+/* Selection state */
+.pack-card-wrapper.selected {
+    animation: cardSelected 0.3s ease-out forwards;
+}
+
+@keyframes cardSelected {
+    0% { transform: scale(1); }
+    50% { transform: scale(1.1); }
+    100% { transform: scale(1.05); }
+}
+
+.pack-card-wrapper.selected .card {
+    border-color: #4ade80 !important;
+    box-shadow: 
+        0 0 30px rgba(74, 222, 128, 0.8),
+        0 8px 24px rgba(0, 0, 0, 0.6);
+}
+
+/* Claiming animation */
+.pack-card-wrapper.claiming {
+    animation: cardClaim 0.5s ease-in-out forwards;
+    z-index: 100;
+}
+
+@keyframes cardClaim {
+    0% { 
+        transform: scale(1.05) translateY(0);
+        opacity: 1;
+    }
+    50% {
+        transform: scale(1.2) translateY(-20px);
+        opacity: 1;
+    }
+    100% { 
+        transform: scale(0.5) translateY(-100px);
+        opacity: 0;
+    }
+}
+
+/* Particle Effects */
+.pack-reveal-particle {
+    position: fixed;
+    width: 8px;
+    height: 8px;
+    background: radial-gradient(circle, #ffd700 0%, #ffed4e 50%, transparent 100%);
+    border-radius: 50%;
+    pointer-events: none;
+    z-index: 10000;
+    animation: particleBurst 1s ease-out forwards;
+}
+
+@keyframes particleBurst {
+    0% {
+        transform: translate(0, 0) scale(1);
+        opacity: 1;
+    }
+    100% {
+        transform: translate(var(--tx), var(--ty)) scale(0.5);
+        opacity: 0;
+    }
+}
+
+/* High rarity glow effect */
+.pack-card-wrapper.revealed .card.epic,
+.pack-card-wrapper.revealed .card.worship {
+    animation: highRarityGlow 2s ease-in-out infinite;
+}
+
+@keyframes highRarityGlow {
+    0%, 100% {
+        box-shadow: 0 0 20px rgba(155, 89, 182, 0.6),
+                    0 8px 24px rgba(0, 0, 0, 0.6);
+    }
+    50% {
+        box-shadow: 0 0 30px rgba(155, 89, 182, 0.9),
+                    0 8px 32px rgba(155, 89, 182, 0.3);
+    }
+}
+
+/* Hover effect on revealed cards */
+.pack-card-wrapper.revealed:hover {
+    transform: translateY(-10px) scale(1.05);
+    transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+.pack-card-wrapper.revealed:hover .card {
+    box-shadow: 
+        0 12px 32px rgba(0, 0, 0, 0.7),
+        0 0 20px rgba(255, 215, 0, 0.3);
+}
+
+/* Responsive adjustments for pack opening */
+@media (max-width: 768px) {
+    .pack-cards-grid {
+        grid-template-columns: 1fr;
+        gap: 20px;
+    }
+    
+    .pack-card-wrapper {
+        width: 140px;
+        height: 200px;
+    }
+    
+    .pack-opening-title {
+        font-size: 1.5rem;
+    }
+    
+    .pack-instruction {
+        font-size: 1.2rem;
+    }
+}
+
+/* Loading shimmer effect for anticipation */
+@keyframes shimmer {
+    0% { background-position: -200% center; }
+    100% { background-position: 200% center; }
+}
+
+.pack-rip-animation::after {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(
+        90deg,
+        transparent 0%,
+        rgba(255, 255, 255, 0.3) 50%,
+        transparent 100%
+    );
+    background-size: 200% 100%;
+    animation: shimmer 2s infinite;
+    opacity: 0.5;
+    pointer-events: none;
+}
+
+.pack-rip-animation.ripping::after {
+    animation: shimmer 0.5s ease-out;
+    opacity: 1;
+}
+
