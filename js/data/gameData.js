@@ -683,6 +683,17 @@ const CardData = {
             description: "The reflection doubles all - but limits your chances.",
             god: "Narcissus",
             timing: { turn_start: true }
+        },
+        { 
+            id: "journey_of_perseus", 
+            name: "Journey of Perseus", 
+            rarity: "rustic", 
+            cost: 3, 
+            sellValue: 1, 
+            effect: "Every 100 total score, this Boon gains +10 Pips.",
+            description: "The hero's journey - power accumulates with achievement.",
+            god: "Perseus",
+            timing: { before_score: true }
         }
     ],
 

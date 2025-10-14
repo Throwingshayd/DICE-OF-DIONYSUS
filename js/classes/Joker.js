@@ -870,6 +870,18 @@ class Joker extends Card {
                     }
                 }
                 break;
+            
+            case 'journey_of_perseus':
+                // Gain +10 pips per 100 total score
+                const perseusTotal = gameState.totalScore || 0;
+                const perseusBonus = Math.floor(perseusTotal / 100) * 10;
+                
+                if (perseusBonus > 0) {
+                    result.pips += perseusBonus;
+                    this.dynamicStats.pips = perseusBonus;
+                    window.game?.showMessage?.(`Journey of Perseus: +${perseusBonus} Pips!`);
+                }
+                break;
 
             default:
                 // Unknown joker effect - log for debugging but don't break the game

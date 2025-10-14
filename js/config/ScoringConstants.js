@@ -20,12 +20,12 @@ const BASE_SCORES = {
  * @const {Object}
  */
 const LOWER_SECTION_BONUSES = {
-    THREE_OF_KIND: 15,
-    FOUR_OF_KIND: 20,
-    FULL_HOUSE: 25,
-    SMALL_STRAIGHT: 30,
-    LARGE_STRAIGHT: 40,
-    YAHTZEE: 50,
+    'Three of a Kind': 15,
+    'Four of a Kind': 20,
+    'Full House': 25,
+    'Small Straight': 30,
+    'Large Straight': 40,
+    'Yahtzee': 50,
 };
 
 /**
