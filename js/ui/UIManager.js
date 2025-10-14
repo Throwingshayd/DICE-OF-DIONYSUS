@@ -501,27 +501,8 @@ class UIManager {
                 dieEl.appendChild(modifierBadge);
             }
             
-            // Add permanent modifier indicator (shows always if non-zero)
-            const permanentModifier = die.getPermanentModifier();
-            if (permanentModifier !== 0) {
-                const modifierBadge = document.createElement('div');
-                modifierBadge.className = 'die-permanent-modifier-badge';
-                modifierBadge.textContent = permanentModifier > 0 ? `*+${permanentModifier}` : `*${permanentModifier}`;
-                modifierBadge.style.cssText = `
-                    position: absolute;
-                    bottom: -8px;
-                    right: -8px;
-                    padding: 2px 6px;
-                    background: ${permanentModifier > 0 ? '#4CAF50' : '#F44336'};
-                    border-radius: 4px;
-                    font-size: 10px;
-                    color: white;
-                    font-weight: bold;
-                    border: 1px solid var(--stone-terracotta-dark);
-                    z-index: 10;
-                `;
-                dieEl.appendChild(modifierBadge);
-            }
+            // Permanent modifiers are now handled via face-specific modifiedValue
+            // No longer using deprecated getPermanentModifier() method
             
             this.dom.diceContainer.appendChild(dieEl);
         });
