@@ -515,6 +515,17 @@ const CardData = {
             effect: "If you have 0 gold, gain ×2 Favour.",
             description: "Poverty grants divine favor - suffering brings blessing.",
             timing: { before_score: true }
+        },
+        { 
+            id: "smog_of_morpheus", 
+            name: "Smog of Morpheus", 
+            rarity: "vibrant", 
+            cost: 5, 
+            sellValue: 1, 
+            effect: "After your final roll, all dice showing 2 or 4 become 3s.",
+            description: "The god of dreams shapes your final reality.",
+            god: "Morpheus",
+            timing: { after_roll: true }
         }
     ],
 

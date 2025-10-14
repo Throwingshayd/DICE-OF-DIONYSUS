@@ -797,6 +797,24 @@ class Joker extends Card {
                     Logger.info(`Typhon triggered! Incredibly rare event - 1 in 7,776 chance!`);
                 }
                 break;
+            
+            case 'smog_of_morpheus':
+                // After final roll, transform 2s and 4s to 3s
+                if (gameState.rollsLeft === 0) {
+                    let morpheusTransformed = 0;
+                    
+                    gameState.dice.forEach(die => {
+                        if (die.face === 2 || die.face === 4) {
+                            die.face = 3;
+                            morpheusTransformed++;
+                        }
+                    });
+                    
+                    if (morpheusTransformed > 0) {
+                        window.game?.showMessage?.(`Smog of Morpheus: ${morpheusTransformed} dice → 3 (final roll)!`, 3000);
+                    }
+                }
+                break;
         }
         return result;
     }
