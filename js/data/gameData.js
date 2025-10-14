@@ -485,6 +485,16 @@ const CardData = {
             description: "Quantum superposition - a die in two states at once.",
             god: "Parmenides",
             timing: { turn_start: true }
+        },
+        { 
+            id: "doubling_season", 
+            name: "Doubling Season", 
+            rarity: "vibrant", 
+            cost: 5, 
+            sellValue: 1, 
+            effect: "Double even numbers and -1 to odd numbers except 1.",
+            description: "Growth and decay in balance - evens flourish, odds wither.",
+            timing: { before_score: true }
         }
     ],
 

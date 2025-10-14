@@ -660,6 +660,27 @@ class Joker extends Card {
                     window.game?.showMessage?.("Midnight Oil: +24 Pips!");
                 }
                 break;
+            
+            case 'doubling_season':
+                // Double even numbers, -1 to odd numbers except 1
+                let seasonAdjustment = 0;
+                
+                gameState.dice.forEach(die => {
+                    if (die.face % 2 === 0) {
+                        // Even: double the value (add the face value)
+                        seasonAdjustment += die.face;
+                    } else if (die.face > 1) {
+                        // Odd (except 1): -1
+                        seasonAdjustment -= 1;
+                    }
+                    // 1 stays as is (no adjustment)
+                });
+                
+                if (seasonAdjustment !== 0) {
+                    result.pips += seasonAdjustment;
+                    window.game?.showMessage?.(`Doubling Season: ${seasonAdjustment > 0 ? '+' : ''}${seasonAdjustment} Pips!`);
+                }
+                break;
 
             default:
                 // Unknown joker effect - log for debugging but don't break the game
