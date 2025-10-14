@@ -536,6 +536,16 @@ const CardData = {
             effect: "Gives +×1 favour of the most recently scored Worship card, to that score this Ante.",
             description: "Zealous devotion to the last worshipped god.",
             timing: { before_score: true }
+        },
+        { 
+            id: "mortal_vineyard", 
+            name: "Mortal Vineyard", 
+            rarity: "vibrant", 
+            cost: 5, 
+            sellValue: 1, 
+            effect: "Selling a Boon gives you a random Libation.",
+            description: "Transform the divine into sacred wine - alchemical conversion.",
+            timing: {} // Special - triggers on sell action
         }
     ],
 

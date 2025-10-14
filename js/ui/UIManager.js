@@ -1756,6 +1756,17 @@ class UIManager {
                 gameEngine.showMessage("The Merchant: +1 Gold!");
             }
             
+            // Check for Mortal Vineyard - selling a boon gives random libation
+            const hasVineyard = gameState.jokers?.some(j => j.id === 'mortal_vineyard');
+            if (hasVineyard && soldCard.type === 'joker' && gameState.consumables.length < gameState.consumableSlots) {
+                const libationPool = CardData.libations;
+                const randomLibationData = libationPool[Math.floor(Math.random() * libationPool.length)];
+                const newLibation = new LibationCard(randomLibationData);
+                
+                gameState.consumables.push(newLibation);
+                gameEngine.showMessage(`Mortal Vineyard: Gained ${newLibation.name}!`, 3000);
+            }
+            
             gameEngine.updateGoldAnimated(totalGold, "card sale");
             gameEngine.showMessage(`Sold ${soldCard.name} for ${totalGold} Gold.`);
             
