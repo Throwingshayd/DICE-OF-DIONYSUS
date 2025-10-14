@@ -480,11 +480,15 @@ class CollectionManager {
         CardData.worship.forEach(worshipData => {
             const isUnlocked = collection.worship ? collection.worship.includes(worshipData.id) : false;
             const worship = new WorshipCard(worshipData);
-            const cardEl = worship.render();
+            // Render as shop item to show full text
+            const cardEl = worship.render(true, false);
             
             if (!isUnlocked) {
                 cardEl.classList.add('locked');
-                cardEl.querySelector('.card-effect').textContent = '???';
+                const effectEl = cardEl.querySelector('.card-effect');
+                const nameEl = cardEl.querySelector('.card-name');
+                if (effectEl) effectEl.textContent = '???';
+                if (nameEl) nameEl.textContent = '???';
             }
             
             grid.appendChild(cardEl);
@@ -498,11 +502,15 @@ class CollectionManager {
         CardData.libations.forEach(libationData => {
             const isUnlocked = collection.libations ? collection.libations.includes(libationData.id) : false;
             const libation = new LibationCard(libationData);
-            const cardEl = libation.render();
+            // Render as shop item to show full text
+            const cardEl = libation.render(true, false);
             
             if (!isUnlocked) {
                 cardEl.classList.add('locked');
-                cardEl.querySelector('.card-effect').textContent = '???';
+                const effectEl = cardEl.querySelector('.card-effect');
+                const nameEl = cardEl.querySelector('.card-name');
+                if (effectEl) effectEl.textContent = '???';
+                if (nameEl) nameEl.textContent = '???';
             }
             
             grid.appendChild(cardEl);
