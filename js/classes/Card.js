@@ -66,13 +66,15 @@ class Card {
                 backgroundStyle = `background-image: url('${assetPath}');`;
                 hasAsset = true;
             } else {
-                console.warn(`Asset not found for card ${this.id}: ${cardAsset}`);
+                Logger.warn(`Asset not found for card ${this.id}: ${cardAsset}`);
             }
         }
         
-        // Add has-asset class if card has an asset
+        // Add has-asset class if card has an asset, otherwise use fallback
         if (hasAsset) {
             el.classList.add('has-asset');
+        } else {
+            el.classList.add('no-asset');
         }
         
         // Add disabled class if not active
@@ -155,13 +157,14 @@ class Card {
             if (framePath) {
                 frameStyle = `background-image: url('${framePath}');`;
             } else {
-                console.warn(`Frame asset not found for card type ${this.type}: ${frameAsset}`);
+                Logger.warn(`Frame asset not found for card type ${this.type}: ${frameAsset}`);
             }
         }
 
         el.innerHTML = `
-            <div class="card-background" style="${backgroundStyle}"></div>
+            ${hasAsset ? `<div class="card-background" style="${backgroundStyle}"></div>` : ''}
             ${frameStyle ? `<div class="card-frame" style="${frameStyle}"></div>` : ''}
+            ${!hasAsset ? `<div class="card-fallback-bg"><div class="fallback-name">${this.name}</div></div>` : ''}
             <div class="card-content">
                 ${cardContent}
                 ${labelHtml}
