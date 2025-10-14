@@ -383,6 +383,16 @@ const CardData = {
             effect: "Selling libation and worship cards gives +1 extra gold.",
             description: "A keen trader in sacred goods.",
             timing: {} // Special - passive effect on sell actions
+        },
+        { 
+            id: "the_heretic", 
+            name: "The Heretic", 
+            rarity: "rustic", 
+            cost: 3, 
+            sellValue: 1, 
+            effect: "Each turn gain +2 pips (stacks, resets at end of ante or when worship card is used).",
+            description: "Growing stronger without divine intervention.",
+            timing: { before_score: true, turn_start: true }
         }
     ],
 

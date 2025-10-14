@@ -1587,6 +1587,12 @@ class GameEngine {
         this.state.turn = 1;
         this.state.scorecard = {};
         this.state.totalScore = 0;
+        
+        // Reset The Heretic stacks at end of ante
+        if (this.state.hereticStacks) {
+            this.state.hereticStacks = 0;
+        }
+        
         // Get threshold from AnteData array (Balatro-style progression)
         const nextAnteData = AnteData[this.state.ante - 1];
         if (nextAnteData) {

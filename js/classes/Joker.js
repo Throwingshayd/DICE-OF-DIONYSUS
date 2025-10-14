@@ -559,6 +559,16 @@ class Joker extends Card {
                     window.game?.showMessage?.(`The Locksmith: +${locksmithBonus} Pips from held rolls!`);
                 }
                 break;
+            
+            case 'the_heretic':
+                // Gain stacking pips (resets on worship use or ante end)
+                const hereticPips = gameState.hereticStacks || 0;
+                if (hereticPips > 0) {
+                    result.pips += hereticPips;
+                    this.dynamicStats.pips = hereticPips;
+                    window.game?.showMessage?.(`The Heretic: +${hereticPips} Pips!`);
+                }
+                break;
 
             default:
                 // Unknown joker effect - log for debugging but don't break the game
@@ -880,6 +890,14 @@ class Joker extends Card {
                 gameState.dice.forEach(die => {
                     die.rollsHeld = 0;
                 });
+                break;
+            
+            case 'the_heretic':
+                // Increment heretic stacks each turn
+                if (!gameState.hereticStacks) {
+                    gameState.hereticStacks = 0;
+                }
+                gameState.hereticStacks += 2;
                 break;
         }
         // No return value needed for turn_start effects
