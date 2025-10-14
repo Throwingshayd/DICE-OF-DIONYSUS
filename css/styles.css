@@ -4524,6 +4524,14 @@ body::after {
     }
 }
 
+/* Green text highlight for available categories */
+.score-row.category-available-highlight > span {
+    color: #4ade80 !important;
+    font-weight: bold;
+    text-shadow: 0 0 8px rgba(74, 222, 128, 0.6);
+    transition: all 0.3s ease;
+}
+
 /* Scorecard row hover lift */
 .score-row:not(.used):hover {
     transform: translateX(8px);
