@@ -3937,3 +3937,331 @@ body::after {
     }
 }
 
+/* ===== BALATRO-STYLE ANTE TRANSITION SCREEN ===== */
+/* Boss reveal with score threshold and "Begin" button */
+
+.ante-transition-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.95);
+    backdrop-filter: blur(10px);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 10001;
+    transition: opacity 0.5s ease-out;
+}
+
+.ante-transition-modal {
+    background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+    border: 4px solid #ffd700;
+    border-radius: 20px;
+    padding: 48px;
+    max-width: 600px;
+    width: 85%;
+    box-shadow: 
+        0 30px 80px rgba(0, 0, 0, 0.9),
+        0 0 60px rgba(255, 215, 0, 0.4),
+        inset 0 2px 0 rgba(255, 255, 255, 0.1);
+    animation: anteModalEntrance 0.8s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+@keyframes anteModalEntrance {
+    0% {
+        transform: scale(0.5) translateY(-100px);
+        opacity: 0;
+    }
+    100% {
+        transform: scale(1) translateY(0);
+        opacity: 1;
+    }
+}
+
+/* Ante Header */
+.ante-header {
+    text-align: center;
+    margin-bottom: 32px;
+    padding-bottom: 24px;
+    border-bottom: 3px solid rgba(255, 215, 0, 0.4);
+}
+
+.ante-number {
+    font-size: 1.5rem;
+    color: #a9a9a9;
+    margin-bottom: 12px;
+    text-transform: uppercase;
+    letter-spacing: 2px;
+    animation: anteNumberSlide 0.6s ease-out 0.2s backwards;
+}
+
+@keyframes anteNumberSlide {
+    0% {
+        transform: translateX(-50px);
+        opacity: 0;
+    }
+    100% {
+        transform: translateX(0);
+        opacity: 1;
+    }
+}
+
+.ante-boss-name {
+    font-size: 3rem;
+    color: #ffd700;
+    font-weight: bold;
+    text-shadow: 
+        0 0 20px rgba(255, 215, 0, 0.8),
+        0 4px 8px rgba(0, 0, 0, 0.9);
+    animation: bossNameReveal 0.8s ease-out 0.4s backwards;
+}
+
+@keyframes bossNameReveal {
+    0% {
+        transform: scale(0);
+        opacity: 0;
+        filter: blur(10px);
+    }
+    60% {
+        transform: scale(1.2);
+    }
+    100% {
+        transform: scale(1);
+        opacity: 1;
+        filter: blur(0);
+    }
+}
+
+/* Blind Section */
+.ante-blind-section {
+    background: rgba(0, 0, 0, 0.3);
+    border: 2px solid rgba(255, 107, 107, 0.4);
+    border-radius: 12px;
+    padding: 24px;
+    margin-bottom: 24px;
+    animation: blindSectionSlide 0.6s ease-out 0.8s backwards;
+}
+
+@keyframes blindSectionSlide {
+    0% {
+        transform: translateX(50px);
+        opacity: 0;
+    }
+    100% {
+        transform: translateX(0);
+        opacity: 1;
+    }
+}
+
+.blind-label {
+    font-size: 0.9rem;
+    color: #a9a9a9;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    margin-bottom: 8px;
+}
+
+.blind-name {
+    font-size: 1.8rem;
+    color: #ff6b6b;
+    font-weight: bold;
+    margin-bottom: 12px;
+    text-shadow: 0 0 15px rgba(255, 107, 107, 0.6);
+}
+
+.blind-effect {
+    font-size: 1.1rem;
+    color: #e0e0e0;
+    font-style: italic;
+    line-height: 1.4;
+}
+
+/* Threshold Section */
+.ante-threshold-section {
+    text-align: center;
+    margin-bottom: 32px;
+    animation: thresholdPulse 0.6s ease-out 1.2s backwards;
+}
+
+@keyframes thresholdPulse {
+    0% {
+        transform: scale(0);
+        opacity: 0;
+    }
+    60% {
+        transform: scale(1.2);
+    }
+    100% {
+        transform: scale(1);
+        opacity: 1;
+    }
+}
+
+.threshold-label {
+    font-size: 1rem;
+    color: #a9a9a9;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    margin-bottom: 8px;
+}
+
+.threshold-value {
+    font-size: 3.5rem;
+    color: #6EC1E4;
+    font-weight: bold;
+    text-shadow: 
+        0 0 20px rgba(110, 193, 228, 0.8),
+        0 4px 8px rgba(0, 0, 0, 0.9);
+    font-family: 'Courier New', monospace;
+}
+
+/* Begin Button */
+.ante-actions {
+    text-align: center;
+    animation: buttonSlide 0.6s ease-out 1.6s backwards;
+}
+
+@keyframes buttonSlide {
+    0% {
+        transform: translateY(30px);
+        opacity: 0;
+    }
+    100% {
+        transform: translateY(0);
+        opacity: 1;
+    }
+}
+
+.ante-begin-button {
+    background: linear-gradient(135deg, #4ade80, #22c55e);
+    border: 3px solid #16a34a;
+    color: white;
+    font-size: 1.5rem;
+    font-weight: bold;
+    padding: 16px 48px;
+    border-radius: 12px;
+    cursor: pointer;
+    transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+    box-shadow: 
+        0 6px 20px rgba(74, 222, 128, 0.4),
+        0 2px 4px rgba(0, 0, 0, 0.6);
+    text-shadow: 0 2px 4px rgba(0, 0, 0, 0.6);
+    display: inline-flex;
+    align-items: center;
+    gap: 12px;
+    animation: buttonPulse 2s ease-in-out infinite;
+}
+
+@keyframes buttonPulse {
+    0%, 100% {
+        box-shadow: 
+            0 6px 20px rgba(74, 222, 128, 0.4),
+            0 2px 4px rgba(0, 0, 0, 0.6);
+    }
+    50% {
+        box-shadow: 
+            0 8px 28px rgba(74, 222, 128, 0.6),
+            0 2px 4px rgba(0, 0, 0, 0.6);
+    }
+}
+
+.ante-begin-button:hover {
+    transform: scale(1.05) translateY(-2px);
+    background: linear-gradient(135deg, #22c55e, #16a34a);
+    box-shadow: 
+        0 10px 32px rgba(74, 222, 128, 0.6),
+        0 4px 8px rgba(0, 0, 0, 0.6);
+}
+
+.ante-begin-button:active {
+    transform: scale(0.98);
+}
+
+.button-arrow {
+    font-size: 1.8rem;
+    animation: arrowBounce 1s ease-in-out infinite;
+}
+
+@keyframes arrowBounce {
+    0%, 100% { transform: translateX(0); }
+    50% { transform: translateX(5px); }
+}
+
+/* ===== GOLD COUNTER ANIMATION SYSTEM ===== */
+/* Animated counting, color flashes, and floating +/- numbers */
+
+/* Gold display flash animations */
+#goldDisplay,
+#shopGold,
+.gold-display {
+    transition: color 0.3s ease, transform 0.2s ease;
+}
+
+#goldDisplay.gold-gain,
+#shopGold.gold-gain {
+    color: #4ade80 !important;
+    animation: goldGainFlash 0.6s ease-out;
+}
+
+#goldDisplay.gold-loss,
+#shopGold.gold-loss {
+    color: #ff6b6b !important;
+    animation: goldLossFlash 0.6s ease-out;
+}
+
+@keyframes goldGainFlash {
+    0%, 100% {
+        transform: scale(1);
+        filter: brightness(1);
+    }
+    30% {
+        transform: scale(1.2);
+        filter: brightness(1.5) drop-shadow(0 0 10px #4ade80);
+    }
+}
+
+@keyframes goldLossFlash {
+    0%, 100% {
+        transform: scale(1);
+        filter: brightness(1);
+    }
+    30% {
+        transform: scale(0.9);
+        filter: brightness(0.8) drop-shadow(0 0 10px #ff6b6b);
+    }
+}
+
+/* Floating gold change numbers */
+.floating-gold {
+    position: fixed;
+    font-weight: bold;
+    font-size: 1.5rem;
+    animation: floatUpGold 1.2s ease-out forwards;
+    pointer-events: none;
+    z-index: 10001;
+    text-shadow: 0 2px 8px rgba(0, 0, 0, 0.9);
+}
+
+.floating-gold.positive {
+    color: #4ade80;
+    text-shadow: 0 0 15px rgba(74, 222, 128, 0.9);
+}
+
+.floating-gold.negative {
+    color: #ff6b6b;
+    text-shadow: 0 0 15px rgba(255, 107, 107, 0.9);
+}
+
+@keyframes floatUpGold {
+    0% {
+        transform: translateY(0) scale(1);
+        opacity: 1;
+    }
+    100% {
+        transform: translateY(-80px) scale(1.3);
+        opacity: 0;
+    }
+}
+

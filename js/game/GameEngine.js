@@ -233,6 +233,10 @@ class GameEngine {
         }, 100);
     }
 
+    /**
+     * Start ante with Balatro-style transition screen
+     * Shows boss reveal, score threshold, and "Begin" button
+     */
     startAnte() {
         const anteIndex = this.state.ante - 1;
         let currentAnteData;
@@ -244,6 +248,22 @@ class GameEngine {
             currentAnteData = AnteData[anteIndex] || AnteData[AnteData.length - 1];
         }
         
+        // Show Balatro-style ante transition screen
+        if (this.domReady && this.state.ante > 1) {
+            // Show transition for ante 2+ (not first ante)
+            this.showAnteTransition(currentAnteData, () => {
+                this.finalizeAnteStart(currentAnteData);
+            });
+        } else {
+            // First ante or no DOM - start immediately
+            this.finalizeAnteStart(currentAnteData);
+        }
+    }
+    
+    /**
+     * Finalize ante start after transition screen
+     */
+    finalizeAnteStart(currentAnteData) {
         this.state.activeBlind = currentAnteData.blindId;
         
         // Set score threshold from AnteData (Balatro-style progression)
@@ -262,6 +282,69 @@ class GameEngine {
         if (this.domReady) {
             this.updateAllUI();
         }
+    }
+    
+    /**
+     * Show Balatro-style ante transition screen
+     * Displays boss name, blind effect, score threshold with animations
+     * @param {Object} anteData - Current ante data
+     * @param {Function} callback - Called when player clicks "Begin"
+     */
+    showAnteTransition(anteData, callback) {
+        // Create transition overlay
+        const overlay = document.createElement('div');
+        overlay.className = 'ante-transition-overlay';
+        overlay.style.opacity = '0';
+        
+        const modal = document.createElement('div');
+        modal.className = 'ante-transition-modal';
+        
+        modal.innerHTML = `
+            <div class="ante-header">
+                <div class="ante-number">Ante ${this.state.ante}</div>
+                <div class="ante-boss-name">${anteData.name}</div>
+            </div>
+            
+            <div class="ante-blind-section">
+                <div class="blind-label">Boss Blind</div>
+                <div class="blind-name">${anteData.blindName}</div>
+                <div class="blind-effect">${anteData.blindEffect}</div>
+            </div>
+            
+            <div class="ante-threshold-section">
+                <div class="threshold-label">Score to Beat</div>
+                <div class="threshold-value">${anteData.scoreThreshold}</div>
+            </div>
+            
+            <div class="ante-actions">
+                <button class="ante-begin-button" id="anteBeginButton">
+                    <span class="button-text">Begin Ante</span>
+                    <span class="button-arrow">→</span>
+                </button>
+            </div>
+        `;
+        
+        overlay.appendChild(modal);
+        document.body.appendChild(overlay);
+        
+        // Fade in overlay
+        requestAnimationFrame(() => {
+            overlay.style.transition = 'opacity 0.5s ease-out';
+            overlay.style.opacity = '1';
+        });
+        
+        // Begin button handler
+        const beginButton = modal.querySelector('#anteBeginButton');
+        beginButton.addEventListener('click', () => {
+            // Fade out
+            overlay.style.opacity = '0';
+            setTimeout(() => {
+                if (overlay.parentNode) {
+                    document.body.removeChild(overlay);
+                }
+                callback();
+            }, 500);
+        });
     }
 
     /**
@@ -359,7 +442,7 @@ class GameEngine {
                 case 'achilles_heel':
                     // Achilles Heel: lose 1 Gold at the start of each roll
                     if (this.state.gold > 0) {
-                        this.state.gold -= 1;
+                        this.updateGoldAnimated(-1, "Achilles' Heel");
                         window.game?.showMessage?.("Achilles' Heel: -1 Gold!");
                     }
                     break;
@@ -602,9 +685,8 @@ class GameEngine {
             joker.onTimingEvent('after_score', this.state, { category, pips, favour });
         });
         
-        // Gain gold for scoring (increased from +1 to +2 for better economy)
-        this.state.gold += 2;
-        this.showMessage("+2 Gold for scoring!");
+        // Gain gold for scoring with animation (increased from +1 to +2 for better economy)
+        this.updateGoldAnimated(GAME_BALANCE.GOLD_PER_SCORE, "scoring");
         
         // Reset temporary modifiers
         this.state.tempPips = 0;
@@ -785,6 +867,66 @@ class GameEngine {
             
             setTimeout(() => particle.remove(), 1200);
         }
+    }
+    
+    /**
+     * Update gold with Balatro-style animations
+     * @param {number} change - Gold change amount (can be negative)
+     * @param {string} reason - Optional reason for the change
+     */
+    updateGoldAnimated(change, reason = null) {
+        const oldGold = this.state.gold;
+        const newGold = oldGold + change;
+        this.state.gold = newGold;
+        
+        // Get gold display elements
+        const goldDisplays = [
+            document.getElementById('goldDisplay'),
+            document.getElementById('shopGold'),
+            ...document.querySelectorAll('.gold-display')
+        ].filter(el => el !== null);
+        
+        goldDisplays.forEach(goldElement => {
+            // Flash color
+            if (change > 0) {
+                goldElement.classList.add('gold-gain');
+                this.showFloatingGold(`+${change}g`, goldElement, 'positive');
+            } else if (change < 0) {
+                goldElement.classList.add('gold-loss');
+                this.showFloatingGold(`${change}g`, goldElement, 'negative');
+            }
+            
+            // Animate count
+            this.animateNumberCount(goldElement, oldGold, newGold, 500);
+            
+            // Reset color after animation
+            setTimeout(() => {
+                goldElement.classList.remove('gold-gain', 'gold-loss');
+            }, 600);
+        });
+        
+        // Update UI
+        this.updateAllUI();
+    }
+    
+    /**
+     * Show floating +/- gold number
+     * @param {string} text - Text to display (e.g., "+5g" or "-3g")
+     * @param {HTMLElement} anchor - Element to position relative to
+     * @param {string} type - 'positive' or 'negative'
+     */
+    showFloatingGold(text, anchor, type) {
+        const float = document.createElement('div');
+        float.className = `floating-gold ${type}`;
+        float.textContent = text;
+        
+        const rect = anchor.getBoundingClientRect();
+        float.style.left = (rect.left + rect.width / 2 - 30) + 'px';
+        float.style.top = (rect.top - 30) + 'px';
+        
+        document.body.appendChild(float);
+        
+        setTimeout(() => float.remove(), 1200);
     }
 
     // Award classic Yahtzee upper bonus (+35) when Ones..Sixes total reaches 63
@@ -1072,7 +1214,7 @@ class GameEngine {
             // Gold enhancement provides bonus gold when scored (face-specific only)
             if (die.hasEnhancementForCurrentFace && die.hasEnhancementForCurrentFace('gold')) {
                 console.log(`Die ${index + 1} triggered gold enhancement!`);
-                this.state.gold += ENHANCEMENT_BONUSES.GOLD_COINS;
+                this.updateGoldAnimated(ENHANCEMENT_BONUSES.GOLD_COINS, "gold enhancement");
                 window.game?.showMessage?.("Gold enhancement: +1 Gold!");
             }
             
@@ -1086,7 +1228,7 @@ class GameEngine {
             if (die.hasEnhancementForCurrentFace && die.hasEnhancementForCurrentFace('parchment')) {
                 const parchmentRoll = Math.random();
                 if (parchmentRoll < ENHANCEMENT_CHANCES.PARCHMENT_GOLD_CHANCE) {
-                    this.state.gold += ENHANCEMENT_BONUSES.PARCHMENT_GOLD;
+                    this.updateGoldAnimated(ENHANCEMENT_BONUSES.PARCHMENT_GOLD, "parchment");
                     window.game?.showMessage?.(`Parchment fortune: +${ENHANCEMENT_BONUSES.PARCHMENT_GOLD} Gold!`);
                 } else if (parchmentRoll < ENHANCEMENT_CHANCES.PARCHMENT_FAVOUR_CHANCE) {
                     favour += ENHANCEMENT_BONUSES.PARCHMENT_FAVOUR;
@@ -1464,8 +1606,8 @@ class GameEngine {
         // Calculate and award interest (Balatro-inspired economy)
         const interest = this.calculateInterest();
         if (interest > 0) {
-            this.state.gold += interest;
-            this.showMessage(`💰 Interest earned: +${interest} Gold! (${Math.floor(this.state.gold / GAME_BALANCE.INTEREST_RATE)} × ${GAME_BALANCE.INTEREST_RATE}g)`, 4000);
+            this.updateGoldAnimated(interest, "interest");
+            this.showMessage(`💰 Interest earned: +${interest} Gold! (${Math.floor((this.state.gold - interest) / GAME_BALANCE.INTEREST_RATE)} × ${GAME_BALANCE.INTEREST_RATE}g)`, 4000);
             Logger.info(`Interest earned: ${interest}g from ${this.state.gold - interest}g saved`);
         }
         
