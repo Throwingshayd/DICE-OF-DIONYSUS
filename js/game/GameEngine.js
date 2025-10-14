@@ -982,6 +982,122 @@ class GameEngine {
         
         setTimeout(() => float.remove(), 1200);
     }
+    
+    /**
+     * Show Balatro-style game over screen
+     * @param {boolean} isVictory - True if player won, false if lost
+     */
+    showGameOverScreen(isVictory) {
+        // Create overlay
+        const overlay = document.createElement('div');
+        overlay.className = 'game-over-overlay';
+        overlay.style.opacity = '0';
+        
+        const modal = document.createElement('div');
+        modal.className = 'game-over-modal';
+        
+        // Calculate stats
+        const totalScore = this.state.totalScore;
+        const highestScore = Math.max(...Object.values(this.state.scorecard).filter(v => typeof v === 'number'));
+        const categoriesCompleted = Object.values(this.state.scorecard).filter(v => v !== undefined).length;
+        
+        modal.innerHTML = `
+            <div class="game-over-header ${isVictory ? 'victory' : 'defeat'}">
+                <h1 class="game-over-title">${isVictory ? 'Victory!' : 'Defeat'}</h1>
+                <div class="game-over-subtitle">${isVictory ? 'The Gods Smile Upon You' : 'The Gods Turn Away'}</div>
+            </div>
+            
+            <div class="game-over-stats">
+                <div class="stat-row">
+                    <span class="stat-label">Ante Reached</span>
+                    <span class="stat-value">${this.state.ante}</span>
+                </div>
+                <div class="stat-row">
+                    <span class="stat-label">Total Score</span>
+                    <span class="stat-value stat-highlight">${totalScore}</span>
+                </div>
+                <div class="stat-row">
+                    <span class="stat-label">Highest Single Score</span>
+                    <span class="stat-value">${highestScore}</span>
+                </div>
+                <div class="stat-row">
+                    <span class="stat-label">Categories Completed</span>
+                    <span class="stat-value">${categoriesCompleted}</span>
+                </div>
+                <div class="stat-row">
+                    <span class="stat-label">Gold Remaining</span>
+                    <span class="stat-value">${this.state.gold}g</span>
+                </div>
+                ${this.state.bonusYahtzees > 0 ? `
+                <div class="stat-row special">
+                    <span class="stat-label">Bonus Heurekas</span>
+                    <span class="stat-value">${this.state.bonusYahtzees}</span>
+                </div>` : ''}
+            </div>
+            
+            <div class="game-over-actions">
+                <button class="game-over-button new-run" id="gameOverNewRun">
+                    <span class="button-icon">🎲</span>
+                    <span class="button-text">New Run</span>
+                </button>
+                <button class="game-over-button exit-menu" id="gameOverExit">
+                    <span class="button-icon">🏛️</span>
+                    <span class="button-text">Exit to Menu</span>
+                </button>
+            </div>
+        `;
+        
+        overlay.appendChild(modal);
+        document.body.appendChild(overlay);
+        
+        // Fade in
+        requestAnimationFrame(() => {
+            overlay.style.transition = 'opacity 0.6s ease-out';
+            overlay.style.opacity = '1';
+        });
+        
+        // Button handlers
+        const newRunBtn = modal.querySelector('#gameOverNewRun');
+        const exitBtn = modal.querySelector('#gameOverExit');
+        
+        newRunBtn.addEventListener('click', () => {
+            overlay.style.opacity = '0';
+            setTimeout(() => {
+                overlay.remove();
+                this.startNewRun();
+            }, 600);
+        });
+        
+        exitBtn.addEventListener('click', () => {
+            overlay.style.opacity = '0';
+            setTimeout(() => {
+                overlay.remove();
+                this.exitToMenu();
+            }, 600);
+        });
+    }
+    
+    /**
+     * Start a new run (reset game state)
+     */
+    startNewRun() {
+        // Clear saved game
+        if (this.dataManager) {
+            this.dataManager.clearSave();
+        }
+        
+        // Reload the page to start fresh
+        window.location.reload();
+    }
+    
+    /**
+     * Exit to main menu
+     */
+    exitToMenu() {
+        if (window.app) {
+            window.app.switchToScreen('start');
+        }
+    }
 
     // Award classic Yahtzee upper bonus (+35) when Ones..Sixes total reaches 63
     checkAndAwardUpperBonus() {
@@ -1411,7 +1527,9 @@ class GameEngine {
             this.runEndOfAnteTallyThenOpenShop({ sumUpper, sumLower, upperBonus, lowerBonus });
         } else {
             this.state.gameOver = true;
-            this.showMessage("Game Over! Score threshold not met.", 5000);
+            
+            // Show Balatro-style game over screen
+            this.showGameOverScreen(false);
             
             // Update statistics
             this.dataManager.updateStats({
@@ -1487,7 +1605,10 @@ class GameEngine {
             
             if (totalSixes >= 12) {
                 this.state.gameOver = true;
-                this.showMessage("Twelve Labors completed! Victory!", 10000);
+                
+                // Show Balatro-style victory screen
+                this.showGameOverScreen(true);
+                
                 this.dataManager.updateStats({
                     won: true,
                     score: this.state.totalScore,
