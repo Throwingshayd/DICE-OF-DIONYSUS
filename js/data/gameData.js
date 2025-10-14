@@ -609,6 +609,16 @@ const CardData = {
             effect: "If 3+ Boons trigger on same turn, +×1 Favour (stacks, doesn't reset).",
             description: "Volcanic eruption - when many boons align, explosive power!",
             timing: { before_score: true }
+        },
+        { 
+            id: "cycle_of_seasons", 
+            name: "The Cycle of Seasons", 
+            rarity: "vibrant", 
+            cost: 5, 
+            sellValue: 1, 
+            effect: "When a Worship card triggers, also trigger +1 favour to another god.",
+            description: "The seasons cycle - worship spreads to other gods.",
+            timing: {} // Special - triggers on worship card use
         }
     ],
 

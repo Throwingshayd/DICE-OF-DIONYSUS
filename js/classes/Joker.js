@@ -542,8 +542,13 @@ class Joker extends Card {
                 break;
             
             case 'prime_time':
-                // Prime number dice (2,3,5,7) give +1 Pips each
-                const primes = [2, 3, 5, 7];
+                // Prime number dice (2,3,5,7) give +1 Pips each (only if unlocked)
+                const primes = [2, 3, 5];
+                // Add 7 only if Sevens unlocked
+                if (gameState.unlockedCategories?.Sevens) {
+                    primes.push(7);
+                }
+                
                 const primeCount = gameState.dice.filter(die => primes.includes(die.face)).length;
                 
                 if (primeCount > 0) {

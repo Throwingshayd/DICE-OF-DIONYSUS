@@ -59,6 +59,28 @@ class WorshipCard extends Card {
         
         // Track last worship god for The Zealot boon
         gameState.lastWorshipGod = this.god;
+        
+        // Cycle of Seasons: spread worship to another god
+        const hasCycle = gameState.jokers?.some(j => j.id === 'cycle_of_seasons');
+        if (hasCycle) {
+            // Build list of available gods (excluding current and locked categories)
+            const baseGods = ['Artemis', 'Persephone', 'Morpheus', 'Hera', 'Athena', 
+                             'Heracles', 'Hephaestus', 'Ares', 'Dionysus', 'Hermes', 
+                             'Apollo', 'Zeus', 'Nyx'];
+            
+            // Add 7/8/9 gods only if unlocked
+            const availableGods = [...baseGods];
+            if (gameState.unlockedCategories?.Sevens) availableGods.push('The Pleiades');
+            if (gameState.unlockedCategories?.Eights) availableGods.push('Poseidon');
+            if (gameState.unlockedCategories?.Nines) availableGods.push('The Nine Muses');
+            
+            // Pick different god
+            const otherGods = availableGods.filter(g => g !== this.god);
+            const randomGod = otherGods[Math.floor(Math.random() * otherGods.length)];
+            
+            gameState.worshipLevels[randomGod] = (gameState.worshipLevels[randomGod] || 0) + 1;
+            window.game?.showMessage?.(`🌸 Cycle of Seasons: ${randomGod} also gains +1 worship!`, 3000);
+        }
 
         this.use();
         return true;
