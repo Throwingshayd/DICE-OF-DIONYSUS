@@ -520,6 +520,45 @@ class Joker extends Card {
                     window.game?.showMessage?.(`The Pantheon: +${pantheonFavour} Favour from ${gods.size} gods!`);
                 }
                 break;
+            
+            // === NEW BOONS - Wave 2 ===
+            case 'mathematicians_compass':
+                // +10 Pips if dice sum to even number
+                const diceSum = gameState.dice.reduce((sum, die) => sum + die.face, 0);
+                if (diceSum % 2 === 0) {
+                    result.pips += 10;
+                    window.game?.showMessage?.(`Mathematician's Compass: +10 Pips (sum: ${diceSum})!`);
+                }
+                break;
+            
+            case 'prime_time':
+                // Prime number dice (2,3,5,7) give +1 Pips each
+                const primes = [2, 3, 5, 7];
+                const primeCount = gameState.dice.filter(die => primes.includes(die.face)).length;
+                
+                if (primeCount > 0) {
+                    const primeBonus = primeCount * 1;
+                    result.pips += primeBonus;
+                    window.game?.showMessage?.(`Prime Time: +${primeBonus} Pips from ${primeCount} primes!`);
+                }
+                break;
+            
+            case 'the_locksmith':
+                // Held dice gain +1 pips for each roll they were held
+                let locksmithBonus = 0;
+                
+                gameState.dice.forEach(die => {
+                    if (die.rollsHeld) {
+                        locksmithBonus += die.rollsHeld;
+                    }
+                });
+                
+                if (locksmithBonus > 0) {
+                    result.pips += locksmithBonus;
+                    this.dynamicStats.pips = locksmithBonus;
+                    window.game?.showMessage?.(`The Locksmith: +${locksmithBonus} Pips from held rolls!`);
+                }
+                break;
 
             default:
                 // Unknown joker effect - log for debugging but don't break the game
@@ -572,6 +611,15 @@ class Joker extends Card {
                     }
                 });
                 window.game?.showMessage?.("Medusa's Gaze: All 6s are held!");
+                break;
+            
+            case 'the_locksmith':
+                // Track rolls held for each die
+                gameState.dice.forEach(die => {
+                    if (die.held) {
+                        die.rollsHeld = (die.rollsHeld || 0) + 1;
+                    }
+                });
                 break;
         }
         return result;
@@ -825,6 +873,13 @@ class Joker extends Card {
                     harvestDie.faces[randomFaceKey].modifiedValue = currentValue + 1;
                     window.game?.showMessage?.(`Demeter's Harvest: Die face ${randomFaceKey} → ${currentValue + 1}!`);
                 }
+                break;
+            
+            case 'the_locksmith':
+                // Reset roll tracking at start of each turn
+                gameState.dice.forEach(die => {
+                    die.rollsHeld = 0;
+                });
                 break;
         }
         // No return value needed for turn_start effects

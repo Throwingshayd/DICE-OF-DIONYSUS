@@ -341,6 +341,48 @@ const CardData = {
             effect: "For each unique god represented in your Boons, gain +0.5 Favour.",
             description: "The collective power of all the gods.",
             timing: { before_score: true }
+        },
+        
+        // === NEW BOONS - Wave 2 ===
+        { 
+            id: "mathematicians_compass", 
+            name: "Mathematician's Compass", 
+            rarity: "rustic", 
+            cost: 3, 
+            sellValue: 1, 
+            effect: "+10 Pips if your dice sum to an even number.",
+            description: "Precision in mathematical patterns.",
+            timing: { before_score: true }
+        },
+        { 
+            id: "prime_time", 
+            name: "Prime Time", 
+            rarity: "rustic", 
+            cost: 3, 
+            sellValue: 1, 
+            effect: "Prime number dice (2,3,5,7) give +1 Pips each.",
+            description: "The elegance of prime numbers.",
+            timing: { before_score: true }
+        },
+        { 
+            id: "the_locksmith", 
+            name: "The Locksmith", 
+            rarity: "rustic", 
+            cost: 3, 
+            sellValue: 1, 
+            effect: "Held dice gain +1 pips for each roll they were held, when scoring.",
+            description: "The longer they're locked, the more valuable they become.",
+            timing: { before_score: true, after_roll: true, turn_start: true }
+        },
+        { 
+            id: "the_merchant", 
+            name: "The Merchant", 
+            rarity: "rustic", 
+            cost: 3, 
+            sellValue: 1, 
+            effect: "Selling libation and worship cards gives +1 extra gold.",
+            description: "A keen trader in sacred goods.",
+            timing: {} // Special - passive effect on sell actions
         }
     ],
 

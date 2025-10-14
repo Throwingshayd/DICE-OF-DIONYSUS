@@ -1741,14 +1741,21 @@ class UIManager {
         
         if (cardIndex > -1) {
             const soldCard = inventory.splice(cardIndex, 1)[0];
-            gameEngine.updateGoldAnimated(soldCard.sellValue, "card sale");
-            gameEngine.showMessage(`Sold ${soldCard.name} for ${soldCard.sellValue} Gold.`);
+            let totalGold = soldCard.sellValue;
+            
+            // Check for The Merchant boon - gives +1 gold for selling libations/worship
+            const hasMerchant = gameState.jokers?.some(j => j.id === 'the_merchant');
+            if (hasMerchant && (soldCard.type === 'libation' || soldCard.type === 'worship')) {
+                totalGold += 1;
+                gameEngine.showMessage("The Merchant: +1 Gold!");
+            }
+            
+            gameEngine.updateGoldAnimated(totalGold, "card sale");
+            gameEngine.showMessage(`Sold ${soldCard.name} for ${totalGold} Gold.`);
             
             // Update shop gold display if shop is open
             if (this.dom.shopGold) {
-                if (this.dom.shopGold) {
-            this.dom.shopGold.textContent = gameState.gold;
-        }
+                this.dom.shopGold.textContent = gameState.gold;
             }
             
             gameEngine.updateAllUI();
