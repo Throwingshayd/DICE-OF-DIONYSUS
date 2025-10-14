@@ -1167,6 +1167,24 @@ class Joker extends Card {
                 window.game?.showMessage?.(`Parmenides: Die showing ${parmenidesDie.face} is now dual-value (${parmenidesDie.face}↔${parmenidesDie.oppositeValue})!`, 4000);
                 Logger.info(`Parmenides activated: Die value ${parmenidesDie.face} also counts as ${parmenidesDie.oppositeValue}`);
                 break;
+            
+            case 'proteus_disguise':
+                // Pick a random boon to mimic (cannot repeat last turn's choice)
+                const proteusOtherBoons = gameState.jokers.filter(b => 
+                    b.id !== 'proteus_disguise' && b.id !== gameState.proteusLastMimicId
+                );
+                
+                if (proteusOtherBoons.length > 0) {
+                    const randomBoon = proteusOtherBoons[Math.floor(Math.random() * proteusOtherBoons.length)];
+                    gameState.proteusLastMimicId = gameState.proteusMimicId; // Store last for next turn
+                    gameState.proteusMimicId = randomBoon.id;
+                    
+                    window.game?.showMessage?.(`Proteus' Disguise: Now mimicking ${randomBoon.name}!`, 3000);
+                    Logger.info(`Proteus mimicking: ${randomBoon.name}`);
+                } else {
+                    gameState.proteusMimicId = null;
+                }
+                break;
         }
         // No return value needed for turn_start effects
     }
