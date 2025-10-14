@@ -1467,6 +1467,9 @@ class GameEngine {
             joker.onTimingEvent('turn_end', this.state);
         });
         
+        // Reset boon trigger counter for Eruption of Etna
+        this.state.boonTriggersThisTurn = 0;
+        
         this.state.turn++;
         
         // Apply joker effects that modify abilities (like Strategic Mind)
