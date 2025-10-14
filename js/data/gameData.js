@@ -495,6 +495,16 @@ const CardData = {
             effect: "Double even numbers and -1 to odd numbers except 1.",
             description: "Growth and decay in balance - evens flourish, odds wither.",
             timing: { before_score: true }
+        },
+        { 
+            id: "symmetry", 
+            name: "Symmetry", 
+            rarity: "vibrant", 
+            cost: 5, 
+            sellValue: 1, 
+            effect: "Each time you roll a palindrome, this card permanently gains +0.5 Favour (stacks).",
+            description: "Divine harmony accumulates with each perfect pattern.",
+            timing: { after_roll: true, before_score: true }
         }
     ],
 

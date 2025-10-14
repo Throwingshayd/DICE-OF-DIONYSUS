@@ -681,6 +681,14 @@ class Joker extends Card {
                     window.game?.showMessage?.(`Doubling Season: ${seasonAdjustment > 0 ? '+' : ''}${seasonAdjustment} Pips!`);
                 }
                 break;
+            
+            case 'symmetry':
+                // Apply accumulated favour from palindromes
+                if (this.symmetryFavour > 0) {
+                    result.favour += this.symmetryFavour;
+                    this.dynamicStats.favour = this.symmetryFavour;
+                }
+                break;
 
             default:
                 // Unknown joker effect - log for debugging but don't break the game
@@ -749,6 +757,24 @@ class Joker extends Card {
                 gameState.dice.forEach(die => {
                     die.held = false;
                 });
+                break;
+            
+            case 'symmetry':
+                // Detect palindromic dice patterns and add permanent favour
+                const symmetryValues = gameState.dice.map(d => d.face);
+                const isSymmetric = symmetryValues.every((val, idx) => 
+                    val === symmetryValues[symmetryValues.length - 1 - idx]
+                );
+                
+                if (isSymmetric) {
+                    if (!this.symmetryFavour) {
+                        this.symmetryFavour = 0;
+                    }
+                    this.symmetryFavour += 0.5;
+                    
+                    window.game?.showMessage?.(`✨ Symmetry: Palindrome detected! [${symmetryValues.join('-')}] Card gains +0.5 Favour!`, 4000);
+                    Logger.info(`Symmetry triggered! Pattern: [${symmetryValues.join('-')}], Total favour: ${this.symmetryFavour}`);
+                }
                 break;
             
             case 'typhon':
