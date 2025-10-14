@@ -13,7 +13,7 @@ class UIManager {
 
     initialize() {
         if (this.isInitialized) {
-            console.log('UIManager already initialized, skipping...');
+            Logger.debug('UIManager already initialized, skipping...');
             return;
         }
         
@@ -216,7 +216,7 @@ class UIManager {
         
         const existingDiceContainer = document.getElementById('diceContainer');
         if (!existingDiceContainer) {
-            console.log('Restoring dice container...');
+            Logger.debug('Restoring dice container...');
             
             const diceContainer = document.createElement('div');
             diceContainer.id = 'diceContainer';
@@ -231,7 +231,7 @@ class UIManager {
             }
             
             this.dom.diceContainer = diceContainer;
-            console.log('Dice container restored successfully');
+            Logger.debug('Dice container restored successfully');
         }
     }
 
@@ -241,7 +241,7 @@ class UIManager {
         
         const existingRollButton = document.getElementById('rollButton');
         if (!existingRollButton) {
-            console.log('Restoring roll button...');
+            Logger.debug('Restoring roll button...');
             
             const rollButton = document.createElement('button');
             rollButton.id = 'rollButton';
@@ -250,7 +250,7 @@ class UIManager {
             
             rollingControls.insertBefore(rollButton, rollingControls.firstChild);
             this.dom.rollButton = rollButton;
-            console.log('Roll button restored successfully');
+            Logger.debug('Roll button restored successfully');
         }
     }
 
@@ -259,7 +259,6 @@ class UIManager {
             openShop: (gameState, gameEngine) => this.openShop(gameState, gameEngine),
             closeShop: () => this.closeShop(),
             rerollShop: (gameState, gameEngine) => this.rerollShop(gameState, gameEngine),
-            // toggleSellMode removed - using direct sell method instead
             buyPack: (packType, gameState, gameEngine) => this.buyPack(packType, gameState, gameEngine),
             buyArtifact: (artifactData, gameState, gameEngine) => this.buyArtifact(artifactData, gameState, gameEngine),
             buyCard: (card, gameState, gameEngine) => this.buyCard(card, gameState, gameEngine),
@@ -275,7 +274,7 @@ class UIManager {
         
         // Check if critical elements are available
         if (!this.dom.diceContainer || !this.dom.rollButton) {
-            console.log('Critical game elements not available yet, skipping UI update');
+            Logger.debug('Critical game elements not available yet, skipping UI update');
             return;
         }
         
@@ -325,7 +324,7 @@ class UIManager {
 
     updateDiceUI(gameState) {
         if (!this.dom.diceContainer) {
-            console.warn('Dice container not found, cannot update dice UI');
+            Logger.warn('Dice container not found, cannot update dice UI');
             return;
         }
         
@@ -401,7 +400,7 @@ class UIManager {
             
             // Debug logging for face values
             if (gameState.hasRolled && currentFace > 0) {
-                console.log(`Die ${index + 1} (ID: ${die.dieId}): face=${currentFace}, modifiedValue=${die.faces[currentFace]?.modifiedValue}, effectiveFace=${die.getEffectiveFace()}, displayFace=${displayFace}`);
+                Logger.debug(`Die ${index + 1} (ID: ${die.dieId}): face=${currentFace}, modifiedValue=${die.faces[currentFace]?.modifiedValue}, effectiveFace=${die.getEffectiveFace()}, displayFace=${displayFace}`);
             }
             
             // Add detailed tooltip for dice
@@ -712,7 +711,7 @@ class UIManager {
         
         // Add error handling for missing element
         if (!container) {
-            console.warn('jokerSlots element not found');
+            Logger.warn('jokerSlots element not found');
             return;
         }
         
@@ -744,7 +743,7 @@ class UIManager {
         
         // Add error handling for missing element
         if (!container) {
-            console.warn('consumableSlots element not found');
+            Logger.warn('consumableSlots element not found');
             return;
         }
         
@@ -773,7 +772,7 @@ class UIManager {
                 if (engine) {
                     this.useConsumable(card, gameState, engine);
                 } else {
-                    console.error('No game engine available for useConsumable');
+                    Logger.error('No game engine available for useConsumable');
                 }
             });
             
@@ -786,7 +785,7 @@ class UIManager {
         
         // Add error handling for missing element
         if (!container) {
-            console.warn('artifactSlots element not found');
+            Logger.warn('artifactSlots element not found');
             return;
         }
         
@@ -818,7 +817,7 @@ class UIManager {
         // Re-bind shop elements if they're missing
         if (!this.dom.shopInventory) {
             this.dom.shopInventory = document.getElementById('shopInventory');
-            console.log('Re-bound shopInventory element:', this.dom.shopInventory);
+            Logger.debug('Re-bound shopInventory element:', this.dom.shopInventory);
         }
         if (!this.dom.shopDefaultView) {
             this.dom.shopDefaultView = document.getElementById('shopDefaultView');
@@ -833,27 +832,22 @@ class UIManager {
         gameState.usedFreeReroll = false;
         
         // Apply interest
-        const interestCap = 5 + (gameState.artifacts.some(a => a.id === 'cornucopia') ? 1 : 0);
-        const interest = Math.min(interestCap, Math.floor(gameState.gold / 5));
-        gameState.gold += interest;
-        
-        if (interest > 0) {
-            gameEngine.showMessage(`+${interest} Gold from interest!`);
-        }
+        // Interest is now handled by GameEngine.openShop() with animation
+        // This method is kept for legacy compatibility but shouldn't add gold twice
         
         // Ensure shop elements are properly bound
         this.ensureShopElementsBound();
         
         // Add null checks for shop elements
         if (!this.dom.shopOverlay) {
-            console.warn('Shop overlay not found, attempting to restore...');
+            Logger.warn('Shop overlay not found, attempting to restore...');
             // Try to find the shop overlay again
             const shopOverlay = document.getElementById('shopOverlay');
             if (shopOverlay) {
                 this.dom.shopOverlay = shopOverlay;
         
             } else {
-                console.error('Shop overlay still not found, cannot open shop');
+                Logger.error('Shop overlay still not found, cannot open shop');
                 return;
             }
         }
@@ -863,8 +857,6 @@ class UIManager {
         if (this.dom.shopGold) this.dom.shopGold.textContent = gameState.gold;
         if (this.dom.shopAnte) this.dom.shopAnte.textContent = gameState.ante;
         if (this.dom.interestDisplay) this.dom.interestDisplay.textContent = `+${interest}`;
-        
-        // sellMode removed - using direct sell method instead
         
         if (this.dom.packOpeningView) this.dom.packOpeningView.classList.add('hidden');
         if (this.dom.shopDefaultView) this.dom.shopDefaultView.classList.remove('hidden');
@@ -933,11 +925,11 @@ class UIManager {
         
         // Add null checks for shop containers
         if (!directSalesContainer || !packsContainer || !artifactsContainer) {
-            console.warn('Shop containers not found, cannot generate shop stock');
+            Logger.warn('Shop containers not found, cannot generate shop stock');
             return;
         }
         
-        console.log('Generating shop stock...');
+        Logger.debug('Generating shop stock...');
         
         // Clear containers (with fade-out if rerolling)
         directSalesContainer.innerHTML = '<h4>Wares</h4>';
@@ -952,7 +944,7 @@ class UIManager {
         this.generateDirectSales(directSalesContainer, gameState, gameEngine);
         this.generatePackStock(packsContainer, gameState, gameEngine);
         
-        console.log('Shop stock generation complete');
+        Logger.debug('Shop stock generation complete');
     }
 
     generateArtifactStock(container, gameState, gameEngine) {
@@ -970,7 +962,7 @@ class UIManager {
             }
         }
         
-        console.log(`Artifact pool size: ${artifactPool.length}`);
+        Logger.debug(`Artifact pool size: ${artifactPool.length}`);
         
         if (artifactPool.length > 0) {
             const artifactData = artifactPool[Math.floor(gameEngine.prng.random() * artifactPool.length)];
@@ -1108,7 +1100,7 @@ class UIManager {
             return;
         }
         
-        gameState.gold -= cardData.cost;
+        gameEngine.updateGoldAnimated(-cardData.cost, "card purchase");
         
         // Add to appropriate collection
         if (type === 'artifact') {
@@ -1143,10 +1135,7 @@ class UIManager {
             return;
         }
         
-        gameState.gold -= packData.cost;
-        if (this.dom.shopGold) {
-            this.dom.shopGold.textContent = gameState.gold;
-        }
+        gameEngine.updateGoldAnimated(-packData.cost, "pack purchase");
         
         // Open pack
         this.openPack(packData, gameState, gameEngine);
@@ -1194,10 +1183,6 @@ class UIManager {
         return contents;
     }
 
-    // Old Balatro-style methods removed - using original shop system now
-
-    // All old Balatro-style methods removed
-
     displayShopInventory() {
         // Try multiple ways to find the container
         let inventoryContainer = this.dom.shopInventory;
@@ -1213,7 +1198,7 @@ class UIManager {
         }
         
         if (!inventoryContainer) {
-            console.error('Shop inventory container not found! Attempting to create it...');
+            Logger.error('Shop inventory container not found! Attempting to create it...');
             
             // Try to create the container if it doesn't exist
             const shopDefaultView = document.getElementById('shopDefaultView');
@@ -1231,15 +1216,15 @@ class UIManager {
                 // Insert at the beginning of shopDefaultView
                 shopDefaultView.insertBefore(newContainer, shopDefaultView.firstChild);
                 
-                console.log('Created shop inventory container:', newContainer);
+                Logger.debug('Created shop inventory container:', newContainer);
                 inventoryContainer = newContainer;
             } else {
-                console.error('Cannot create shop inventory container - shopDefaultView not found!');
+                Logger.error('Cannot create shop inventory container - shopDefaultView not found!');
                 return;
             }
         }
         
-        console.log('Displaying shop inventory:', this.shopState.currentInventory);
+        Logger.debug('Displaying shop inventory:', this.shopState.currentInventory);
         
         inventoryContainer.innerHTML = '';
         
@@ -1302,7 +1287,7 @@ class UIManager {
                 // Only include if the category is unlocked
                 const isUnlocked = gameState.unlockedCategories && gameState.unlockedCategories[associatedCategory];
                 if (!isUnlocked) {
-                    console.log(`Filtered out ${card.id} - requires ${associatedCategory} category to be unlocked`);
+                    Logger.debug(`Filtered out ${card.id} - requires ${associatedCategory} category to be unlocked`);
                 }
                 return isUnlocked;
             }
@@ -1311,23 +1296,23 @@ class UIManager {
             return true;
         });
         
-        console.log(`Filtered ${cardPool.length} cards to ${filteredCards.length} available cards`);
+        Logger.debug(`Filtered ${cardPool.length} cards to ${filteredCards.length} available cards`);
         return filteredCards;
     }
 
     // Debug method to show which categories are unlocked
     debugUnlockedCategories(gameState) {
         if (!gameState.unlockedCategories) {
-            console.log('No unlocked categories data available');
+            Logger.debug('No unlocked categories data available');
             return;
         }
         
-        console.log('=== UNLOCKED CATEGORIES DEBUG ===');
-        console.log('Sevens unlocked:', gameState.unlockedCategories['Sevens']);
-        console.log('Eights unlocked:', gameState.unlockedCategories['Eights']);
-        console.log('Nines unlocked:', gameState.unlockedCategories['Nines']);
-        console.log('Bonus Yahtzees:', gameState.bonusYahtzees || 0);
-        console.log('================================');
+        Logger.debug('=== UNLOCKED CATEGORIES DEBUG ===');
+        Logger.debug('Sevens unlocked:', gameState.unlockedCategories['Sevens']);
+        Logger.debug('Eights unlocked:', gameState.unlockedCategories['Eights']);
+        Logger.debug('Nines unlocked:', gameState.unlockedCategories['Nines']);
+        Logger.debug('Bonus Yahtzees:', gameState.bonusYahtzees || 0);
+        Logger.debug('================================');
     }
 
     // Weighted card selection based on rarity (inspired by Balatro)
@@ -1614,7 +1599,7 @@ class UIManager {
             window.dataManager.unlockItem('artifacts', artifactData.id);
         }
         
-        gameState.gold -= artifactData.cost;
+        gameEngine.updateGoldAnimated(-artifactData.cost, "artifact purchase");
         gameState.artifacts.push(artifactData);
         gameEngine.showMessage(`Acquired: ${artifactData.name}!`);
         
@@ -1637,7 +1622,7 @@ class UIManager {
         }
         
 
-        gameState.gold -= card.cost;
+        gameEngine.updateGoldAnimated(-card.cost, "card purchase");
 
         // Add Balatro-style purchase effect
         if (window.balatroEffects && element) {
@@ -1668,7 +1653,7 @@ class UIManager {
         
                 gameEngine.showMessage("Boon slots are full!");
                 if (element?.parentNode?.id === 'shopDirectSales') {
-                    gameState.gold += card.cost;
+                    gameEngine.updateGoldAnimated(card.cost, "refund");
                 }
                 return;
             }
@@ -1688,7 +1673,7 @@ class UIManager {
         
                 gameEngine.showMessage("Libation slots are full!");
                 if (element?.parentNode?.id === 'shopDirectSales') {
-                    gameState.gold += card.cost;
+                    gameEngine.updateGoldAnimated(card.cost, "refund");
                 }
                 return;
             }
@@ -1781,17 +1766,13 @@ class UIManager {
         }, 400);
     }
 
-    // toggleSellMode removed - using direct sell method instead
-
-    // displaySellableCards removed - using direct sell method instead
-
     sellCard(cardToSell, gameState, gameEngine) {
         let inventory = cardToSell.type === 'joker' ? gameState.jokers : gameState.consumables;
         const cardIndex = inventory.findIndex(c => c.id === cardToSell.id);
         
         if (cardIndex > -1) {
             const soldCard = inventory.splice(cardIndex, 1)[0];
-            gameState.gold += soldCard.sellValue;
+            gameEngine.updateGoldAnimated(soldCard.sellValue, "card sale");
             gameEngine.showMessage(`Sold ${soldCard.name} for ${soldCard.sellValue} Gold.`);
             
             // Update shop gold display if shop is open

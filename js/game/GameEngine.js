@@ -165,10 +165,10 @@ class GameEngine {
         
         // Check if essential elements exist
         if (!this.dom.rollButton) {
-            console.warn('Roll button not found, game may not function properly');
+            Logger.warn('Roll button not found, game may not function properly');
         }
         if (!this.dom.diceContainer) {
-            console.warn('Dice container not found, game may not function properly');
+            Logger.warn('Dice container not found, game may not function properly');
         }
         
         this.setupDOMEventListeners();
@@ -426,13 +426,6 @@ class GameEngine {
                         die.setFace(6);
                     }
                     
-                    // Apply enhancements (legacy system - no longer used with new face-specific system)
-                    // const enhancement = this.state.enhancementMap[die.face];
-                    // if (enhancement) {
-                    //     die.addEnhancement(enhancement);
-                    // } else {
-                    //     die.enhancements.clear();
-                    // }
                 }
             });
         }
@@ -464,7 +457,7 @@ class GameEngine {
         });
     }
 
-    // Apply joker effects that trigger at roll start (legacy method)
+    // Apply joker effects that trigger at roll start
     applyJokerRollEffects() {
         this.state.jokers.forEach(joker => {
             switch (joker.id) {
@@ -531,7 +524,7 @@ class GameEngine {
         this.state.dice = diceCopy;
         this.state.held = heldCopy;
         
-        console.log('Dice positions shuffled for new turn');
+        Logger.debug('Dice positions shuffled for new turn');
     }
 
     checkTriggerEffects() {
@@ -555,7 +548,7 @@ class GameEngine {
                 }
             });
             if (goldGained > 0) {
-                this.state.gold += goldGained;
+                this.updateGoldAnimated(goldGained, "dice effects");
                 this.showMessage(`Gained ${goldGained} gold from dice!`);
             }
         }
@@ -1080,7 +1073,7 @@ class GameEngine {
                 
                 // Validate face value
                 if (typeof face !== 'number' || isNaN(face)) {
-                    console.warn(`Die ${index} returned invalid face: ${face}. Using 0.`);
+                    Logger.warn(`Die ${index} returned invalid face: ${face}. Using 0.`);
                     return 0;
                 }
                 
@@ -1091,7 +1084,7 @@ class GameEngine {
                 
                 return face;
             } catch (error) {
-                console.error(`Error getting face for die ${index}:`, error);
+                Logger.error(`Error getting face for die ${index}:`, error);
                 return 0;
             }
         });
@@ -1238,11 +1231,9 @@ class GameEngine {
         this.state.dice.forEach((die, index) => {
             if (!isValid) return; // Only apply effects if the hand is valid
             
-            // Removed excessive logging for cleaner console
-            
             // Gold enhancement provides bonus gold when scored (face-specific only)
             if (die.hasEnhancementForCurrentFace && die.hasEnhancementForCurrentFace('gold')) {
-                console.log(`Die ${index + 1} triggered gold enhancement!`);
+                Logger.debug(`Die ${index + 1} triggered gold enhancement!`);
                 this.updateGoldAnimated(ENHANCEMENT_BONUSES.GOLD_COINS, "gold enhancement");
                 window.game?.showMessage?.("Gold enhancement: +1 Gold!");
             }
@@ -1554,7 +1545,7 @@ class GameEngine {
             if (this.dom.diceContainer && this.dom.rollButton) {
                 window.uiManager.updateAll(this.state, this);
             } else {
-                console.log('Game elements not ready, skipping UI update');
+                Logger.debug('Game elements not ready, skipping UI update');
             }
         }
     }
@@ -1689,30 +1680,30 @@ class GameEngine {
         const shopOverlay = document.getElementById('shopOverlay');
         
         if (confirmOverlay && !confirmOverlay.classList.contains('hidden')) {
-            console.log('Cannot save: Confirmation dialog is open');
+            Logger.debug('Cannot save: Confirmation dialog is open');
             return false;
         }
         
         if (shopOverlay && !shopOverlay.classList.contains('hidden')) {
-            console.log('Cannot save: Shop is open');
+            Logger.debug('Cannot save: Shop is open');
             return false;
         }
         
         // Check for invalid game state
         if (!this.state || this.state.gameOver === undefined) {
-            console.error('Cannot save: Invalid game state');
+            Logger.error('Cannot save: Invalid game state');
             return false;
         }
         
         // Check if dice array is valid
         if (!Array.isArray(this.state.dice) || this.state.dice.length !== 5) {
-            console.error('Cannot save: Invalid dice array');
+            Logger.error('Cannot save: Invalid dice array');
             return false;
         }
         
         // Check if currently animating
         if (this.state.isAwaitingApi) {
-            console.log('Cannot save: Game is processing');
+            Logger.debug('Cannot save: Game is processing');
             return false;
         }
         
@@ -1725,22 +1716,22 @@ class GameEngine {
      */
     saveGame() {
         if (!this.canSave()) {
-            console.warn('Save aborted: Game not in safe state');
+            Logger.warn('Save aborted: Game not in safe state');
             return false;
         }
         
         if (this.dataManager) {
             try {
                 this.dataManager.saveGame(this.state);
-                console.log('Game saved successfully');
+                Logger.info('Game saved successfully');
                 return true;
             } catch (error) {
-                console.error('Save failed:', error);
+                Logger.error('Save failed:', error);
                 this.showMessage('Failed to save game!', 3000);
                 return false;
             }
         } else {
-            console.error('DataManager not available');
+            Logger.error('DataManager not available');
             return false;
         }
     }

@@ -208,22 +208,6 @@ class Die {
         this.tempModifier = 0;
     }
 
-    // Legacy methods - no longer used with new face-specific system
-    addPermanentModifier(modifier) {
-        // Deprecated: use face-specific modifications instead
-        // This method is kept for backward compatibility but does nothing
-        return;
-    }
-
-    getPermanentModifier() {
-        // Deprecated: no longer used with new face-specific system
-        return 0;
-    }
-
-    setBaseFace(value) {
-        // Deprecated: use setFace instead for better clarity
-        this.setFace(value);
-    }
 
     /**
      * Get the value to display on screen
