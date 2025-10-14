@@ -775,6 +775,19 @@ class Joker extends Card {
                     this.dynamicStats.favour = this.etnaFavourStacks;
                 }
                 break;
+            
+            case 'ascetics_vow':
+                // Gain +1 favour for each empty boon slot
+                const asceticMaxSlots = gameState.boonSlots || GAME_BALANCE.STARTING_BOON_SLOTS;
+                const asceticFilledSlots = gameState.jokers?.length || 0;
+                const asceticEmptySlots = asceticMaxSlots - asceticFilledSlots;
+                
+                if (asceticEmptySlots > 0) {
+                    result.favour += asceticEmptySlots;
+                    this.dynamicStats.favour = asceticEmptySlots;
+                    window.game?.showMessage?.(`Ascetic's Vow: +×${asceticEmptySlots} Favour (${asceticEmptySlots} empty)!`);
+                }
+                break;
 
             default:
                 // Unknown joker effect - log for debugging but don't break the game

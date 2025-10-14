@@ -619,6 +619,16 @@ const CardData = {
             effect: "When a Worship card triggers, also trigger +1 favour to another god.",
             description: "The seasons cycle - worship spreads to other gods.",
             timing: {} // Special - triggers on worship card use
+        },
+        { 
+            id: "ascetics_vow", 
+            name: "Ascetic's Vow", 
+            rarity: "epic", 
+            cost: 8, 
+            sellValue: 2, 
+            effect: "If you have empty other Boon slots, gain +×1 Favour for each.",
+            description: "Less is more - the ascetic finds power in emptiness.",
+            timing: { before_score: true }
         }
     ],
 
