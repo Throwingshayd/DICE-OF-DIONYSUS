@@ -1034,6 +1034,79 @@ body::after {
     box-shadow: 0 0 10px rgba(74, 144, 226, 0.3);
 }
 
+/* ===== BALATRO-STYLE DYNAMIC STAT DISPLAY ===== */
+/* Displays current values on boons (e.g., "+20 Pips", "x3 Favour") */
+.card-dynamic-stats {
+    position: absolute;
+    bottom: 8px;
+    left: 50%;
+    transform: translateX(-50%);
+    display: flex;
+    gap: 6px;
+    flex-wrap: wrap;
+    justify-content: center;
+    z-index: 10;
+    pointer-events: none;
+}
+
+.dynamic-stat {
+    padding: 4px 10px;
+    border-radius: 6px;
+    font-size: 0.95rem;
+    font-weight: bold;
+    text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.9);
+    background: rgba(0, 0, 0, 0.85);
+    border: 2px solid;
+    white-space: nowrap;
+    font-family: 'Courier New', monospace;
+    letter-spacing: 0.5px;
+}
+
+/* Pips stat (blue, like score numbers) */
+.dynamic-stat.pips {
+    color: #6EC1E4;
+    border-color: #4A90E2;
+    background: linear-gradient(135deg, rgba(74, 144, 226, 0.25), rgba(110, 193, 228, 0.15));
+}
+
+/* Multiplier/Favour stat (red, like Balatro mult) */
+.dynamic-stat.favour,
+.dynamic-stat.mult {
+    color: #FF6B6B;
+    border-color: #E74C3C;
+    background: linear-gradient(135deg, rgba(231, 76, 60, 0.25), rgba(255, 107, 107, 0.15));
+}
+
+/* Gold stat (yellow/gold) */
+.dynamic-stat.gold {
+    color: #FFD700;
+    border-color: #F39C12;
+    background: linear-gradient(135deg, rgba(243, 156, 18, 0.25), rgba(255, 215, 0, 0.15));
+}
+
+/* Other/custom stat (neutral purple) */
+.dynamic-stat.other {
+    color: #A569BD;
+    border-color: #8E44AD;
+    background: linear-gradient(135deg, rgba(142, 68, 173, 0.25), rgba(165, 105, 189, 0.15));
+}
+
+/* Animate stat changes (Balatro-style pulse) */
+@keyframes stat-pulse {
+    0%, 100% { transform: scale(1); }
+    50% { transform: scale(1.1); }
+}
+
+.dynamic-stat.updated {
+    animation: stat-pulse 0.3s ease-in-out;
+}
+
+/* Ensure stats are visible on all card types */
+.joker-slots .card .card-dynamic-stats,
+.consumable-slots .card .card-dynamic-stats {
+    display: flex !important;
+}
+
 /* Question mark for unrolled dice */
 .die[data-face="?"]::before {
     content: "?";

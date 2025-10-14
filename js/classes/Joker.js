@@ -20,6 +20,14 @@ class Joker extends Card {
             'shop_exit': false,      // Effects that trigger when leaving shop
             'hand_effect': false     // Effects that modify the current hand
         };
+        
+        // Balatro-style dynamic stats tracking (for display on card)
+        this.dynamicStats = {
+            pips: 0,           // Extra pips provided (e.g., "+20 Pips")
+            favour: 0,         // Multiplier bonus (e.g., "x3 Favour")
+            gold: 0,           // Gold earned/bonus (e.g., "+5 Gold")
+            other: null        // Custom stat (e.g., "3/5 Charges")
+        };
     }
 
     // Main event handler - called when events occur in the game
@@ -787,6 +795,81 @@ class Joker extends Card {
             default:
                 return 0;
         }
+    }
+
+    /**
+     * Balatro-style dynamic stat display - Returns array of stats to show on card
+     * @param {Object} gameState - Current game state
+     * @returns {Array<{value: string, type: string}>} Array of stats to display
+     * @example
+     * // Returns: [{ value: "+20 Pips", type: "pips" }, { value: "x3", type: "favour" }]
+     */
+    getDynamicDisplayStats(gameState) {
+        if (!gameState) return [];
+        
+        const stats = [];
+        
+        // Check dynamic stats tracking
+        if (this.dynamicStats.pips > 0) {
+            stats.push({ value: `+${this.dynamicStats.pips}`, type: 'pips' });
+        }
+        
+        if (this.dynamicStats.favour > 0) {
+            stats.push({ value: `x${this.dynamicStats.favour}`, type: 'favour' });
+        } else {
+            // Check for favour from getCurrentFavourValue() for backwards compatibility
+            const favour = this.getCurrentFavourValue(gameState);
+            if (favour > 0) {
+                stats.push({ value: `x${favour}`, type: 'favour' });
+            }
+        }
+        
+        if (this.dynamicStats.gold > 0) {
+            stats.push({ value: `+${this.dynamicStats.gold}g`, type: 'gold' });
+        }
+        
+        if (this.dynamicStats.other) {
+            stats.push({ value: this.dynamicStats.other, type: 'other' });
+        }
+        
+        // Boon-specific dynamic displays (examples from your creative ideas)
+        switch (this.id) {
+            case 'experience_points':
+                // Example: "Experience Points" boon that gains pips per 100 score
+                const totalScore = Object.values(gameState.scorecard || {})
+                    .filter(v => typeof v === 'number')
+                    .reduce((sum, v) => sum + v, 0);
+                const gainedPips = Math.floor(totalScore / 100) * 10;
+                if (gainedPips > 0) {
+                    stats.push({ value: `+${gainedPips}`, type: 'pips' });
+                }
+                break;
+                
+            case 'lucky_sevens':
+                // Example: Shows count of 7s rolled this game
+                const sevenCount = this.timesTriggered || 0;
+                if (sevenCount > 0) {
+                    stats.push({ value: `${sevenCount} 7s`, type: 'other' });
+                }
+                break;
+                
+            case 'interest_accumulator':
+                // Example: Shows gold earned from interest
+                const goldEarned = this.dynamicStats.gold || 0;
+                if (goldEarned > 0) {
+                    stats.push({ value: `+${goldEarned}g`, type: 'gold' });
+                }
+                break;
+                
+            case 'charge_based_boon':
+                // Example: Shows charges (e.g., "3/5")
+                if (this.maxUses > 0) {
+                    stats.push({ value: `${this.usesLeft}/${this.maxUses}`, type: 'other' });
+                }
+                break;
+        }
+        
+        return stats;
     }
 
     // Static method to create joker from game data

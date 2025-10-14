@@ -100,12 +100,17 @@ class Card {
             usesHtml = `<div class="card-uses">${this.usesLeft}/${this.maxUses}</div>`;
         }
 
-        // Favour display for boons that provide favour
-        let favourHtml = '';
+        // Balatro-style dynamic stat display for boons (shows current values like +20 Pips, x3 Mult)
+        let dynamicStatsHtml = '';
         if (this.type === 'joker' && window.game && window.game.state) {
-            const currentFavour = this.getCurrentFavourValue ? this.getCurrentFavourValue(window.game.state) : 0;
-            if (currentFavour > 0) {
-                favourHtml = `<div class="card-favour">x${currentFavour} Favour</div>`;
+            const stats = this.getDynamicDisplayStats ? this.getDynamicDisplayStats(window.game.state) : [];
+            if (stats && stats.length > 0) {
+                dynamicStatsHtml = '<div class="card-dynamic-stats">';
+                stats.forEach(stat => {
+                    const colorClass = stat.type || 'pips'; // pips, mult, favour, gold, other
+                    dynamicStatsHtml += `<div class="dynamic-stat ${colorClass}">${stat.value}</div>`;
+                });
+                dynamicStatsHtml += '</div>';
             }
         }
 
@@ -160,7 +165,7 @@ class Card {
                 ${cardContent}
                 ${labelHtml}
                 ${typeIndicatorHtml}
-                ${favourHtml}
+                ${dynamicStatsHtml}
             </div>
         `;
 

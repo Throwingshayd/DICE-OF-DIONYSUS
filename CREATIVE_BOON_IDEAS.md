@@ -3,6 +3,46 @@
 
 ---
 
+## 🎨 Balatro-Style Dynamic Stat Display System ✨
+
+**ALL boons with changing values now display their current state on the card** (just like Balatro's jokers)!
+
+### Visual Examples:
+- `+20` (Blue) = Pips bonus
+- `x3` (Red) = Favour multiplier  
+- `+5g` (Gold) = Gold earned/bonus
+- `3/5` (Purple) = Charges or custom stats
+
+### How It Works:
+- Values update **automatically** in real-time as game state changes
+- No need to hover or click - stats are always visible
+- Color-coded for instant readability
+- Animates when values change (Balatro-style pulse)
+
+### Implementation for New Boons:
+```javascript
+// Set dynamic stats in your boon's effect methods:
+this.dynamicStats.pips = 20;      // Shows "+20" in blue
+this.dynamicStats.favour = 3;     // Shows "x3" in red  
+this.dynamicStats.gold = 5;       // Shows "+5g" in gold
+this.dynamicStats.other = "3/5";  // Shows "3/5" in purple
+
+// Or override getDynamicDisplayStats() for complex calculations:
+getDynamicDisplayStats(gameState) {
+    const stats = [];
+    const totalScore = Object.values(gameState.scorecard || {})
+        .filter(v => typeof v === 'number')
+        .reduce((sum, v) => sum + v, 0);
+    const gainedPips = Math.floor(totalScore / 100) * 10;
+    if (gainedPips > 0) {
+        stats.push({ value: `+${gainedPips}`, type: 'pips' });
+    }
+    return stats;
+}
+```
+
+---
+
 ## 🎯 Design Philosophy
 
 ### Balatro's Joker Brilliance:
@@ -341,10 +381,12 @@
 **Mechanic:** Score → Gold conversion
 **Late game:** Generates huge gold!
 
-### 58. **Experience Points** (Rustic - 3g)
-**Effect:** "Every 100 total score, this Boon gains +10 Pips (displays on card)"
+### 58. **Experience Points** (Rustic - 3g) ✅ **DYNAMIC DISPLAY READY**
+**Effect:** "Every 100 total score, this Boon gains +10 Pips"
+**Display:** Shows current pips bonus (e.g., `+50` in blue)
 **Mechanic:** Leveling system for boon
-**RPG Feel:** Card literally grows!
+**RPG Feel:** Card literally shows its power growing!
+**Implementation Note:** Already has example code in `Joker.getDynamicDisplayStats()`
 
 ### 59. **The Veteran** (Vibrant - 5g)
 **Effect:** "+5 Pips per Ante completed (×Ante number)"
