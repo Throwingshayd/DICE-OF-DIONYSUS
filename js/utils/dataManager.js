@@ -32,7 +32,9 @@ class DataManager {
         if (!collection[itemType].includes(itemId)) {
             collection[itemType].push(itemId);
             this.saveCollection(collection);
-            console.log(`Unlocked ${itemType}: ${itemId}`);
+            if (typeof Logger !== 'undefined') {
+                Logger.info(`Unlocked ${itemType}: ${itemId}`);
+            }
             return true;
         }
         return false;
@@ -48,7 +50,9 @@ class DataManager {
     // Statistics tracking (simplified)
     updateStats(gameData) {
         // Simplified stats tracking - just log for now
-        console.log('Game completed:', gameData);
+        if (typeof Logger !== 'undefined') {
+            Logger.info('Game completed:', gameData);
+        }
     }
 
     // Settings management
@@ -86,7 +90,9 @@ class DataManager {
             if (parsed.version === this.version) {
                 return parsed.gameState;
             } else {
-                console.warn('Save file version mismatch, cannot load');
+                if (typeof Logger !== 'undefined') {
+                    Logger.warn('Save file version mismatch, cannot load');
+                }
                 return null;
             }
         }
@@ -122,7 +128,9 @@ class DataManager {
     migrationCheck() {
         const collection = this.getCollection();
         if (!collection.version || collection.version !== this.version) {
-            console.log('Running data migration...');
+            if (typeof Logger !== 'undefined') {
+                Logger.info('Running data migration...');
+            }
             this.migrateData(collection.version || '0.0');
         }
     }
@@ -143,6 +151,8 @@ class DataManager {
 
         this.saveCollection(collection);
         this.saveSettings(settings);
-        console.log(`Migrated data from ${fromVersion} to ${this.version}`);
+        if (typeof Logger !== 'undefined') {
+            Logger.info(`Migrated data from ${fromVersion} to ${this.version}`);
+        }
     }
 }
