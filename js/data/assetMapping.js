@@ -60,13 +60,9 @@ const AssetMapping = {
         'divine_guidance': 'dviine guidance.png'
     },
 
-    // Artifact Assets
+    // Artifact Assets - DISABLED: Artifacts now use fallback white box display
     artifacts: {
-        'artifact_temple_market': 'merchant arrical.png',
-        'artifact_clearance_sale': 'merchant arrical.png',
-        'artifact_crystal_ball': 'libation station.png',
-        'artifact_telescope': 'altar.png',
-        'artifact_antimatter': 'antikythra.png'
+        // All artifacts will display as white boxes with text (no images)
     },
 
     // Pack Assets

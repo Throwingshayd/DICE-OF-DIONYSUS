@@ -846,6 +846,9 @@ const CardData = {
         },
         'antimatter': {
             base: { id: "artifact_antimatter", name: "Antikythra", cost: 12, effect: "+1 Boon slot.", rarity: "artifact" }
+        },
+        'trojan_horse': {
+            base: { id: "artifact_trojan_horse", name: "The Trojan Horse", cost: 10, effect: "After Turn 10 in each Ante, all your Boons give ×2 their normal effect.", rarity: "artifact" }
         }
     },
 

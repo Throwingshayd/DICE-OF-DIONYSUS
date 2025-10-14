@@ -104,26 +104,52 @@ class Joker extends Card {
         
         const result = eventData ? { ...eventData } : {};
 
+        let processedResult;
         switch (timingEvent) {
             case 'before_roll':
-                return this.applyBeforeRollEffect(gameState, result);
+                processedResult = this.applyBeforeRollEffect(gameState, result);
+                break;
             case 'after_roll':
-                return this.applyAfterRollEffect(gameState, result);
+                processedResult = this.applyAfterRollEffect(gameState, result);
+                break;
             case 'before_score':
-                return this.applyBeforeScoreEffect(gameState, result);
+                processedResult = this.applyBeforeScoreEffect(gameState, result);
+                break;
             case 'after_score':
-                return this.applyAfterScoreEffect(gameState, result);
+                processedResult = this.applyAfterScoreEffect(gameState, result);
+                break;
             case 'turn_end':
-                return this.applyTurnEndEffect(gameState, result);
+                processedResult = this.applyTurnEndEffect(gameState, result);
+                break;
             case 'shop_enter':
-                return this.applyShopEnterEffect(gameState, result);
+                processedResult = this.applyShopEnterEffect(gameState, result);
+                break;
             case 'shop_exit':
-                return this.applyShopExitEffect(gameState, result);
+                processedResult = this.applyShopExitEffect(gameState, result);
+                break;
             case 'hand_effect':
-                return this.applyHandEffect(gameState, result);
+                processedResult = this.applyHandEffect(gameState, result);
+                break;
             default:
-                return result;
+                processedResult = result;
+                break;
         }
+        
+        // Apply The Trojan Horse artifact multiplier (if active)
+        const multiplier = gameState.boonMultiplier || 1;
+        if (multiplier !== 1 && processedResult) {
+            if (processedResult.pips !== undefined) {
+                processedResult.pips = Math.floor(processedResult.pips * multiplier);
+            }
+            if (processedResult.favour !== undefined) {
+                processedResult.favour = processedResult.favour * multiplier;
+            }
+            if (processedResult.gold !== undefined) {
+                processedResult.gold = Math.floor(processedResult.gold * multiplier);
+            }
+        }
+        
+        return processedResult;
     }
 
     // Check if conditions are met for activation

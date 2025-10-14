@@ -1745,8 +1745,23 @@ class GameEngine {
                     case 'golden_crown':
                         this.state.baseFavour += 2;
                         break;
+                    case 'artifact_trojan_horse':
+                        // The Trojan Horse: After Turn 10, all boons give ×2 effect
+                        if (this.state.turn >= 10) {
+                            this.state.boonMultiplier = 2;
+                            Logger.info(`Trojan Horse activated! All boons ×2 (Turn ${this.state.turn})`);
+                        } else {
+                            this.state.boonMultiplier = 1;
+                        }
+                        break;
                 }
             });
+            
+            // If no Trojan Horse, ensure multiplier is 1
+            const hasTrojanHorse = this.state.artifacts.some(a => a.id === 'artifact_trojan_horse');
+            if (!hasTrojanHorse) {
+                this.state.boonMultiplier = 1;
+            }
             
             // FIXED: Never touch roll mechanics
             this.state.boonSlots = boonSlots;
