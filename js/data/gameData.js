@@ -588,6 +588,17 @@ const CardData = {
             effect: "If you complete Ante with no other boons for entire ante gain +50% of score threshold.",
             description: "A solo journey - isolation brings great reward.",
             timing: {} // Special - triggers at ante end
+        },
+        { 
+            id: "betrayal_by_paris", 
+            name: "Betrayal by Paris", 
+            rarity: "vibrant", 
+            cost: 5, 
+            sellValue: 1, 
+            effect: "Destroy a random Boon at end of each Ante, gain +10 Gold.",
+            description: "The betrayer of Troy - your boons fear you.",
+            god: "Paris",
+            timing: {} // Special - triggers at ante end
         }
     ],
 

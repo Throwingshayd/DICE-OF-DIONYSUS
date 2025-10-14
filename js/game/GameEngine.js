@@ -1628,6 +1628,22 @@ class GameEngine {
             Logger.info(`Message in a Bottle triggered: Solo ante bonus +${messageBonus} score`);
         }
         
+        // Betrayal by Paris: destroy random boon, gain +10 gold
+        const hasBetrayal = this.state.jokers?.some(j => j.id === 'betrayal_by_paris');
+        
+        if (hasBetrayal && this.state.jokers?.length > 1) {
+            // Pick random boon (excluding Paris itself if possible)
+            const otherBoons = this.state.jokers.filter(b => b.id !== 'betrayal_by_paris');
+            const targetBoons = otherBoons.length > 0 ? otherBoons : this.state.jokers;
+            
+            const randomIndex = Math.floor(Math.random() * targetBoons.length);
+            const betrayedBoon = this.state.jokers.splice(this.state.jokers.indexOf(targetBoons[randomIndex]), 1)[0];
+            
+            this.updateGoldAnimated(10, "Betrayal by Paris");
+            this.showMessage(`🗡️ Betrayal by Paris: ${betrayedBoon.name} destroyed! +10 Gold`, 5000);
+            Logger.info(`Betrayal by Paris: Destroyed ${betrayedBoon.name} for 10g`);
+        }
+        
         // Get threshold from AnteData array (Balatro-style progression)
         const nextAnteData = AnteData[this.state.ante - 1];
         if (nextAnteData) {
