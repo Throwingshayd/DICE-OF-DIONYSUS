@@ -619,17 +619,20 @@ class UIManager {
                 row.classList.remove('used');
                 scoreDisplay.textContent = '-';
                 
-                // Add pulse if category is available to score
+                // Add pulse and green text if category is available to score
                 if (gameState.hasRolled && window.game) {
                     let { isValid } = window.game.calculateScore(category);
                     
                     if (isValid) {
                         row.classList.add('available-category');
+                        row.classList.add('category-available-highlight');
                     } else {
                         row.classList.remove('available-category');
+                        row.classList.remove('category-available-highlight');
                     }
                 } else {
                     row.classList.remove('available-category');
+                    row.classList.remove('category-available-highlight');
                 }
             }
         });
