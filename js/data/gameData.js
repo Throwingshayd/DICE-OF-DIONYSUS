@@ -118,7 +118,7 @@ const CardData = {
         { 
             id: "sisyphus_boulder", 
             name: "Sisyphus' Boulder", 
-            rarity: "epic", 
+            rarity: "vibrant", 
             cost: 8, 
             sellValue: 2, 
             effect: "+5 Pips for every time you've rerolled this turn. Resets each turn.",
@@ -140,11 +140,11 @@ const CardData = {
             id: "kronos_hourglass", 
             name: "Kronos' Hourglass", 
             rarity: "epic", 
-            cost: 8, 
+            cost: 9, 
             sellValue: 2, 
-            effect: "Gain +2 Rolls permanently, but score threshold increases by 20% each Ante.",
+            effect: "Gain +2 Rolls permanently, but score reduced by 20%.",
             god: "Kronos",
-            timing: { turn_start: true }
+            timing: { turn_start: true, before_score: true }
         },
         { 
             id: "the_fates_loom", 
@@ -185,9 +185,9 @@ const CardData = {
             rarity: "vibrant", 
             cost: 5, 
             sellValue: 1, 
-            effect: "Any die showing 6 cannot be rerolled (acts as automatic hold).",
+            effect: "Any die showing 6 cannot be rerolled (acts as automatic hold). Lower sanctum scores give ×0.5 favour bonus.",
             god: "Medusa",
-            timing: { after_roll: true }
+            timing: { after_roll: true, before_score: true }
         },
         { 
             id: "dionysus_revelry", 
@@ -195,7 +195,7 @@ const CardData = {
             rarity: "vibrant", 
             cost: 5, 
             sellValue: 1, 
-            effect: "After scoring, randomly set one die to a random value 1-6 for next turn.",
+            effect: "After scoring, randomly set all die faces on one die to random values 1-6 for next turn.",
             god: "Dionysus",
             timing: { after_score: true }
         },
@@ -216,7 +216,7 @@ const CardData = {
             rarity: "vibrant", 
             cost: 5, 
             sellValue: 1, 
-            effect: "Whenever you score with exactly 2 dice, gain +30 Pips.",
+            effect: "Whenever you score with exactly 2 dice, gain +3 Favour.",
             god: "Hydra",
             timing: { before_score: true }
         },
@@ -226,7 +226,7 @@ const CardData = {
             rarity: "vibrant", 
             cost: 5, 
             sellValue: 1, 
-            effect: "+1 Favour for each gold you have, but cannot spend gold while active.",
+            effect: "+0.5 Favour for each gold you have, but cannot spend gold while active.",
             god: "Tantalus",
             description: "Punishment eternal: wealth you cannot touch.",
             timing: { before_score: true }
@@ -237,7 +237,7 @@ const CardData = {
             rarity: "vibrant", 
             cost: 5, 
             sellValue: 1, 
-            effect: "Dice with values 5+ give ×0.5 extra Favour when scored.",
+            effect: "Dice with values 6+ give ×0.5 extra Favour when scored.",
             god: "Pegasus",
             timing: { before_score: true }
         },
@@ -247,7 +247,7 @@ const CardData = {
             rarity: "vibrant", 
             cost: 5, 
             sellValue: 1, 
-            effect: "The first 3 dice you hold each turn gain +5 Pips each when scored.",
+            effect: "The first 3 dice you hold each turn gain +3 Pips each when scored.",
             god: "Cerberus",
             description: "The three-headed guardian blesses what you protect.",
             timing: { before_score: true }
@@ -308,7 +308,7 @@ const CardData = {
             rarity: "rustic", 
             cost: 3, 
             sellValue: 1, 
-            effect: "50% chance to gain +2 Gold when scoring, 50% chance to gain nothing.",
+            effect: "50% chance to gain +2 Gold when scoring, 50% chance to lose 1 gold.",
             timing: { after_score: true }
         },
         { 
@@ -317,9 +317,9 @@ const CardData = {
             rarity: "rustic", 
             cost: 3, 
             sellValue: 1, 
-            effect: "Gain +2 Pips per turn completed this Ante (stacks).",
-            description: "Named for Pheidippides, who ran from Marathon to Athens.",
-            timing: { before_score: true }
+            effect: "Gain +1 Pips per roll taken (stacks, destroyed when scratched or reaches 42+ pips).",
+            description: "Named for Pheidippides - the longer the journey, the greater the exhaustion.",
+            timing: { before_score: true, after_roll: true, after_score: true }
         },
         { 
             id: "golden_touch", 

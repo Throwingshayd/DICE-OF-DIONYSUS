@@ -390,7 +390,9 @@ class Joker extends Card {
                 break;
             
             case 'kronos_hourglass':
-                // +2 Rolls permanently (handled in turn_start), score threshold +20% per ante
+                // Reduce score by 20%
+                result.pips = Math.floor(result.pips * 0.8);
+                window.game?.showMessage?.("Kronos' Hourglass: Score reduced by 20%!");
                 break;
             
             case 'the_fates_loom':
@@ -437,17 +439,27 @@ class Joker extends Card {
                 break;
             
             case 'hydras_heads':
-                // Whenever you score with exactly 2 dice, gain +30 Pips
+                // Whenever you score with exactly 2 dice, gain +3 Favour
                 const diceUsedCount = gameState.dice.filter(d => d.face > 0).length;
                 if (diceUsedCount === 2) {
-                    result.pips += 30;
-                    window.game?.showMessage?.("Hydra's Heads: +30 Pips for using 2 dice!");
+                    result.favour += 3;
+                    window.game?.showMessage?.("Hydra's Heads: +×3 Favour for using 2 dice!");
+                }
+                break;
+            
+            case 'medusas_gaze':
+                // Lower sanctum scores give ×0.5 favour bonus
+                const lowerSanctum = ['Three of a Kind', 'Four of a Kind', 'Full House', 
+                                     'Small Straight', 'Large Straight', 'Yahtzee', 'Chance'];
+                if (lowerSanctum.includes(result.category)) {
+                    result.favour += 0.5;
+                    window.game?.showMessage?.("Medusa's Gaze: ×0.5 Favour (lower sanctum)!");
                 }
                 break;
             
             case 'tantalus_curse':
-                // +1 Favour for each gold, but cannot spend gold
-                const tantalusFavour = Math.floor(gameState.gold * 1);
+                // +0.5 Favour for each gold, but cannot spend gold
+                const tantalusFavour = gameState.gold * 0.5;
                 result.favour += tantalusFavour;
                 this.dynamicStats.favour = tantalusFavour;
                 if (tantalusFavour > 0) {
@@ -457,8 +469,8 @@ class Joker extends Card {
                 break;
             
             case 'pegasus_flight':
-                // Dice with values 5+ give ×0.5 extra Favour
-                const highDice = gameState.dice.filter(d => d.face >= 5).length;
+                // Dice with values 6+ give ×0.5 extra Favour
+                const highDice = gameState.dice.filter(d => d.face >= 6).length;
                 if (highDice > 0) {
                     result.favour += highDice * 0.5;
                     window.game?.showMessage?.(`Pegasus' Flight: +${highDice * 0.5} Favour from high dice!`);
@@ -466,9 +478,9 @@ class Joker extends Card {
                 break;
             
             case 'cerberus_watch':
-                // The first 3 dice you hold each turn gain +5 Pips each
+                // The first 3 dice you hold each turn gain +3 Pips each
                 const heldDice = gameState.dice.filter(d => d.held).slice(0, 3);
-                const cerberusBonus = heldDice.length * 5;
+                const cerberusBonus = heldDice.length * 3;
                 result.pips += cerberusBonus;
                 if (cerberusBonus > 0) {
                     window.game?.showMessage?.(`Cerberus' Watch: +${cerberusBonus} Pips for held dice!`);
@@ -512,12 +524,13 @@ class Joker extends Card {
                 break;
             
             case 'marathon_runner':
-                // Gain +2 Pips per turn completed this Ante
-                const marathonBonus = (gameState.turn - 1) * 2;
-                result.pips += marathonBonus;
-                this.dynamicStats.pips = marathonBonus;
-                if (marathonBonus > 0) {
-                    window.game?.showMessage?.(`Marathon Runner: +${marathonBonus} Pips!`);
+                // Gain +1 Pips per roll taken (stacks, destroyed at 42+ or scratch)
+                const marathonPips = this.marathonPips || 0;
+                
+                if (marathonPips > 0) {
+                    result.pips += marathonPips;
+                    this.dynamicStats.pips = marathonPips;
+                    window.game?.showMessage?.(`Marathon Runner: +${marathonPips} Pips!`);
                 }
                 break;
             
@@ -928,12 +941,16 @@ class Joker extends Card {
             
             case 'medusas_gaze':
                 // Any die showing 6 cannot be rerolled (auto-hold)
+                let medusaSixes = 0;
                 gameState.dice.forEach(die => {
                     if (die.face === 6) {
                         die.held = true;
+                        medusaSixes++;
                     }
                 });
-                window.game?.showMessage?.("Medusa's Gaze: All 6s are held!");
+                if (medusaSixes > 0) {
+                    window.game?.showMessage?.(`Medusa's Gaze: ${medusaSixes} sixes held!`);
+                }
                 break;
             
             case 'the_locksmith':
@@ -999,6 +1016,14 @@ class Joker extends Card {
                         window.game?.showMessage?.(`Smog of Morpheus: ${morpheusTransformed} dice → 3 (final roll)!`, 3000);
                     }
                 }
+                break;
+            
+            case 'marathon_runner':
+                // Increment pips after each roll
+                if (!this.marathonPips) {
+                    this.marathonPips = 0;
+                }
+                this.marathonPips += 1;
                 break;
         }
         return result;
@@ -1195,11 +1220,15 @@ class Joker extends Card {
             
             // === NEW BOONS - After Score ===
             case 'dionysus_revelry':
-                // After scoring, randomly set one die to random value 1-6 for next turn
+                // After scoring, randomly set ALL faces on one die to random values 1-6
                 const revelryDie = gameState.dice[Math.floor(Math.random() * gameState.dice.length)];
-                const randomValue = Math.floor(Math.random() * 6) + 1;
-                revelryDie.face = randomValue;
-                window.game?.showMessage?.(`Dionysus' Revelry: One die set to ${randomValue}!`);
+                
+                Object.keys(revelryDie.faces).forEach(faceKey => {
+                    const randomValue = Math.floor(Math.random() * 6) + 1;
+                    revelryDie.faces[faceKey].modifiedValue = randomValue;
+                });
+                
+                window.game?.showMessage?.(`Dionysus' Revelry: One die's ALL faces randomized!`, 3000);
                 break;
             
             case 'philosophers_stone':
@@ -1216,7 +1245,7 @@ class Joker extends Card {
                 break;
             
             case 'gamblers_charm':
-                // 50% chance to gain +2 Gold
+                // 50% chance +2 Gold, 50% chance lose 1 gold
                 if (Math.random() < 0.5) {
                     if (window.game && typeof window.game.updateGoldAnimated === 'function') {
                         window.game.updateGoldAnimated(2, "Gambler's Charm");
@@ -1225,7 +1254,12 @@ class Joker extends Card {
                     }
                     window.game?.showMessage?.("Gambler's Charm: +2 Gold! Lucky!");
                 } else {
-                    window.game?.showMessage?.("Gambler's Charm: No luck this time.");
+                    if (window.game && typeof window.game.updateGoldAnimated === 'function') {
+                        window.game.updateGoldAnimated(-1, "Gambler's Charm");
+                    } else {
+                        gameState.gold = Math.max(0, gameState.gold - 1);
+                    }
+                    window.game?.showMessage?.("Gambler's Charm: -1 Gold! Unlucky!");
                 }
                 break;
             
@@ -1238,6 +1272,19 @@ class Joker extends Card {
                         gameState.gold += 2;
                     }
                     window.game?.showMessage?.("Early Bird: +2 Gold!");
+                }
+                break;
+            
+            case 'marathon_runner':
+                // Check if destroyed (scratched or reached 42+ pips)
+                if (!result.isValid || this.marathonPips >= 42) {
+                    // Destroy this boon
+                    const marathonIndex = gameState.jokers.findIndex(j => j.id === 'marathon_runner');
+                    if (marathonIndex !== -1) {
+                        gameState.jokers.splice(marathonIndex, 1);
+                        window.game?.showMessage?.("💀 Marathon Runner: Exhausted and destroyed!", 4000);
+                        Logger.info("Marathon Runner destroyed - scratch or 42+ pips reached");
+                    }
                 }
                 break;
         }
@@ -1301,6 +1348,11 @@ class Joker extends Card {
                     gameState.hereticStacks = 0;
                 }
                 gameState.hereticStacks += 2;
+                break;
+            
+            case 'marathon_runner':
+                // Reset marathon pips each turn
+                this.marathonPips = 0;
                 break;
             
             case 'midnight_oil':
