@@ -75,7 +75,15 @@ class Joker extends Card {
         }
 
         // Apply the joker's effect based on timing
-        const result = this.applyTimingEffect(timingEvent, gameState, eventData);
+        let result = this.applyTimingEffect(timingEvent, gameState, eventData);
+        
+        // Reflection of Narcissus: Apply effect a second time (but not for narcissus itself)
+        const hasNarcissus = gameState.jokers?.some(j => j.id === 'reflection_of_narcissus');
+        if (hasNarcissus && this.id !== 'reflection_of_narcissus' && !gameState.narcissusDoubling) {
+            gameState.narcissusDoubling = true; // Prevent infinite loops
+            result = this.applyTimingEffect(timingEvent, gameState, result);
+            gameState.narcissusDoubling = false;
+        }
         
         // Track usage
         if (result !== eventData) {
@@ -1323,6 +1331,12 @@ class Joker extends Card {
                 } else {
                     gameState.proteusMimicId = null;
                 }
+                break;
+            
+            case 'reflection_of_narcissus':
+                // Reduce rolls by 2
+                gameState.rollsLeft = Math.max(1, GAME_BALANCE.STARTING_ROLLS - 2);
+                window.game?.showMessage?.("Reflection of Narcissus: -2 rolls (boons doubled)!");
                 break;
         }
         // No return value needed for turn_start effects

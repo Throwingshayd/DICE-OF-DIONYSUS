@@ -672,6 +672,17 @@ const CardData = {
             description: "Perfect harmony - the bells ring when all are enhanced.",
             god: "The Nine Muses",
             timing: { before_score: true }
+        },
+        { 
+            id: "reflection_of_narcissus", 
+            name: "Reflection of Narcissus", 
+            rarity: "epic", 
+            cost: 11, 
+            sellValue: 3, 
+            effect: "Boons trigger twice, but you have -2 rolls per turn.",
+            description: "The reflection doubles all - but limits your chances.",
+            god: "Narcissus",
+            timing: { turn_start: true }
         }
     ],
 
