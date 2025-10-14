@@ -640,6 +640,17 @@ const CardData = {
             description: "The forge's bellows create phantom duplicates - virtual power.",
             god: "Hephaestus",
             timing: {} // Special - modifies scoring logic
+        },
+        { 
+            id: "nyxian_seduction", 
+            name: "Nyxian Seduction", 
+            rarity: "rustic", 
+            cost: 3, 
+            sellValue: 1, 
+            effect: "Chance category gives +69 Pips, reduce a random god's favour by 1 level (male gods preferred).",
+            description: "Seductive night - weakens male gods through temptation.",
+            god: "Nyx",
+            timing: { before_score: true }
         }
     ],
 

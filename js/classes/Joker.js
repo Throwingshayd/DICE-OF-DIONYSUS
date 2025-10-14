@@ -788,6 +788,33 @@ class Joker extends Card {
                     window.game?.showMessage?.(`Ascetic's Vow: +×${asceticEmptySlots} Favour (${asceticEmptySlots} empty)!`);
                 }
                 break;
+            
+            case 'nyxian_seduction':
+                // Chance category: +69 Pips, seduce (reduce) random god's favour
+                if (result.category === 'Chance') {
+                    result.pips += 69;
+                    
+                    // Pick a random god to seduce (75% male preference)
+                    const maleGods = ['Ares', 'Apollo', 'Zeus', 'Hermes', 'Heracles', 
+                                     'Hephaestus', 'Dionysus', 'Morpheus'];
+                    const femaleGods = ['Artemis', 'Persephone', 'Hera', 'Athena', 'Nyx'];
+                    
+                    // Add unlocked gods
+                    if (gameState.unlockedCategories?.Eights) maleGods.push('Poseidon');
+                    if (gameState.unlockedCategories?.Sevens) femaleGods.push('The Pleiades');
+                    if (gameState.unlockedCategories?.Nines) femaleGods.push('The Nine Muses');
+                    
+                    // 75% male, 25% female
+                    const targetPool = Math.random() < 0.75 ? maleGods : femaleGods;
+                    const seducedGod = targetPool[Math.floor(Math.random() * targetPool.length)];
+                    
+                    // Reduce their worship level
+                    if (gameState.worshipLevels[seducedGod] > 0) {
+                        gameState.worshipLevels[seducedGod] -= 1;
+                        window.game?.showMessage?.(`💋 Nyxian Seduction: +69 Pips, ${seducedGod} worship -1!`, 3000);
+                    }
+                }
+                break;
 
             default:
                 // Unknown joker effect - log for debugging but don't break the game
