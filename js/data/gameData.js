@@ -557,6 +557,17 @@ const CardData = {
             description: "The shape-shifter takes many forms - never the same twice.",
             god: "Proteus",
             timing: { turn_start: true }
+        },
+        { 
+            id: "cornucopia_of_ploutos", 
+            name: "Cornucopia of Ploutos", 
+            rarity: "vibrant", 
+            cost: 5, 
+            sellValue: 1, 
+            effect: "At end of Ante, gold ×1.5 (rounded down).",
+            description: "The horn of plenty - wealth multiplies for the patient.",
+            god: "Ploutos",
+            timing: {} // Special - triggers at ante end
         }
     ],
 

@@ -1602,6 +1602,18 @@ class GameEngine {
         // Reset The Zealot's last worship god at end of ante
         this.state.lastWorshipGod = null;
         
+        // The Investor/Cornucopia of Ploutos: multiply gold at end of ante
+        const hasInvestor = this.state.jokers?.some(j => j.id === 'cornucopia_of_ploutos');
+        if (hasInvestor && this.state.gold > 0) {
+            const originalGold = this.state.gold;
+            const investorGold = Math.floor(this.state.gold * 1.5);
+            const gained = investorGold - originalGold;
+            
+            this.state.gold = investorGold;
+            this.showMessage(`Cornucopia of Ploutos: Gold ×1.5! (+${gained}g)`, 4000);
+            Logger.info(`Cornucopia triggered: ${originalGold}g → ${investorGold}g (+${gained}g)`);
+        }
+        
         // Get threshold from AnteData array (Balatro-style progression)
         const nextAnteData = AnteData[this.state.ante - 1];
         if (nextAnteData) {
