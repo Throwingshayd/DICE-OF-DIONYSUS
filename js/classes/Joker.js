@@ -815,6 +815,24 @@ class Joker extends Card {
                     }
                 }
                 break;
+            
+            case 'gold_standard':
+                // All gold enhancements give +3 Pips
+                let goldEnhancementCount = 0;
+                
+                gameState.dice.forEach(die => {
+                    const currentFace = die.face;
+                    if (die.faces[currentFace] && die.faces[currentFace].enhancements.has('gold')) {
+                        goldEnhancementCount++;
+                    }
+                });
+                
+                if (goldEnhancementCount > 0) {
+                    const goldBonus = goldEnhancementCount * 3;
+                    result.pips += goldBonus;
+                    window.game?.showMessage?.(`Gold Standard: +${goldBonus} Pips from ${goldEnhancementCount} gold!`);
+                }
+                break;
 
             default:
                 // Unknown joker effect - log for debugging but don't break the game

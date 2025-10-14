@@ -651,6 +651,16 @@ const CardData = {
             description: "Seductive night - weakens male gods through temptation.",
             god: "Nyx",
             timing: { before_score: true }
+        },
+        { 
+            id: "gold_standard", 
+            name: "Gold Standard", 
+            rarity: "vibrant", 
+            cost: 8, 
+            sellValue: 2, 
+            effect: "All gold enhancements also give +3 Pips.",
+            description: "The gold standard - premium enhancements for premium value.",
+            timing: { before_score: true }
         }
     ],
 
