@@ -356,9 +356,9 @@ class Joker extends Card {
 
             default:
                 // Unknown joker effect - log for debugging but don't break the game
-                console.warn(`Unknown joker effect: ${this.id} - this boon may not function correctly`);
-                // Return original score to prevent game-breaking
-                return original;
+                Logger.warn(`Unknown joker effect: ${this.id} - this boon may not function correctly`);
+                // Return unchanged result to prevent game-breaking
+                break;
         }
 
         return result;
