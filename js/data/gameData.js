@@ -661,6 +661,17 @@ const CardData = {
             effect: "All gold enhancements also give +3 Pips.",
             description: "The gold standard - premium enhancements for premium value.",
             timing: { before_score: true }
+        },
+        { 
+            id: "carillon_of_the_muses", 
+            name: "Carillon of the Muses", 
+            rarity: "epic", 
+            cost: 10, 
+            sellValue: 3, 
+            effect: "If all 5 dice have enhancements, gain ×3 Favour (secret: if all same enhancement, ×5 Favour).",
+            description: "Perfect harmony - the bells ring when all are enhanced.",
+            god: "The Nine Muses",
+            timing: { before_score: true }
         }
     ],
 

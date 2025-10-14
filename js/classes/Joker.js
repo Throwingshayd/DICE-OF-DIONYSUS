@@ -833,6 +833,35 @@ class Joker extends Card {
                     window.game?.showMessage?.(`Gold Standard: +${goldBonus} Pips from ${goldEnhancementCount} gold!`);
                 }
                 break;
+            
+            case 'carillon_of_the_muses':
+                // If all 5 dice have enhancements, gain ×3 Favour (×5 if all same)
+                let carillonEnhancedCount = 0;
+                const carillonEnhancementTypes = new Set();
+                
+                gameState.dice.forEach(die => {
+                    const currentFace = die.face;
+                    if (die.faces[currentFace] && die.faces[currentFace].enhancements.size > 0) {
+                        carillonEnhancedCount++;
+                        // Track first enhancement type for each die
+                        const firstEnhancement = Array.from(die.faces[currentFace].enhancements)[0].enhancement;
+                        carillonEnhancementTypes.add(firstEnhancement);
+                    }
+                });
+                
+                if (carillonEnhancedCount === 5) {
+                    if (carillonEnhancementTypes.size === 1) {
+                        // SECRET BONUS: All same enhancement!
+                        result.favour += 5;
+                        window.game?.showMessage?.("🎵 Carillon of the Muses: PERFECT HARMONY! ×5 Favour!", 5000);
+                        Logger.info("Carillon secret bonus triggered: All same enhancement!");
+                    } else {
+                        // All enhanced but different
+                        result.favour += 3;
+                        window.game?.showMessage?.("Carillon of the Muses: ×3 Favour!");
+                    }
+                }
+                break;
 
             default:
                 // Unknown joker effect - log for debugging but don't break the game
