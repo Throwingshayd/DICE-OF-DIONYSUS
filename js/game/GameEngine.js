@@ -1602,6 +1602,9 @@ class GameEngine {
         // Reset The Zealot's last worship god at end of ante
         this.state.lastWorshipGod = null;
         
+        // Reset The Odyssey completion flag at end of ante
+        this.state.odysseyAwarded = false;
+        
         // The Investor/Cornucopia of Ploutos: multiply gold at end of ante
         const hasInvestor = this.state.jokers?.some(j => j.id === 'cornucopia_of_ploutos');
         if (hasInvestor && this.state.gold > 0) {

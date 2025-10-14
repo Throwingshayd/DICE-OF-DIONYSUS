@@ -725,14 +725,25 @@ class Joker extends Card {
                 break;
             
             case 'the_odyssey':
-                // Bonus = (categories scored)²
-                const odysseyCategories = Object.keys(gameState.scorecard).length;
+                // If all available categories are scored, gain +500 pips
+                const allCategories = [
+                    'Ones', 'Twos', 'Threes', 'Fours', 'Fives', 'Sixes',
+                    'Three of a Kind', 'Four of a Kind', 'Full House',
+                    'Small Straight', 'Large Straight', 'Yahtzee', 'Chance'
+                ];
                 
-                if (odysseyCategories > 0) {
-                    const odysseyBonus = odysseyCategories * odysseyCategories;
-                    result.pips += odysseyBonus;
-                    this.dynamicStats.pips = odysseyBonus;
-                    window.game?.showMessage?.(`The Odyssey: +${odysseyBonus} Pips (${odysseyCategories}²)!`);
+                // Add unlocked categories (7s, 8s, 9s)
+                if (gameState.unlockedCategories?.Sevens) allCategories.push('Sevens');
+                if (gameState.unlockedCategories?.Eights) allCategories.push('Eights');
+                if (gameState.unlockedCategories?.Nines) allCategories.push('Nines');
+                
+                const odysseyScored = allCategories.filter(cat => gameState.scorecard[cat] !== undefined).length;
+                const odysseyTotal = allCategories.length;
+                
+                if (odysseyScored === odysseyTotal && !gameState.odysseyAwarded) {
+                    result.pips += 500;
+                    gameState.odysseyAwarded = true;
+                    window.game?.showMessage?.(`🏆 THE ODYSSEY COMPLETE! +500 Pips! (${odysseyTotal}/${odysseyTotal})`, 6000);
                 }
                 break;
 

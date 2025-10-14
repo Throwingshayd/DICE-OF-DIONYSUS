@@ -575,8 +575,8 @@ const CardData = {
             rarity: "vibrant", 
             cost: 5, 
             sellValue: 1, 
-            effect: "Bonus pips equal to (categories scored)². 13=+169, 14=+196, 15=+225, 16=+256.",
-            description: "The epic journey to completion - exponential rewards.",
+            effect: "If all available categories are scored in the ante, gain +500 pips.",
+            description: "Complete the journey - perfect completion rewarded.",
             timing: { before_score: true }
         }
     ],
