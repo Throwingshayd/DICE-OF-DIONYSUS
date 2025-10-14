@@ -723,6 +723,18 @@ class Joker extends Card {
                     }
                 }
                 break;
+            
+            case 'the_odyssey':
+                // Bonus = (categories scored)²
+                const odysseyCategories = Object.keys(gameState.scorecard).length;
+                
+                if (odysseyCategories > 0) {
+                    const odysseyBonus = odysseyCategories * odysseyCategories;
+                    result.pips += odysseyBonus;
+                    this.dynamicStats.pips = odysseyBonus;
+                    window.game?.showMessage?.(`The Odyssey: +${odysseyBonus} Pips (${odysseyCategories}²)!`);
+                }
+                break;
 
             default:
                 // Unknown joker effect - log for debugging but don't break the game

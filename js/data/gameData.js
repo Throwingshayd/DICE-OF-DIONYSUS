@@ -568,6 +568,16 @@ const CardData = {
             description: "The horn of plenty - wealth multiplies for the patient.",
             god: "Ploutos",
             timing: {} // Special - triggers at ante end
+        },
+        { 
+            id: "the_odyssey", 
+            name: "The Odyssey", 
+            rarity: "vibrant", 
+            cost: 5, 
+            sellValue: 1, 
+            effect: "Bonus pips equal to (categories scored)². 13=+169, 14=+196, 15=+225, 16=+256.",
+            description: "The epic journey to completion - exponential rewards.",
+            timing: { before_score: true }
         }
     ],
 
