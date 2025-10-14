@@ -1660,12 +1660,7 @@ class UIManager {
         }
         gameEngine.updateAllUI();
         
-        // Check if this was claimed from a pack opening view
-        if (element?.parentNode?.id === 'packRevealedCards') {
-            Logger.debug('Card claimed from pack, closing pack opening view');
-            // Close the pack opening view and return to shop
-            this.closePackOpeningView();
-        }
+        Logger.debug('Card claimed successfully');
     }
 
     useConsumable(card, gameState, gameEngine) {
@@ -1926,6 +1921,11 @@ class UIManager {
                         // Claim the card after animation
                         setTimeout(() => {
                             this.claimCard(card, gameState, gameEngine, cardEl);
+                            
+                            // Close pack opening view and return to shop
+                            setTimeout(() => {
+                                this.closePackOpeningView();
+                            }, 100);
                         }, 300);
                     }
                 });
@@ -2276,13 +2276,13 @@ class UIManager {
         }
     }
 
-    // New method to close pack opening view
+    // Close pack opening view and return to shop
     closePackOpeningView() {
-        console.log('Closing pack opening view...');
+        Logger.debug('Closing pack opening view...');
         
         // Check if DOM elements exist before trying to access them
         if (!this.dom.packOpeningView) {
-            console.error('packOpeningView element not found!');
+            Logger.error('packOpeningView element not found!');
             return;
         }
         if (!this.dom.shopDefaultView) {
