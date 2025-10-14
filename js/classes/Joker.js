@@ -1030,6 +1030,22 @@ class Joker extends Card {
                     window.game?.showMessage?.("Midnight Oil: -1 roll!");
                 }
                 break;
+            
+            case 'parmenides_die':
+                // Clear previous parmenides marks
+                gameState.dice.forEach(d => {
+                    d.isParmenidesDie = false;
+                    d.oppositeValue = null;
+                });
+                
+                // Mark one random die as dual-value
+                const parmenidesDie = gameState.dice[Math.floor(Math.random() * gameState.dice.length)];
+                parmenidesDie.isParmenidesDie = true;
+                parmenidesDie.oppositeValue = 7 - parmenidesDie.face;
+                
+                window.game?.showMessage?.(`Parmenides: Die showing ${parmenidesDie.face} is now dual-value (${parmenidesDie.face}↔${parmenidesDie.oppositeValue})!`, 4000);
+                Logger.info(`Parmenides activated: Die value ${parmenidesDie.face} also counts as ${parmenidesDie.oppositeValue}`);
+                break;
         }
         // No return value needed for turn_start effects
     }

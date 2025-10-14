@@ -4829,3 +4829,51 @@ body::after {
     }
 }
 
+/* ===== PARMENIDES DIE - DUAL VALUE EFFECT ===== */
+
+.die.parmenides-die {
+    position: relative;
+    border: 3px solid #a855f7 !important;
+    box-shadow: 
+        0 0 20px rgba(168, 85, 247, 0.8),
+        0 0 40px rgba(168, 85, 247, 0.4),
+        inset 0 0 20px rgba(168, 85, 247, 0.2) !important;
+    animation: parmenidesPulse 2s ease-in-out infinite;
+    background: linear-gradient(135deg, 
+        rgba(168, 85, 247, 0.15) 0%, 
+        rgba(99, 102, 241, 0.15) 100%) !important;
+}
+
+@keyframes parmenidesPulse {
+    0%, 100% {
+        box-shadow: 
+            0 0 20px rgba(168, 85, 247, 0.8),
+            0 0 40px rgba(168, 85, 247, 0.4),
+            inset 0 0 20px rgba(168, 85, 247, 0.2);
+    }
+    50% {
+        box-shadow: 
+            0 0 30px rgba(168, 85, 247, 1),
+            0 0 60px rgba(168, 85, 247, 0.6),
+            inset 0 0 30px rgba(168, 85, 247, 0.3);
+    }
+}
+
+/* Parmenides dual-value indicator */
+.die.parmenides-die::after {
+    content: attr(data-parmenides);
+    position: absolute;
+    bottom: -25px;
+    left: 50%;
+    transform: translateX(-50%);
+    font-size: 0.7rem;
+    color: #a855f7;
+    background: rgba(0, 0, 0, 0.8);
+    padding: 2px 6px;
+    border-radius: 4px;
+    white-space: nowrap;
+    font-weight: bold;
+    text-shadow: 0 0 8px rgba(168, 85, 247, 0.8);
+    border: 1px solid #a855f7;
+}
+

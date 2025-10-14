@@ -339,6 +339,12 @@ class UIManager {
                 dieEl.classList.add('held');
             }
             
+            // Add Parmenides dual-value effect (purple/quantum tint)
+            if (die.isParmenidesDie) {
+                dieEl.classList.add('parmenides-die');
+                dieEl.setAttribute('data-parmenides', `${die.face}↔${die.oppositeValue}`);
+            }
+            
             // Add enhancement glow if die has enhancements on the current face
             const currentFace = die.currentFace;
             const hasEnhancementsOnCurrentFace = currentFace > 0 && die.faces[currentFace] && die.faces[currentFace].enhancements.size > 0;

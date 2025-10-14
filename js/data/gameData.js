@@ -474,6 +474,17 @@ const CardData = {
             effect: "Turn 12+ gives +24 Pips but you lose 1 roll each turn.",
             description: "Burning the midnight oil - working harder at the end.",
             timing: { before_score: true, turn_start: true }
+        },
+        { 
+            id: "parmenides_die", 
+            name: "Parmenides Die", 
+            rarity: "epic", 
+            cost: 8, 
+            sellValue: 2, 
+            effect: "One random die each turn counts as both its value AND its opposite value (1↔6, 2↔5, 3↔4).",
+            description: "Quantum superposition - a die in two states at once.",
+            god: "Parmenides",
+            timing: { turn_start: true }
         }
     ],
 

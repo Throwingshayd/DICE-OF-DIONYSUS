@@ -1237,13 +1237,19 @@ class GameEngine {
             }
         });
         
-        // Build counts with safe defaults
-        const counts = faces.reduce((acc, val) => {
+        // Build counts with safe defaults (handle Parmenides dual-value dice)
+        const counts = {};
+        this.state.dice.forEach((die, index) => {
+            const val = faces[index];
             if (val > 0) {  // Only count valid faces
-                acc[val] = (acc[val] || 0) + 1;
+                counts[val] = (counts[val] || 0) + 1;
+                
+                // Parmenides Die: count as BOTH values
+                if (die.isParmenidesDie && die.oppositeValue) {
+                    counts[die.oppositeValue] = (counts[die.oppositeValue] || 0) + 1;
+                }
             }
-            return acc;
-        }, {});
+        });
         
         let pips = 0;
         let isValid = false;
