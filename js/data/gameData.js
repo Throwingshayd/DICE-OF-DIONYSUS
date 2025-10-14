@@ -434,6 +434,26 @@ const CardData = {
             effect: "Each 4 of a kind or greater of matching dice gives +×1 Favour.",
             description: "A gathering of equals - celebration of multiples.",
             timing: { before_score: true }
+        },
+        { 
+            id: "assembly_of_heroes", 
+            name: "Assembly of Heroes", 
+            rarity: "rustic", 
+            cost: 3, 
+            sellValue: 1, 
+            effect: "If all boon slots are full, gain +15 Pips when scoring.",
+            description: "United heroes stand stronger together.",
+            timing: { before_score: true }
+        },
+        { 
+            id: "divine_synergy", 
+            name: "Divine Synergy", 
+            rarity: "rustic", 
+            cost: 3, 
+            sellValue: 1, 
+            effect: "Boons of the same rarity amplify each other (+5 Pips per matching rarity).",
+            description: "Similar rarities harmonize together.",
+            timing: { before_score: true }
         }
     ],
 

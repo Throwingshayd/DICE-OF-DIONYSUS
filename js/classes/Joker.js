@@ -610,6 +610,38 @@ class Joker extends Card {
                     window.game?.showMessage?.("The Symposium: +×1 Favour!");
                 }
                 break;
+            
+            case 'assembly_of_heroes':
+                // If all boon slots are full, gain +15 Pips
+                const maxBoonSlots = gameState.boonSlots || GAME_BALANCE.STARTING_BOON_SLOTS;
+                const currentBoons = gameState.jokers?.length || 0;
+                
+                if (currentBoons >= maxBoonSlots) {
+                    result.pips += 15;
+                    window.game?.showMessage?.(`Assembly of Heroes: +15 Pips (slots full!)!`);
+                }
+                break;
+            
+            case 'divine_synergy':
+                // Boons of same rarity amplify each other (+5 Pips per match)
+                const rarityCounts = {};
+                gameState.jokers.forEach(boon => {
+                    rarityCounts[boon.rarity] = (rarityCounts[boon.rarity] || 0) + 1;
+                });
+                
+                let synergyBonus = 0;
+                Object.values(rarityCounts).forEach(count => {
+                    if (count >= 2) {
+                        synergyBonus += (count - 1) * 5; // Each match beyond first gives +5
+                    }
+                });
+                
+                if (synergyBonus > 0) {
+                    result.pips += synergyBonus;
+                    this.dynamicStats.pips = synergyBonus;
+                    window.game?.showMessage?.(`Divine Synergy: +${synergyBonus} Pips!`);
+                }
+                break;
 
             default:
                 // Unknown joker effect - log for debugging but don't break the game
