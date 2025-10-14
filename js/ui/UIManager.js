@@ -631,6 +631,7 @@ class UIManager {
             
             if (gameState.scorecard[category] !== undefined) {
                 row.classList.add('used');
+                row.classList.remove('available-category');
                 scoreDisplay.textContent = gameState.scorecard[category];
             } else {
                 row.classList.remove('used');
@@ -649,11 +650,16 @@ class UIManager {
                         favour = eventData.favour;
                         
                         scoreDisplay.innerHTML = `${pips} <span style="color: var(--accent-red-desat)">(x${favour})</span>`;
+                        
+                        // Add Balatro-style pulse for available categories
+                        row.classList.add('available-category');
                     } else {
                         scoreDisplay.textContent = '-';
+                        row.classList.remove('available-category');
                     }
                 } else {
                     scoreDisplay.textContent = '-';
+                    row.classList.remove('available-category');
                 }
             }
         });

@@ -4391,3 +4391,87 @@ body::after {
     }
 }
 
+/* ===== FINAL POLISH: BUTTONS & INTERACTIONS ===== */
+
+/* Universal button improvements */
+.divine-button,
+.balatro-button,
+.roll-button,
+.ante-begin-button {
+    position: relative;
+    overflow: hidden;
+    transition: all 0.2s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+/* Enhanced press effect */
+.divine-button:active:not(:disabled),
+.balatro-button:active:not(:disabled),
+.roll-button:active:not(:disabled) {
+    transform: scale(0.95) translateY(2px);
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.4);
+}
+
+/* Disabled state */
+.divine-button:disabled,
+.balatro-button:disabled,
+.roll-button:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+    filter: grayscale(0.6) brightness(0.8);
+    pointer-events: none;
+}
+
+/* Ripple effect on click */
+.button-ripple {
+    position: absolute;
+    border-radius: 50%;
+    background: rgba(255, 255, 255, 0.4);
+    transform: scale(0);
+    animation: buttonRipple 0.6s ease-out;
+    pointer-events: none;
+}
+
+@keyframes buttonRipple {
+    to {
+        transform: scale(4);
+        opacity: 0;
+    }
+}
+
+/* ===== SCORECARD VISUAL ENHANCEMENTS ===== */
+
+/* Available categories pulse */
+.score-row.available-category {
+    animation: categoryPulse 2.5s ease-in-out infinite;
+    cursor: pointer;
+}
+
+@keyframes categoryPulse {
+    0%, 100% {
+        box-shadow: 0 0 0 rgba(255, 215, 0, 0);
+        border-left: 3px solid transparent;
+    }
+    50% {
+        box-shadow: 0 0 15px rgba(255, 215, 0, 0.4);
+        border-left: 3px solid rgba(255, 215, 0, 0.6);
+    }
+}
+
+/* Scorecard row hover lift */
+.score-row:not(.used):hover {
+    transform: translateX(8px);
+    background: rgba(255, 215, 0, 0.08);
+    transition: all 0.25s cubic-bezier(0.34, 1.56, 0.64, 1);
+    cursor: pointer;
+}
+
+.score-row.used {
+    opacity: 0.6;
+    background: rgba(0, 0, 0, 0.2);
+}
+
+.score-row.used:hover {
+    transform: none;
+    cursor: default;
+}
+
