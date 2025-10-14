@@ -357,6 +357,29 @@ class GameEngine {
             return;
         }
         
+        // Balatro-style pre-roll anticipation: dice jiggle before rolling
+        if (this.dom.diceContainer) {
+            const diceElements = this.dom.diceContainer.querySelectorAll('.die');
+            diceElements.forEach((dieElement, index) => {
+                if (!this.state.held[index]) {
+                    dieElement.classList.add('pre-roll-jiggle');
+                    setTimeout(() => {
+                        dieElement.classList.remove('pre-roll-jiggle');
+                    }, 400);
+                }
+            });
+        }
+        
+        // Wait for jiggle before actual roll
+        setTimeout(() => {
+            this.executeRoll();
+        }, 250);
+    }
+    
+    /**
+     * Execute the actual dice roll (called after pre-roll animation)
+     */
+    executeRoll() {
         // Apply joker effects that trigger at turn start (Balatro-inspired timing)
         this.applyJokerTurnStartEffects();
         
@@ -367,7 +390,7 @@ class GameEngine {
         this.state.rollsLeft--;
         this.state.hasRolled = true;
         
-        // Add Balatro-style rolling effects
+        // Add Balatro-style rolling effects with enhanced landing
         if (window.balatroEffects && this.dom.diceContainer) {
             const diceElements = this.dom.diceContainer.querySelectorAll('.die');
             diceElements.forEach((dieElement, index) => {
@@ -375,6 +398,12 @@ class GameEngine {
                     // Add rolling animation with slight delay for each die
                     setTimeout(() => {
                         window.balatroEffects.addDiceRollEffect(dieElement);
+                        
+                        // Add landing bounce after roll
+                        setTimeout(() => {
+                            dieElement.classList.add('dice-land');
+                            setTimeout(() => dieElement.classList.remove('dice-land'), 500);
+                        }, 600);
                     }, index * 100);
                 }
             });

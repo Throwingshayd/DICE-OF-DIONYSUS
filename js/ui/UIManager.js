@@ -933,18 +933,17 @@ class UIManager {
         
         console.log('Generating shop stock...');
         
-        // Clear containers
+        // Clear containers (with fade-out if rerolling)
         directSalesContainer.innerHTML = '<h4>Wares</h4>';
         packsContainer.innerHTML = '<h4>Packs</h4>';
         artifactsContainer.innerHTML = '<h4>Divine Artifacts</h4>';
         
-        // Generate artifacts
+        // Reset animation index for staggered entrance
+        this.shopItemIndex = 0;
+        
+        // Generate with Balatro-style slide-in animations
         this.generateArtifactStock(artifactsContainer, gameState, gameEngine);
-        
-        // Generate direct sales
         this.generateDirectSales(directSalesContainer, gameState, gameEngine);
-        
-        // Generate packs
         this.generatePackStock(packsContainer, gameState, gameEngine);
         
         console.log('Shop stock generation complete');
@@ -970,6 +969,12 @@ class UIManager {
         if (artifactPool.length > 0) {
             const artifactData = artifactPool[Math.floor(gameEngine.prng.random() * artifactPool.length)];
             const artifactCard = this.createCardElement(artifactData, 'artifact', gameState, gameEngine);
+            
+            // Add Balatro-style slide-in animation
+            artifactCard.classList.add('shop-item-slide-in');
+            artifactCard.style.animationDelay = `${this.shopItemIndex * 0.08}s`;
+            this.shopItemIndex++;
+            
             container.appendChild(artifactCard);
         }
     }
@@ -995,6 +1000,12 @@ class UIManager {
             
             if (cardData) {
                 const cardElement = this.createCardElement(cardData, 'direct', gameState, gameEngine);
+                
+                // Add Balatro-style slide-in animation
+                cardElement.classList.add('shop-item-slide-in');
+                cardElement.style.animationDelay = `${this.shopItemIndex * 0.08}s`;
+                this.shopItemIndex++;
+                
                 container.appendChild(cardElement);
             }
         }
@@ -1017,6 +1028,12 @@ class UIManager {
             }
             
             const packElement = this.createPackElement(packData, gameState, gameEngine);
+            
+            // Add Balatro-style slide-in animation
+            packElement.classList.add('shop-item-slide-in');
+            packElement.style.animationDelay = `${this.shopItemIndex * 0.08}s`;
+            this.shopItemIndex++;
+            
             container.appendChild(packElement);
         }
     }
@@ -1741,11 +1758,21 @@ class UIManager {
             return;
         }
         
-        gameState.gold -= GAME_BALANCE.SHOP_REROLL_COST;
-        this.generateShopStock(gameState, gameEngine);
-        if (this.dom.shopGold) {
-            this.dom.shopGold.textContent = gameState.gold;
-        }
+        // Balatro-style reroll: flip cards before regenerating
+        const allShopItems = document.querySelectorAll('.shop-section .card, .shop-section .pack-card');
+        allShopItems.forEach((item, index) => {
+            item.classList.add('shop-item-flip-out');
+            item.style.animationDelay = `${index * 0.05}s`;
+        });
+        
+        // Wait for flip animation before regenerating
+        setTimeout(() => {
+            gameEngine.updateGoldAnimated(-GAME_BALANCE.SHOP_REROLL_COST, "reroll");
+            this.generateShopStock(gameState, gameEngine);
+            if (this.dom.shopGold) {
+                this.dom.shopGold.textContent = gameState.gold;
+            }
+        }, 400);
     }
 
     // toggleSellMode removed - using direct sell method instead
