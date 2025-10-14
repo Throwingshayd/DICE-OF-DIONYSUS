@@ -689,6 +689,14 @@ class Joker extends Card {
                     this.dynamicStats.favour = this.symmetryFavour;
                 }
                 break;
+            
+            case 'misery':
+                // If you have 0 gold, gain ×2 Favour
+                if (gameState.gold === 0) {
+                    result.favour += 2;
+                    window.game?.showMessage?.("Misery: ×2 Favour (broke!)");
+                }
+                break;
 
             default:
                 // Unknown joker effect - log for debugging but don't break the game

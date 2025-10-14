@@ -505,6 +505,16 @@ const CardData = {
             effect: "Each time you roll a palindrome, this card permanently gains +0.5 Favour (stacks).",
             description: "Divine harmony accumulates with each perfect pattern.",
             timing: { after_roll: true, before_score: true }
+        },
+        { 
+            id: "misery", 
+            name: "Misery", 
+            rarity: "vibrant", 
+            cost: 5, 
+            sellValue: 1, 
+            effect: "If you have 0 gold, gain ×2 Favour.",
+            description: "Poverty grants divine favor - suffering brings blessing.",
+            timing: { before_score: true }
         }
     ],
 
