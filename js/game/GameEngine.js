@@ -1617,6 +1617,17 @@ class GameEngine {
             Logger.info(`Cornucopia triggered: ${originalGold}g → ${investorGold}g (+${gained}g)`);
         }
         
+        // Message in a Bottle: solo boon bonus at end of ante
+        const hasMessage = this.state.jokers?.some(j => j.id === 'message_in_a_bottle');
+        const isSoloBoon = this.state.jokers?.length === 1;
+        
+        if (hasMessage && isSoloBoon) {
+            const messageBonus = Math.floor(this.state.scoreThreshold * 0.5);
+            this.state.totalScore += messageBonus;
+            this.showMessage(`📜 Message in a Bottle: +${messageBonus} Score! (Solo Ante Complete)`, 5000);
+            Logger.info(`Message in a Bottle triggered: Solo ante bonus +${messageBonus} score`);
+        }
+        
         // Get threshold from AnteData array (Balatro-style progression)
         const nextAnteData = AnteData[this.state.ante - 1];
         if (nextAnteData) {

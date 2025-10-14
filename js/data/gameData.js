@@ -578,6 +578,16 @@ const CardData = {
             effect: "If all available categories are scored in the ante, gain +500 pips.",
             description: "Complete the journey - perfect completion rewarded.",
             timing: { before_score: true }
+        },
+        { 
+            id: "message_in_a_bottle", 
+            name: "Message in a Bottle", 
+            rarity: "vibrant", 
+            cost: 5, 
+            sellValue: 1, 
+            effect: "If you complete Ante with no other boons for entire ante gain +50% of score threshold.",
+            description: "A solo journey - isolation brings great reward.",
+            timing: {} // Special - triggers at ante end
         }
     ],
 
