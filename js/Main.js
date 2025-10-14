@@ -416,12 +416,15 @@ class CollectionManager {
         CardData.jokers.forEach(boonData => {
             const isUnlocked = collection.boons.includes(boonData.id);
             const boon = new Joker(boonData);
-            const cardEl = boon.render();
+            // Render as shop item to show full text (isShopItem = true, forSale = false)
+            const cardEl = boon.render(true, false);
             
             if (!isUnlocked) {
                 cardEl.classList.add('locked');
-                cardEl.querySelector('.card-effect').textContent = '???';
-                cardEl.querySelector('.card-name').textContent = '???';
+                const effectEl = cardEl.querySelector('.card-effect');
+                const nameEl = cardEl.querySelector('.card-name');
+                if (effectEl) effectEl.textContent = '???';
+                if (nameEl) nameEl.textContent = '???';
             }
             
             // Add unlock info
