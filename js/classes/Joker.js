@@ -342,7 +342,7 @@ class Joker extends Card {
 
             case 'artifact_antimatter':
                 // +1 Boon slot
-                gameState.boonSlots = (gameState.boonSlots || 5) + 1;
+                gameState.boonSlots = (gameState.boonSlots || GAME_BALANCE.STARTING_BOON_SLOTS) + 1;
                 window.game?.showMessage?.("Antikythra: +1 Boon slot!");
                 break;
 

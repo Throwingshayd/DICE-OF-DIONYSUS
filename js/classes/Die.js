@@ -1,11 +1,26 @@
-// Die class - Represents a single die with 6 independent faces
-
+/**
+ * Die class - Represents a single six-sided die with face-specific enhancements
+ * Each die has 6 independent faces that can be enhanced individually
+ * @class
+ * @example
+ * const die = new Die(1);
+ * die.roll(prng);
+ * die.addFaceEnhancement(6, 'gold'); // Enhance the 6-face with gold
+ */
 class Die {
+    /**
+     * Creates a new die instance
+     * @param {number|null} [dieId=null] - Unique identifier for this die
+     */
     constructor(dieId = null) {
-        this.currentFace = 0; // Which face is currently showing (1-6)
+        /** @type {number} Which face is currently showing (0 = not rolled, 1-6 = face value) */
+        this.currentFace = 0;
+        /** @type {boolean} Whether this die is held/locked from rolling */
         this.isLocked = false;
+        /** @type {number} Temporary modifier for current roll */
         this.tempModifier = 0;
-        this.dieId = dieId; // Unique identifier for this die
+        /** @type {number|null} Unique identifier for this die */
+        this.dieId = dieId;
         
         // Each face is an independent entity with its own properties
         this.faces = {
@@ -18,10 +33,14 @@ class Die {
         };
     }
 
-    // Roll the die
+    /**
+     * Roll the die to generate a random face value
+     * @param {Object} prng - Seeded random number generator
+     * @param {Function} prng.random - Returns random number 0-1
+     */
     roll(prng) {
         if (!this.isLocked) {
-            this.currentFace = Math.floor(prng.random() * 6) + 1;
+            this.currentFace = Math.floor(prng.random() * GAME_BALANCE.MAX_DIE_FACE) + GAME_BALANCE.MIN_DIE_FACE;
             
             // Add Balatro-style rolling effect if effects system is available
             if (window.balatroEffects && this.dieElement) {
@@ -30,7 +49,10 @@ class Die {
         }
     }
 
-    // Reset the die for a new turn
+    /**
+     * Reset the die for a new turn
+     * Note: Face enhancements persist across turns
+     */
     reset() {
         this.currentFace = 0;
         this.isLocked = false;
@@ -38,6 +60,9 @@ class Die {
         // Face enhancements persist across turns
     }
 
+    /**
+     * Completely reset the die, including all enhancements
+     */
     fullReset() {
         this.currentFace = 0;
         this.isLocked = false;
@@ -49,25 +74,94 @@ class Die {
         });
     }
 
-    // Add enhancement to a specific face (1-6)
-    addFaceEnhancement(faceValue, enhancement) {
-        const faceKey = Math.max(1, Math.min(6, parseInt(faceValue, 10) || 0));
-        if (this.faces[faceKey]) {
-            this.faces[faceKey].enhancements.add(enhancement);
-    
-            return true;
-        } else {
-            console.error(`Invalid face value: ${faceValue}`);
-            return false;
-        }
+    /**
+     * Validate if a face value is in valid range (1-6)
+     * @param {number|string} faceValue - Face value to validate
+     * @returns {boolean} True if valid, false otherwise
+     */
+    isValidFace(faceValue) {
+        const parsedFace = parseInt(faceValue, 10);
+        return !isNaN(parsedFace) && 
+               parsedFace >= GAME_BALANCE.MIN_DIE_FACE && 
+               parsedFace <= GAME_BALANCE.MAX_DIE_FACE;
     }
 
-    // Remove enhancement from a specific face
-    removeFaceEnhancement(faceValue, enhancement) {
-        const faceKey = Math.max(1, Math.min(6, parseInt(faceValue, 10) || 0));
-        if (this.faces[faceKey]) {
-            this.faces[faceKey].enhancements.delete(enhancement);
+    /**
+     * Get validated face key (1-6) or null if invalid
+     * @param {number|string} faceValue - Face value to validate
+     * @returns {number|null} Validated face number or null
+     */
+    getValidatedFaceKey(faceValue) {
+        if (!this.isValidFace(faceValue)) {
+            console.warn(`Invalid face value: ${faceValue}. Must be between 1 and 6.`);
+            return null;
         }
+        return parseInt(faceValue, 10);
+    }
+
+    /**
+     * Add an enhancement to a specific die face
+     * @param {number|string} faceValue - Face to enhance (1-6)
+     * @param {string} enhancement - Enhancement type (parchment/iron/gold/mirror/wild)
+     * @returns {boolean} True if enhancement was added successfully
+     * @example
+     * die.addFaceEnhancement(6, 'gold'); // 6-face now gives +1 gold when scored
+     */
+    addFaceEnhancement(faceValue, enhancement) {
+        const faceKey = this.getValidatedFaceKey(faceValue);
+        if (faceKey === null) {
+            console.error(`Cannot add enhancement to invalid face: ${faceValue}`);
+            return false;
+        }
+        
+        if (!this.faces[faceKey]) {
+            console.error(`Face ${faceKey} does not exist in die structure`);
+            return false;
+        }
+        
+        this.faces[faceKey].enhancements.add(enhancement);
+        return true;
+    }
+
+    /**
+     * Remove an enhancement from a specific die face
+     * @param {number|string} faceValue - Face to modify (1-6)
+     * @param {string} enhancement - Enhancement type to remove
+     * @returns {boolean} True if removed successfully
+     */
+    removeFaceEnhancement(faceValue, enhancement) {
+        const faceKey = this.getValidatedFaceKey(faceValue);
+        if (faceKey && this.faces[faceKey]) {
+            this.faces[faceKey].enhancements.delete(enhancement);
+            return true;
+        }
+        return false;
+    }
+
+    /**
+     * Permanently modify a face's value (e.g., Elixir of Lethe, Chalice of Helios)
+     * @param {number|string} faceValue - Face to modify (1-6)
+     * @param {number} delta - Amount to change (+1 or -1)
+     * @returns {boolean} True if modification was successful
+     */
+    modifyFaceValue(faceValue, delta) {
+        const faceKey = this.getValidatedFaceKey(faceValue);
+        if (faceKey === null) {
+            console.error(`Cannot modify invalid face: ${faceValue}`);
+            return false;
+        }
+        
+        if (!this.faces[faceKey]) {
+            console.error(`Face ${faceKey} does not exist in die structure`);
+            return false;
+        }
+        
+        const currentValue = this.faces[faceKey].modifiedValue || this.faces[faceKey].value;
+        const newValue = Math.max(GAME_BALANCE.MIN_DIE_FACE, 
+                                   Math.min(GAME_BALANCE.MAX_DIE_FACE_WITH_ENHANCEMENTS, currentValue + delta));
+        this.faces[faceKey].modifiedValue = newValue;
+        
+        return true;
     }
 
     // Clear all enhancements from all faces
@@ -78,7 +172,10 @@ class Die {
         });
     }
 
-    // Get the effective face value (including enhancements)
+    /**
+     * Get the effective face value (including all modifications and enhancements)
+     * @returns {number} Effective face value (1-9, clamped)
+     */
     getEffectiveFace() {
         if (this.currentFace === 0) return 0;
         
@@ -91,8 +188,8 @@ class Die {
         // Apply temporary modifiers
         effectiveFace += this.tempModifier;
         
-        // Clamp between 1 and 9
-        return Math.max(1, Math.min(9, effectiveFace));
+        // Clamp between min and max (with enhancements)
+        return Math.max(GAME_BALANCE.MIN_DIE_FACE, Math.min(GAME_BALANCE.MAX_DIE_FACE_WITH_ENHANCEMENTS, effectiveFace));
     }
 
     // Apply a specific enhancement to a face value (legacy method - enhancements are now handled in scoring)
@@ -128,13 +225,16 @@ class Die {
         this.setFace(value);
     }
 
-    // Get display value (might be different from effective face)
+    /**
+     * Get the value to display on screen
+     * @returns {string|number} '?' if not rolled, otherwise the effective face value
+     */
     getDisplayFace() {
         if (this.currentFace === 0) return '?';
         
         const effectiveFace = this.getEffectiveFace();
         // Ensure we never display 0 or negative values
-        return Math.max(1, effectiveFace);
+        return Math.max(GAME_BALANCE.MIN_DIE_FACE, effectiveFace);
     }
 
     // Get a list of active enhancements for the current face
@@ -149,7 +249,11 @@ class Die {
         return Object.values(this.faces).some(face => face.enhancements.has(enhancement));
     }
 
-    // Check if current rolled face has a specific enhancement
+    /**
+     * Check if the currently rolled face has a specific enhancement
+     * @param {string} enhancement - Enhancement type to check for
+     * @returns {boolean} True if current face has this enhancement
+     */
     hasEnhancementForCurrentFace(enhancement) {
         if (this.currentFace === 0) return false;
         
@@ -196,7 +300,6 @@ class Die {
             'gold': '+1 Gold when scored',
             'mother_of_pearl': 'Adds adjacent dice pips when scored',
             'wild': 'Can be treated as +1 or -1 when scored (face-specific)',
-            'iron': 'If not selected in scoring, add 1.5x favour',
             'mirror': 'Copies the value of adjacent dice',
             'lucky': 'Has a 20% chance to count as 6',
             'cursed': 'Subtracts 1 from its value (minimum 1)',
@@ -217,7 +320,7 @@ class Die {
 
     // Set the current face value
     setFace(value) {
-        this.currentFace = Math.max(1, Math.min(6, value));
+        this.currentFace = Math.max(GAME_BALANCE.MIN_DIE_FACE, Math.min(GAME_BALANCE.MAX_DIE_FACE, value));
     }
 
     // Get a copy of this die

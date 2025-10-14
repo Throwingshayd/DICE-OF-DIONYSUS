@@ -1,6 +1,6 @@
-// HouseRuleCard class - Represents special house rule cards that modify game mechanics
+// LibationCard class - Represents libation cards that modify game mechanics
 
-class HouseRuleCard extends Card {
+class LibationCard extends Card {
     constructor(data) {
         super(data);
         this.type = 'libation';
@@ -11,7 +11,7 @@ class HouseRuleCard extends Card {
         this.timing = data.timing || 'anytime'; // 'anytime', 'before_roll', 'after_roll', 'before_score'
     }
 
-    // Apply the specific rule of this house rule card
+    // Apply the specific rule of this libation card
     applyRule(gameState, gameEngine = null) {
         if (!this.canUse()) return false;
 
@@ -56,7 +56,7 @@ class HouseRuleCard extends Card {
         }
     }
 
-    // Apply dice-related house rules
+    // Apply dice-related libation effects
     applyDiceModification(gameState) {
         switch (this.id) {
             case 'wild_dice':
@@ -79,7 +79,7 @@ class HouseRuleCard extends Card {
         }
     }
 
-    // Apply scoring-related house rules
+    // Apply scoring-related libation effects
     applyScoringModification(gameState) {
         switch (this.id) {
             case 'bonus_yahtzee':
@@ -102,7 +102,7 @@ class HouseRuleCard extends Card {
         }
     }
 
-    // Apply turn-related house rules
+    // Apply turn-related libation effects
     applyTurnModification(gameState) {
         switch (this.id) {
             case 'extra_rolls':
@@ -124,7 +124,7 @@ class HouseRuleCard extends Card {
         }
     }
 
-    // Apply shop-related house rules
+    // Apply shop-related libation effects
     applyShopModification(gameState) {
         switch (this.id) {
             case 'discount_day':
@@ -358,21 +358,33 @@ class HouseRuleCard extends Card {
 
     // Apply enhancement to a specific die (face-specific where relevant)
     applyEnhancementToDie(gameState, dieIndex, enhancementType, targetFaceValue, gameEngine = null) {
+        // Validate die exists
         const die = gameState.dice[dieIndex];
         if (!die) {
             const engine = gameEngine || window.game;
             engine?.showMessage?.('Invalid die selected!');
+            console.error(`Invalid die index: ${dieIndex}`);
+            return;
+        }
+
+        // Validate die has required methods
+        if (typeof die.isValidFace !== 'function') {
+            console.error('Die object missing validation methods');
+            const engine = gameEngine || window.game;
+            engine?.showMessage?.('Die validation error!');
             return;
         }
 
         let message = '';
         const dieNumber = dieIndex + 1;
-        const targetFace = Math.max(1, Math.min(6, parseInt(targetFaceValue || 0, 10)));
+        const targetFace = parseInt(targetFaceValue, 10);
         
-        // Validate target face
-        if (targetFace < 1 || targetFace > 6) {
+        // Validate target face using die's validation method
+        if (!die.isValidFace(targetFace)) {
             const engine = gameEngine || window.game;
-            engine?.showMessage?.('Invalid face value! Must be 1-6.');
+            const errorMsg = `Invalid face value: ${targetFaceValue}. Must be 1-6.`;
+            engine?.showMessage?.(errorMsg);
+            console.warn(errorMsg);
             return;
         }
 
@@ -387,15 +399,7 @@ class HouseRuleCard extends Card {
                 break;
             case 'iron':
                 if (die.addFaceEnhancement(targetFace, 'iron')) {
-            
                     message = `Die ${dieNumber} face ${targetFace} enhanced with Iron (+5 Pips when scored).`;
-                } else {
-                    message = 'Failed to apply iron enhancement!';
-                }
-                break;
-            case 'iron':
-                if (die.addFaceEnhancement(targetFace, 'iron')) {
-                    message = `Die ${dieNumber} face ${targetFace} enhanced with Iron (If not selected in scoring, add 1.5x favour).`;
                 } else {
                     message = 'Failed to apply iron enhancement!';
                 }
@@ -431,22 +435,24 @@ class HouseRuleCard extends Card {
                 }
                 break;
             case 'permanent_reduce':
-                // Modify the specific face value
-                if (die.faces[targetFace]) {
-                    const currentValue = die.faces[targetFace].modifiedValue || die.faces[targetFace].value;
-                    const newValue = Math.max(1, currentValue - 1);
-                    die.faces[targetFace].modifiedValue = newValue;
-            
+                // Modify the specific face value using validated method
+                if (die.modifyFaceValue(targetFace, -1)) {
+                    message = `Die ${dieNumber} face ${targetFace} permanently reduced by 1!`;
+                } else {
+                    message = `Failed to modify die face ${targetFace}. Invalid face value.`;
+                    const engine = gameEngine || window.game;
+                    engine?.showMessage?.(message);
                 }
-                message = `Die ${dieNumber} face ${targetFace} permanently reduced by 1!`;
                 break;
             case 'permanent_increase':
-                // Modify the specific face value
-                if (die.faces[targetFace]) {
-                    const currentValue = die.faces[targetFace].modifiedValue || die.faces[targetFace].value;
-                    die.faces[targetFace].modifiedValue = Math.min(6, currentValue + 1);
+                // Modify the specific face value using validated method
+                if (die.modifyFaceValue(targetFace, +1)) {
+                    message = `Die ${dieNumber} face ${targetFace} permanently increased by 1!`;
+                } else {
+                    message = `Failed to modify die face ${targetFace}. Invalid face value.`;
+                    const engine = gameEngine || window.game;
+                    engine?.showMessage?.(message);
                 }
-                message = `Die ${dieNumber} face ${targetFace} permanently increased by 1!`;
                 break;
         }
 
@@ -470,7 +476,7 @@ class HouseRuleCard extends Card {
 
     }
 
-    // Check if this house rule can be used
+    // Check if this libation can be used
     canUse() {
         // Libations can be used once (usesLeft = 1)
         return super.canUse();
@@ -492,8 +498,8 @@ class HouseRuleCard extends Card {
         this.used = false;
     }
 
-    // Get all available house rule cards
-    static getAllHouseRuleCards() {
+    // Get all available libation cards
+    static getAllLibationCards() {
         return [
             {
                 id: 'wild_dice',
@@ -568,14 +574,14 @@ class HouseRuleCard extends Card {
         ];
     }
 
-    // Create house rule card from data
+    // Create libation card from data
     static fromData(data) {
-        return new HouseRuleCard(data);
+        return new LibationCard(data);
     }
 
-    // Get house rule card by ID
-    static getHouseRuleCard(id) {
-        const allCards = HouseRuleCard.getAllHouseRuleCards();
+    // Get libation card by ID
+    static getLibationCard(id) {
+        const allCards = LibationCard.getAllLibationCards();
         return allCards.find(card => card.id === id);
     }
 
@@ -678,5 +684,6 @@ class HouseRuleCard extends Card {
 
 // Export for use in other files
 if (typeof module !== 'undefined' && module.exports) {
-    module.exports = HouseRuleCard;
+    module.exports = LibationCard;
 }
+

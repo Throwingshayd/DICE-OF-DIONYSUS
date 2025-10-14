@@ -3,20 +3,21 @@
 // AnteData is now defined in AnteData_js.js
 
 // Rarity weights for shop generation (inspired by Balatro)
+// Import from constants for consistency
 const RarityWeights = {
     // Boon rarities
-    'rustic': 45,      // Common - 45% chance
-    'vibrant': 35,     // Uncommon - 35% chance  
-    'epic': 20,        // Rare - 20% chance
+    'rustic': RARITY_WEIGHTS.RUSTIC,
+    'vibrant': RARITY_WEIGHTS.VIBRANT,
+    'epic': RARITY_WEIGHTS.EPIC,
     
     // Worship rarities
-    'planet': 100,     // All worship cards have equal chance (they're all "planet" rarity)
+    'worship': RARITY_WEIGHTS.WORSHIP,
     
     // Libation rarities
-    'worship': 100,    // All libations have equal chance (they're all "worship" rarity)
+    'libation': RARITY_WEIGHTS.LIBATION,
     
     // Artifact rarities (all artifacts are equally rare)
-    'artifact': 100
+    'artifact': RARITY_WEIGHTS.ARTIFACT
 };
 
 const CardData = {
@@ -26,7 +27,7 @@ const CardData = {
             id: "hestias_hearth", 
             name: "Hestia's Hearth", 
             rarity: "vibrant", 
-            cost: 3, 
+            cost: 5, 
             sellValue: 1, 
             effect: "If all 5 of your dice are odd or all 5 are even the hand gains +3 Favour.",
             timing: { before_score: true }
@@ -35,7 +36,7 @@ const CardData = {
             id: "charons_ferry_fare", 
             name: "Charon's Ferry Fare", 
             rarity: "vibrant", 
-            cost: 3, 
+            cost: 5, 
             sellValue: 1, 
             effect: "Gain +1 Gold after scoring any hand (does not trigger on a scratch).",
             timing: { after_score: true }
@@ -62,8 +63,8 @@ const CardData = {
             id: "icarus_wings", 
             name: "Icarus' Wings", 
             rarity: "vibrant", 
-            cost: 4, 
-            sellValue: 2, 
+            cost: 5, 
+            sellValue: 1, 
             effect: "Each unused re-roll at the end of a turn gives +15 Pips to the score. Chance to break after turn 1 in 8.",
             timing: { before_score: true, turn_end: true }
         },
@@ -80,8 +81,8 @@ const CardData = {
             id: "forge_of_hephaestus", 
             name: "Forge of Hephaestus", 
             rarity: "vibrant", 
-            cost: 6, 
-            sellValue: 3, 
+            cost: 5, 
+            sellValue: 1, 
             effect: "Gain x0.5 Favour for each unused re-roll you have at the end of the turn (Max x1.5).",
             timing: { before_score: true }
         },
@@ -89,8 +90,8 @@ const CardData = {
             id: "prometheus_gift", 
             name: "Prometheus' Gift", 
             rarity: "vibrant", 
-            cost: 6, 
-            sellValue: 3, 
+            cost: 5, 
+            sellValue: 1, 
             effect: "Gives +3 Favour to all hands but you have one less re-roll each turn.",
             timing: { before_score: true, turn_start: true }
         },
@@ -98,8 +99,8 @@ const CardData = {
             id: "chaos_primordial", 
             name: "Chaos Primordial", 
             rarity: "epic", 
-            cost: 10, 
-            sellValue: 5, 
+            cost: 8, 
+            sellValue: 2, 
             effect: "Doubles all Favour gains but you have one less re-roll each turn.",
             timing: { before_score: true, turn_start: true }
         },
@@ -107,8 +108,8 @@ const CardData = {
             id: "mt_olympus", 
             name: "Mt Olympus", 
             rarity: "epic", 
-            cost: 6, 
-            sellValue: 3, 
+            cost: 8, 
+            sellValue: 2, 
             effect: "Gain +1 Favour for each Worship card you have used this run.",
             timing: { after_score: true }
         }
@@ -208,22 +209,22 @@ const CardData = {
 
     worship: [
         // Worship cards from CSV database only
-        { id: "worship_artemis", name: "Blessing of Artemis", god: "Artemis", rarity: "planet", cost: 3, effect: "+1 Favour when scoring Ones." },
-        { id: "worship_persephone", name: "Blessing of Persephone", god: "Persephone", rarity: "planet", cost: 3, effect: "+1 Favour when scoring Twos." },
-        { id: "worship_morpheus", name: "Blessing of Morpheus", god: "Morpheus", rarity: "planet", cost: 3, effect: "+1 Favour when scoring Threes." },
-        { id: "worship_hera", name: "Blessing of Hera", god: "Hera", rarity: "planet", cost: 3, effect: "+1 Favour when scoring Fours." },
-        { id: "worship_athena", name: "Blessing of Athena", god: "Athena", rarity: "planet", cost: 3, effect: "+1 Favour when scoring Fives." },
-        { id: "worship_heracles", name: "Blessing of Heracles", god: "Heracles", rarity: "planet", cost: 3, effect: "+1 Favour when scoring Sixes." },
-        { id: "worship_hephaestus", name: "Blessing of Hephaestus", god: "Hephaestus", rarity: "planet", cost: 3, effect: "+1 Favour when scoring Three of a Kind." },
-        { id: "worship_ares", name: "Blessing of Ares", god: "Ares", rarity: "planet", cost: 3, effect: "+1 Favour when scoring Four of a Kind." },
-        { id: "worship_dionysus", name: "Blessing of Dionysus", god: "Dionysus", rarity: "planet", cost: 3, effect: "+1 Favour when scoring Full House." },
-        { id: "worship_hermes", name: "Blessing of Hermes", god: "Hermes", rarity: "planet", cost: 3, effect: "+1 Favour when scoring Small Straight." },
-        { id: "worship_apollo", name: "Blessing of Apollo", god: "Apollo", rarity: "planet", cost: 3, effect: "+1 Favour when scoring Large Straight." },
-        { id: "worship_zeus", name: "Blessing of Zeus", god: "Zeus", rarity: "planet", cost: 3, effect: "+1 Favour when scoring Heureka." },
-        { id: "worship_nyx", name: "Blessing of Nyx", god: "Nyx", rarity: "planet", cost: 3, effect: "+1 Favour when scoring Chance." },
-        { id: "worship_pleiades", name: "Blessing of the Pleiades", god: "The Pleiades", rarity: "planet", cost: 3, effect: "+1 Favour when scoring Sevens." },
-        { id: "worship_poseidon_eights", name: "Blessing of Poseidon (Eights)", god: "Poseidon", rarity: "planet", cost: 3, effect: "+1 Favour when scoring Eights." },
-        { id: "worship_muses", name: "Blessing of the Nine Muses", god: "The Nine Muses", rarity: "planet", cost: 3, effect: "+1 Favour when scoring Nines." },
+        { id: "worship_artemis", name: "Blessing of Artemis", god: "Artemis", rarity: "worship", cost: 3, effect: "+1 Favour when scoring Ones." },
+        { id: "worship_persephone", name: "Blessing of Persephone", god: "Persephone", rarity: "worship", cost: 3, effect: "+1 Favour when scoring Twos." },
+        { id: "worship_morpheus", name: "Blessing of Morpheus", god: "Morpheus", rarity: "worship", cost: 3, effect: "+1 Favour when scoring Threes." },
+        { id: "worship_hera", name: "Blessing of Hera", god: "Hera", rarity: "worship", cost: 3, effect: "+1 Favour when scoring Fours." },
+        { id: "worship_athena", name: "Blessing of Athena", god: "Athena", rarity: "worship", cost: 3, effect: "+1 Favour when scoring Fives." },
+        { id: "worship_heracles", name: "Blessing of Heracles", god: "Heracles", rarity: "worship", cost: 3, effect: "+1 Favour when scoring Sixes." },
+        { id: "worship_hephaestus", name: "Blessing of Hephaestus", god: "Hephaestus", rarity: "worship", cost: 3, effect: "+1 Favour when scoring Three of a Kind." },
+        { id: "worship_ares", name: "Blessing of Ares", god: "Ares", rarity: "worship", cost: 3, effect: "+1 Favour when scoring Four of a Kind." },
+        { id: "worship_dionysus", name: "Blessing of Dionysus", god: "Dionysus", rarity: "worship", cost: 3, effect: "+1 Favour when scoring Full House." },
+        { id: "worship_hermes", name: "Blessing of Hermes", god: "Hermes", rarity: "worship", cost: 3, effect: "+1 Favour when scoring Small Straight." },
+        { id: "worship_apollo", name: "Blessing of Apollo", god: "Apollo", rarity: "worship", cost: 3, effect: "+1 Favour when scoring Large Straight." },
+        { id: "worship_zeus", name: "Blessing of Zeus", god: "Zeus", rarity: "worship", cost: 3, effect: "+1 Favour when scoring Heureka." },
+        { id: "worship_nyx", name: "Blessing of Nyx", god: "Nyx", rarity: "worship", cost: 3, effect: "+1 Favour when scoring Chance." },
+        { id: "worship_pleiades", name: "Blessing of the Pleiades", god: "The Pleiades", rarity: "worship", cost: 3, effect: "+1 Favour when scoring Sevens." },
+        { id: "worship_poseidon_eights", name: "Blessing of Poseidon (Eights)", god: "Poseidon", rarity: "worship", cost: 3, effect: "+1 Favour when scoring Eights." },
+        { id: "worship_muses", name: "Blessing of the Nine Muses", god: "The Nine Muses", rarity: "worship", cost: 3, effect: "+1 Favour when scoring Nines." },
     ],
 
     libations: [
@@ -250,19 +251,19 @@ const CardData = {
 
     artifacts: {
         'temple_market': {
-            base: { id: "artifact_temple_market", name: "Temple Market", cost: 7, effect: "Shop inventory size increased by 1.", rarity: "artifact" }
+            base: { id: "artifact_temple_market", name: "Temple Market", cost: 12, effect: "Shop inventory size increased by 1.", rarity: "artifact" }
         },
         'clearance_sale': {
-            base: { id: "artifact_clearance_sale", name: "Merchants Arrival", cost: 7, effect: "All shop prices reduced by 25%.", rarity: "artifact" }
+            base: { id: "artifact_clearance_sale", name: "Merchants Arrival", cost: 12, effect: "All shop prices reduced by 25%.", rarity: "artifact" }
         },
         'crystal_ball': {
-            base: { id: "artifact_crystal_ball", name: "Crystal Ball", cost: 7, effect: "+1 Libation slot.", rarity: "artifact" }
+            base: { id: "artifact_crystal_ball", name: "Crystal Ball", cost: 12, effect: "+1 Libation slot.", rarity: "artifact" }
         },
         'telescope': {
-            base: { id: "artifact_telescope", name: "Altar", cost: 7, effect: "+1 Worship card slot.", rarity: "artifact" }
+            base: { id: "artifact_telescope", name: "Altar", cost: 12, effect: "+1 Worship card slot.", rarity: "artifact" }
         },
         'antimatter': {
-            base: { id: "artifact_antimatter", name: "Antikythra", cost: 7, effect: "+1 Boon slot.", rarity: "artifact" }
+            base: { id: "artifact_antimatter", name: "Antikythra", cost: 12, effect: "+1 Boon slot.", rarity: "artifact" }
         }
     },
 
@@ -270,7 +271,7 @@ const CardData = {
         return [
             ...this.jokers.map(c => ({...c, class: 'Joker'})),
             ...this.worship.map(c => ({...c, class: 'WorshipCard'})),
-            ...this.libations.map(c => ({...c, class: 'HouseRuleCard'}))
+            ...this.libations.map(c => ({...c, class: 'LibationCard'}))
         ];
     }
 };

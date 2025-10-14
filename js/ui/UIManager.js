@@ -20,7 +20,7 @@ class UIManager {
         this.bindDOMElements();
         this.setupShopManager();
         this.isInitialized = true;
-        console.log('UIManager initialized successfully');
+        Logger.info('UIManager initialized successfully');
     }
 
     bindDOMElements() {
@@ -70,10 +70,28 @@ class UIManager {
         const missingElements = criticalElements.filter(elementName => !this.dom[elementName]);
         
         if (missingElements.length > 0) {
-            console.warn(`Missing critical elements: ${missingElements.join(', ')}`);
+            Logger.debug(`Restoring missing UI elements: ${missingElements.join(', ')}`);
             
-            // Try to restore missing elements
+            // Restore missing elements (normal during initialization)
             this.restoreMissingElements(missingElements);
+            
+            // Re-bind after restoration
+            this.rebindRestoredElements(missingElements);
+        }
+        
+        Logger.info('UIManager DOM elements bound successfully');
+    }
+
+    rebindRestoredElements(restoredElements) {
+        // Re-bind DOM references for restored elements
+        if (restoredElements.includes('shopOverlay')) {
+            this.dom.shopOverlay = document.getElementById('shopOverlay');
+            this.dom.shopGold = document.getElementById('shopGold');
+            this.dom.shopDefaultView = document.getElementById('shopDefaultView');
+            this.dom.packOpeningView = document.getElementById('packOpeningView');
+            this.dom.closeShop = document.getElementById('closeShop');
+            this.dom.rerollShop = document.getElementById('rerollShop');
+            Logger.debug('Shop overlay DOM elements rebound');
         }
     }
 
@@ -96,11 +114,14 @@ class UIManager {
 
     restoreShopOverlay() {
         const gameContainer = document.getElementById('gameContainerWrapper');
-        if (!gameContainer) return;
+        if (!gameContainer) {
+            Logger.warn('Cannot restore shop overlay - game container not found');
+            return;
+        }
         
         const existingShopOverlay = document.getElementById('shopOverlay');
         if (!existingShopOverlay) {
-            console.log('Restoring shop overlay...');
+            Logger.debug('Creating shop overlay (normal during initialization)');
             
             const shopOverlay = document.createElement('div');
             shopOverlay.id = 'shopOverlay';
@@ -129,16 +150,64 @@ class UIManager {
                         <div class="shop-info" id="goldDisplayButton">
                             <span id="shopGold">10</span>
                         </div>
-                        <button class="divine-button" id="rerollShop">Reroll (2g)</button>
+                        <button class="divine-button" id="rerollShop">Reroll (${GAME_BALANCE.SHOP_REROLL_COST}g)</button>
                         <button class="divine-button" id="closeShop">Continue</button>
                     </div>
                 </div>
             `;
             
             gameContainer.appendChild(shopOverlay);
-            this.dom.shopOverlay = shopOverlay;
-            console.log('Shop overlay restored successfully');
+            Logger.info('Shop overlay created successfully');
+            
+            // Attach event listeners to the new buttons
+            this.attachShopEventListeners();
+        } else {
+            Logger.debug('Shop overlay already exists in DOM');
         }
+    }
+
+    attachShopEventListeners() {
+        // Attach event listeners for shop buttons
+        const closeShopBtn = document.getElementById('closeShop');
+        const rerollShopBtn = document.getElementById('rerollShop');
+        
+        if (closeShopBtn) {
+            // Remove any existing listeners (avoid duplicates)
+            const newCloseBtn = closeShopBtn.cloneNode(true);
+            closeShopBtn.parentNode.replaceChild(newCloseBtn, closeShopBtn);
+            
+            newCloseBtn.addEventListener('click', () => {
+                Logger.debug('Close shop button clicked');
+                if (window.game) {
+                    window.game.closeShop();
+                } else {
+                    this.closeShop();
+                }
+            });
+            Logger.debug('Close shop listener attached');
+        } else {
+            Logger.warn('Close shop button not found');
+        }
+        
+        if (rerollShopBtn) {
+            // Remove any existing listeners (avoid duplicates)
+            const newRerollBtn = rerollShopBtn.cloneNode(true);
+            rerollShopBtn.parentNode.replaceChild(newRerollBtn, rerollShopBtn);
+            
+            newRerollBtn.addEventListener('click', () => {
+                Logger.debug('Reroll shop button clicked');
+                if (window.game) {
+                    window.game.rerollShop();
+                } else if (window.uiManager) {
+                    window.uiManager.rerollShop(window.game?.state, window.game);
+                }
+            });
+            Logger.debug('Reroll shop listener attached');
+        } else {
+            Logger.warn('Reroll shop button not found');
+        }
+        
+        Logger.info('Shop event listeners attached successfully');
     }
 
     restoreDiceContainer() {
@@ -817,24 +886,37 @@ class UIManager {
     }
 
     closeShop() {
+        Logger.debug('UIManager.closeShop() called');
+        
         if (!this.dom.shopOverlay) {
-            console.warn('Shop overlay not found, attempting to restore...');
+            Logger.warn('Shop overlay not found in DOM cache, searching...');
             // Try to find the shop overlay again
             const shopOverlay = document.getElementById('shopOverlay');
             if (shopOverlay) {
                 this.dom.shopOverlay = shopOverlay;
-        
+                Logger.debug('Shop overlay found and cached');
             } else {
-                console.error('Shop overlay still not found, cannot close shop');
+                Logger.error('Shop overlay not found in DOM, cannot close shop');
                 return;
             }
         }
         
+        // Hide the shop overlay
         this.dom.shopOverlay.classList.add('hidden');
+        Logger.info('Shop closed');
         
+        // Clean up pack opening view
         const modalContent = this.dom.shopOverlay.querySelector('.modal-content');
         if (modalContent) {
             modalContent.classList.remove('pack-opening-stage');
+        }
+        
+        // Reset pack opening view
+        if (this.dom.packOpeningView) {
+            this.dom.packOpeningView.classList.add('hidden');
+        }
+        if (this.dom.shopDefaultView) {
+            this.dom.shopDefaultView.classList.remove('hidden');
         }
     }
 
@@ -1019,7 +1101,9 @@ class UIManager {
         
         // Update UI
         this.updateAllUI();
-        this.dom.shopGold.textContent = gameState.gold;
+        if (this.dom.shopGold) {
+            this.dom.shopGold.textContent = gameState.gold;
+        }
         
         // Remove the card from shop
         const cardElement = document.querySelector(`[data-card-id="${cardData.id}"]`);
@@ -1037,7 +1121,9 @@ class UIManager {
         }
         
         gameState.gold -= packData.cost;
-        this.dom.shopGold.textContent = gameState.gold;
+        if (this.dom.shopGold) {
+            this.dom.shopGold.textContent = gameState.gold;
+        }
         
         // Open pack
         this.openPack(packData, gameState, gameEngine);
@@ -1225,14 +1311,14 @@ class UIManager {
     selectCardByRarity(cardPool, gameEngine, gameState = null) {
         if (cardPool.length === 0) return null;
         
-        // Define rarity weights locally to avoid scope issues
+        // Use global rarity weights from constants
         const rarityWeights = {
-            'rustic': 45,      // Common - 45% chance
-            'vibrant': 35,     // Uncommon - 35% chance  
-            'epic': 20,        // Rare - 20% chance
-            'planet': 100,     // All worship cards have equal chance
-            'worship': 100,    // All libations have equal chance
-            'artifact': 100    // All artifacts are equally rare
+            'rustic': RARITY_WEIGHTS.RUSTIC,
+            'vibrant': RARITY_WEIGHTS.VIBRANT,
+            'epic': RARITY_WEIGHTS.EPIC,
+            'worship': RARITY_WEIGHTS.WORSHIP,
+            'libation': RARITY_WEIGHTS.LIBATION,
+            'artifact': RARITY_WEIGHTS.ARTIFACT
         };
         
         // Calculate weights for each card based on rarity
@@ -1284,8 +1370,8 @@ class UIManager {
             'rustic': '#8B7355',      // Brown for common
             'vibrant': '#4A90E2',     // Blue for uncommon
             'epic': '#9B59B6',        // Purple for rare
-            'planet': '#F39C12',      // Orange for worship
-            'worship': '#E74C3C',     // Red for libations
+            'worship': '#F39C12',     // Orange for worship
+            'libation': '#E74C3C',    // Red for libations
             'artifact': '#2ECC71'     // Green for artifacts
         };
         return colors[rarity] || '#95A5A6'; // Gray for unknown
@@ -1297,8 +1383,8 @@ class UIManager {
             'rustic': 'Common',
             'vibrant': 'Uncommon', 
             'epic': 'Rare',
-            'planet': 'Worship',
-            'worship': 'Libation',
+            'worship': 'Worship',
+            'libation': 'Libation',
             'artifact': 'Artifact'
         };
         return names[rarity] || 'Unknown';
@@ -1407,8 +1493,8 @@ class UIManager {
                 case 'WorshipCard':
                     card = new WorshipCard(cardData);
                     break;
-                case 'HouseRuleCard':
-                    card = new HouseRuleCard(cardData);
+                case 'LibationCard':
+                    card = new LibationCard(cardData);
                     break;
                 default:
                     card = new Card(cardData);
@@ -1510,7 +1596,9 @@ class UIManager {
         gameEngine.showMessage(`Acquired: ${artifactData.name}!`);
         
         element.remove();
-        this.dom.shopGold.textContent = gameState.gold;
+        if (this.dom.shopGold) {
+            this.dom.shopGold.textContent = gameState.gold;
+        }
         
         gameEngine.applyArtifactEffects();
         gameEngine.updateAllUI();
@@ -1571,11 +1659,11 @@ class UIManager {
     
             card.applyWorship(gameState);
             
-        } else if (card instanceof HouseRuleCard) {
+        } else if (card instanceof LibationCard) {
     
             if (gameState.consumables.length >= gameState.consumableSlots) {
         
-                gameEngine.showMessage("Offering slots are full!");
+                gameEngine.showMessage("Libation slots are full!");
                 if (element?.parentNode?.id === 'shopDirectSales') {
                     gameState.gold += card.cost;
                 }
@@ -1588,12 +1676,14 @@ class UIManager {
             element.remove();
         }
         
-        this.dom.shopGold.textContent = gameState.gold;
+        if (this.dom.shopGold) {
+            this.dom.shopGold.textContent = gameState.gold;
+        }
         gameEngine.updateAllUI();
         
         // Check if this was claimed from a pack opening view
         if (element?.parentNode?.id === 'packRevealedCards') {
-            console.log('Card claimed from pack, closing pack opening view...');
+            Logger.debug('Card claimed from pack, closing pack opening view');
             // Close the pack opening view and return to shop
             this.closePackOpeningView();
         }
@@ -1609,9 +1699,9 @@ class UIManager {
         let message = "";
         
         // Handle different card types
-        if (card instanceof HouseRuleCard) {
+        if (card instanceof LibationCard) {
             success = card.applyRule(gameState, gameEngine);
-            message = success ? `House Rule activated: ${card.name}!` : "Failed to activate house rule.";
+            message = success ? `Libation activated: ${card.name}!` : "Failed to activate libation.";
         } else if (card instanceof WorshipCard) {
             success = card.applyWorship(gameState);
             message = success ? `Worship applied: ${card.name}!` : "Failed to apply worship.";
@@ -1646,15 +1736,16 @@ class UIManager {
             return;
         }
         
-        const rerollCost = 2;
-        if (gameState.gold < rerollCost) {
+        if (gameState.gold < GAME_BALANCE.SHOP_REROLL_COST) {
             gameEngine.showMessage("Not enough gold to reroll!");
             return;
         }
         
-        gameState.gold -= rerollCost;
+        gameState.gold -= GAME_BALANCE.SHOP_REROLL_COST;
         this.generateShopStock(gameState, gameEngine);
-        this.dom.shopGold.textContent = gameState.gold;
+        if (this.dom.shopGold) {
+            this.dom.shopGold.textContent = gameState.gold;
+        }
     }
 
     // toggleSellMode removed - using direct sell method instead
@@ -1672,7 +1763,9 @@ class UIManager {
             
             // Update shop gold display if shop is open
             if (this.dom.shopGold) {
-                this.dom.shopGold.textContent = gameState.gold;
+                if (this.dom.shopGold) {
+            this.dom.shopGold.textContent = gameState.gold;
+        }
             }
             
             gameEngine.updateAllUI();
@@ -1700,7 +1793,9 @@ class UIManager {
         // Generate pack contents based on type
         this.generatePackContents(packType, revealedContainer, gameState, gameEngine);
         
-        this.dom.shopGold.textContent = gameState.gold;
+        if (this.dom.shopGold) {
+            this.dom.shopGold.textContent = gameState.gold;
+        }
     }
 
     generatePackContents(packType, container, gameState, gameEngine) {
@@ -1718,7 +1813,7 @@ class UIManager {
                 break;
             case 'libation':
                 cardPool = CardData.libations;
-                CardClass = HouseRuleCard;
+                CardClass = LibationCard;
                 break;
             case 'chaos':
                 // Special handling for chaos pack
@@ -1819,7 +1914,7 @@ class UIManager {
         const allCardPools = [
             { pool: CardData.jokers, class: Joker, name: 'Boon' },
             { pool: CardData.worship, class: WorshipCard, name: 'Worship' },
-            { pool: CardData.libations, class: HouseRuleCard, name: 'Libation' }
+            { pool: CardData.libations, class: LibationCard, name: 'Libation' }
         ];
         
         // Filter all pools first to ensure we have available cards

@@ -18,7 +18,7 @@ class App {
     }
 
     initialize() {
-        console.log('Initializing Dice of Dionysus...');
+        Logger.info('Initializing Dice of Dionysus...');
         
         // Initialize managers
         this.dataManager = new DataManager();
@@ -46,7 +46,7 @@ class App {
         // Show start screen
         this.showStartScreen();
         
-        console.log('Game initialized successfully!');
+        Logger.info('Game initialized successfully!');
     }
 
     setupScreens() {
@@ -138,7 +138,7 @@ class App {
             seedInput.value = seed;
         }
         
-        console.log(`Starting game with seed: ${seed}`);
+        Logger.info(`Starting game with seed: ${seed}`);
         
         // Switch to game screen
         this.switchToScreen('game');
@@ -178,67 +178,20 @@ class App {
         const template = document.getElementById('gameUITemplate');
         
         if (!template) {
-            console.error('Game UI template not found!');
+            Logger.error('Game UI template not found!');
             return;
         }
+        
+        Logger.debug('Loading game UI from template');
         
         // Clear and load the game UI template
         gameContainer.innerHTML = '';
         gameContainer.appendChild(template.content.cloneNode(true));
         
-        // Restore shop overlay if it was lost
-        this.restoreShopOverlay();
+        // Note: Shop overlay verification happens in UIManager.bindDOMElements()
+        // UIManager will restore if missing - no need to verify here
         
-        console.log('Game UI loaded successfully');
-    }
-    
-    restoreShopOverlay() {
-        const gameContainer = this.screens.game;
-        const existingShopOverlay = document.getElementById('shopOverlay');
-        
-        if (!existingShopOverlay) {
-            console.log('Shop overlay missing, restoring...');
-            
-            // Create shop overlay with correct structure matching index.html
-            const shopOverlay = document.createElement('div');
-            shopOverlay.id = 'shopOverlay';
-            shopOverlay.className = 'overlay hidden';
-            shopOverlay.innerHTML = `
-                <div class="modal-content">
-                    <div class="shop-header">
-                        <h2 class="shop-title">Temple Market</h2>
-                    </div>
-                    <div id="shopDefaultView">
-                        <!-- Artifacts and Individual Items Row (side by side) -->
-                        <div class="shop-row shop-items" id="shopItemsRow">
-                            <div class="shop-section" id="shopArtifactsArea"><h4>Divine Artifacts</h4></div>
-                            <div class="shop-section" id="shopDirectSales"><h4>Wares</h4></div>
-                        </div>
-
-                        <!-- Packs Row (below) -->
-                        <div class="shop-row shop-packs" id="shopPacksRow">
-                            <div class="shop-section" id="shopPacksArea"><h4>Packs</h4></div>
-                        </div>
-                    </div>
-                    <div id="packOpeningView" class="hidden">
-                        <div class="shop-main-area">
-                            <div class="shop-section" id="packRevealedCards"><h4>Pack Contents</h4></div>
-                            <div class="shop-section" id="packPlayerConsumables"><h4>Your Libations</h4></div>
-                        </div>
-                    </div>
-                    <div class="shop-actions">
-                        <div class="shop-info" id="goldDisplayButton">
-                            <span id="shopGold">10</span>
-                        </div>
-                        <button class="divine-button" id="rerollShop">Reroll (2g)</button>
-                        <button class="divine-button" id="closeShop">Continue</button>
-                    </div>
-                </div>
-            `;
-            
-            gameContainer.appendChild(shopOverlay);
-            console.log('Shop overlay restored successfully');
-        }
+        Logger.info('Game UI loaded successfully');
     }
 
     switchToScreen(screenName) {
@@ -269,9 +222,49 @@ class App {
         
         this.autoSaveInterval = setInterval(() => {
             if (this.game && this.currentScreen === 'game') {
-                this.game.saveGame();
+                // Only save if game is in a safe state
+                const saved = this.game.saveGame();
+                if (saved) {
+                    // Optional: Show subtle save indicator
+                    this.showSaveIndicator();
+                }
             }
-        }, 30000); // Save every 30 seconds
+        }, TIMING.AUTO_SAVE_INTERVAL);
+        
+        Logger.info(`Auto-save enabled (every ${TIMING.AUTO_SAVE_INTERVAL / 1000}s)`);
+    }
+
+    showSaveIndicator() {
+        // Create or find save indicator
+        let indicator = document.getElementById('auto-save-indicator');
+        if (!indicator) {
+            indicator = document.createElement('div');
+            indicator.id = 'auto-save-indicator';
+            indicator.style.cssText = `
+                position: fixed;
+                top: 20px;
+                right: 20px;
+                padding: 8px 16px;
+                background: rgba(46, 204, 113, 0.9);
+                color: white;
+                border-radius: 4px;
+                font-size: 12px;
+                z-index: 9999;
+                opacity: 0;
+                transition: opacity 0.3s;
+                pointer-events: none;
+            `;
+            indicator.textContent = '✓ Saved';
+            document.body.appendChild(indicator);
+        }
+        
+        // Show indicator
+        indicator.style.opacity = '1';
+        
+        // Hide after configured duration
+        setTimeout(() => {
+            indicator.style.opacity = '0';
+        }, TIMING.SAVE_INDICATOR_DURATION);
     }
 
     stopAutoSave() {
@@ -324,12 +317,17 @@ class App {
                 }
                 break;
                 
-            case 's':
+                case 's':
                 if (e.ctrlKey || e.metaKey) {
                     e.preventDefault();
                     if (this.game) {
-                        this.game.saveGame();
-                        this.showMessage('Game saved!');
+                        const saved = this.game.saveGame();
+                        if (saved) {
+                            this.showMessage('Game saved!');
+                            this.showSaveIndicator();
+                        } else {
+                            this.showMessage('Cannot save right now', 2000);
+                        }
                     }
                 }
                 break;
@@ -496,7 +494,7 @@ class CollectionManager {
         
         CardData.libations.forEach(libationData => {
             const isUnlocked = collection.libations ? collection.libations.includes(libationData.id) : false;
-            const libation = new HouseRuleCard(libationData);
+            const libation = new LibationCard(libationData);
             const cardEl = libation.render();
             
             if (!isUnlocked) {

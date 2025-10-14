@@ -6,42 +6,42 @@ const AnteData = [
         blindName: "No Blind",
         blindId: "none",
         blindEffect: "No special effect",
-        scoreThreshold: 300
+        scoreThreshold: 300  // Linear start
     },
     {
         name: "The Magician", 
         blindName: "Rolling Stones",
         blindId: "no_held_dice",
         blindEffect: "Cannot hold dice between rolls",
-        scoreThreshold: 450
+        scoreThreshold: 450  // +150 (50% increase)
     },
     {
         name: "The High Priestess",
         blindName: "Sacred Silence", 
         blindId: "no_worship",
         blindEffect: "Worship cards do not appear in shop",
-        scoreThreshold: 600
+        scoreThreshold: 600  // +150 (33% increase)
     },
     {
         name: "The Empress",
         blindName: "Barren Fields",
         blindId: "half_upper_pips",
         blindEffect: "Upper Sanctum hands give half pips",
-        scoreThreshold: 800
+        scoreThreshold: 900  // +300 (50% increase) - Balatro-style ramp!
     },
     {
         name: "The Emperor",
         blindName: "Iron Fist",
         blindId: "max_3_hold", 
         blindEffect: "Can only hold 3 dice maximum",
-        scoreThreshold: 1000
+        scoreThreshold: 1250  // +350 (39% increase) - Exponential!
     },
     {
         name: "The Hierophant",
         blindName: "Broken Ritual",
         blindId: "no_chance",
         blindEffect: "Chance hands cannot be scored",
-        scoreThreshold: 1200
+        scoreThreshold: 1700  // +450 (36% increase)
     },
 
     {
@@ -49,42 +49,42 @@ const AnteData = [
         blindName: "Reckless Speed",
         blindId: "score_penalty",
         blindEffect: "Score threshold increased by 50%",
-        scoreThreshold: 1500
+        scoreThreshold: 2300  // +600 (35% increase)
     },
     {
         name: "Strength",
         blindName: "Primal Force",
         blindId: "joker_disable",
         blindEffect: "All Boons are disabled",
-        scoreThreshold: 1800
+        scoreThreshold: 3100  // +800 (35% increase) - Getting hard!
     },
     {
         name: "The Hermit",
         blindName: "Solitary Path",
         blindId: "no_consumables",
         blindEffect: "Cannot use Libations",
-        scoreThreshold: 2100
+        scoreThreshold: 4200  // +1100 (36% increase)
     },
     {
         name: "Wheel of Fortune",
         blindName: "Chaotic Fate",
         blindId: "random_effects",
         blindEffect: "Random effect each turn",
-        scoreThreshold: 2400
+        scoreThreshold: 5700  // +1500 (36% increase)
     },
     {
         name: "Justice",
         blindName: "Perfect Balance", 
         blindId: "exact_score",
         blindEffect: "Must hit exact score threshold",
-        scoreThreshold: 2700
+        scoreThreshold: 7700  // +2000 (35% increase)
     },
     {
         name: "The Hanged Man",
         blindName: "Inverted World",
         blindId: "flipped_scoring",
         blindEffect: "Lower hands score higher than upper hands",
-        scoreThreshold: 3000
+        scoreThreshold: 10500  // +2800 (36% increase) - BRUTAL!
     }
 ];
 

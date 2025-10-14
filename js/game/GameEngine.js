@@ -11,30 +11,34 @@ class GameEngine {
     initializeGameState() {
         this.state = {
             // Core game state
-            dice: Array(5).fill(0).map((_, index) => new Die(index + 1)),
-            held: Array(5).fill(false),
-            rollsLeft: 3, // FIXED: Always start with 3 rolls
+            dice: Array(GAME_BALANCE.STARTING_DICE_COUNT).fill(0).map((_, index) => new Die(index + 1)),
+            held: Array(GAME_BALANCE.STARTING_DICE_COUNT).fill(false),
+            rollsLeft: GAME_BALANCE.STARTING_ROLLS,
             hasRolled: false,
             
             // Scoring
             scorecard: {},
             totalScore: 0,
-            scoreThreshold: 300,
+            scoreThreshold: GAME_BALANCE.STARTING_SCORE_THRESHOLD,
             
             // Progression
             turn: 1,
-            ante: 1,
-            maxTurns: 13,
+            ante: GAME_BALANCE.STARTING_ANTE,
+            maxTurns: GAME_BALANCE.MAX_TURNS_PER_ANTE,
             endlessMode: false,
             
             // Economy
-            gold: 15,
-            baseFavour: 1.5,
+            gold: GAME_BALANCE.STARTING_GOLD,
+            baseFavour: GAME_BALANCE.BASE_FAVOUR,
             
             // Collections
             jokers: [],
             artifacts: [],
             consumables: [],
+            
+            // Slots (capacities)
+            boonSlots: GAME_BALANCE.STARTING_BOON_SLOTS,
+            consumableSlots: GAME_BALANCE.STARTING_LIBATION_SLOTS,
             
             // Worship system
             worshipLevels: {
@@ -197,15 +201,21 @@ class GameEngine {
             this.dom.confirmNo.addEventListener('click', () => this.cancelScore());
         }
         
-        // Shop buttons
+        // Shop buttons - Note: Event listeners also attached by UIManager when shop is restored
         const closeShopBtn = document.getElementById('closeShop');
         if (closeShopBtn) {
-            closeShopBtn.addEventListener('click', () => this.closeShop());
+            closeShopBtn.addEventListener('click', () => {
+                Logger.debug('Close shop clicked from GameEngine listener');
+                this.closeShop();
+            });
         }
         
         const rerollShopBtn = document.getElementById('rerollShop');
         if (rerollShopBtn) {
-            rerollShopBtn.addEventListener('click', () => this.rerollShop());
+            rerollShopBtn.addEventListener('click', () => {
+                Logger.debug('Reroll shop clicked from GameEngine listener');
+                this.rerollShop();
+            });
         }
         
         // Sell mode button removed - using direct sell method instead
@@ -254,7 +264,10 @@ class GameEngine {
         }
     }
 
-    // Dice rolling and holding
+    /**
+     * Roll all non-held dice
+     * Applies joker effects, animations, and decrements rolls
+     */
     rollDice() {
         // FIXED: Simple, bulletproof roll mechanics
         if (this.state.rollsLeft <= 0 || this.state.gameOver || this.state.isAwaitingApi) {
@@ -354,6 +367,10 @@ class GameEngine {
         });
     }
 
+    /**
+     * Toggle hold status for a specific die
+     * @param {number} index - Die index (0-4)
+     */
     toggleHold(index) {
         if (!this.state.hasRolled || this.state.isAwaitingApi) return;
         
@@ -470,7 +487,11 @@ class GameEngine {
         if (changed && this.domReady) this.updateAllUI();
     }
 
-    // Scoring system
+    /**
+     * Prompt user to confirm scoring in a category
+     * Shows confirmation dialog with score details
+     * @param {string} category - Category to score
+     */
     promptScore(category) {
         if (this.state.scorecard[category] !== undefined || this.state.isAwaitingApi) return;
         if (!this.state.hasRolled) {
@@ -498,6 +519,10 @@ class GameEngine {
         }
     }
 
+    /**
+     * Confirm and execute the scoring action
+     * Called when user confirms in the scoring dialog
+     */
     confirmScore() {
         const category = this.state.pendingCategory;
         if (!category) return;
@@ -548,6 +573,17 @@ class GameEngine {
             
             this.state.scorecard[category] = finalScore;
             this.state.totalScore += finalScore;
+            
+            // Screen shake for Yahtzee (Heureka) - Balatro-inspired juice!
+            if (category === 'Yahtzee' && window.balatroEffects) {
+                window.balatroEffects.screenShake(15, 600);
+                Logger.debug('Screen shake triggered for Heureka!');
+            }
+            
+            // Screen shake for high scores (200+)
+            if (finalScore >= 200 && window.balatroEffects) {
+                window.balatroEffects.screenShake(10, 400);
+            }
         } else {
             this.state.scorecard[category] = 0;
         }
@@ -636,6 +672,10 @@ class GameEngine {
         }
     }
 
+    /**
+     * Cancel the scoring action
+     * Hides confirmation dialog
+     */
     cancelScore() {
         this.state.pendingCategory = null;
         if (this.domReady && this.dom.confirmOverlay) {
@@ -643,25 +683,84 @@ class GameEngine {
         }
     }
 
+    /**
+     * Calculate the score for a given category with the current dice
+     * @param {string} category - Scoring category (e.g., "Ones", "Three of a Kind", "Yahtzee")
+     * @returns {{pips: number, favour: number, isValid: boolean}} Score calculation result
+     * @example
+     * const result = engine.calculateScore("Full House");
+     * // { pips: 23, favour: 2, isValid: true }
+     */
     calculateScore(category) {
+        // ===== DEFENSIVE PROGRAMMING: Validate inputs =====
+        
+        // Validate category exists
+        if (!category || typeof category !== 'string') {
+            console.error('Invalid category provided to calculateScore:', category);
+            return { pips: 0, favour: 0, isValid: false };
+        }
+        
+        // Validate game state exists
+        if (!this.state) {
+            console.error('Game state is undefined');
+            return { pips: 0, favour: 0, isValid: false };
+        }
+        
+        // Validate dice array
+        if (!Array.isArray(this.state.dice)) {
+            console.error('Dice array is not an array:', this.state.dice);
+            return { pips: 0, favour: 0, isValid: false };
+        }
+        
+        if (this.state.dice.length !== GAME_BALANCE.STARTING_DICE_COUNT) {
+            console.error(`Invalid dice count: ${this.state.dice.length}. Expected ${GAME_BALANCE.STARTING_DICE_COUNT}.`);
+            return { pips: 0, favour: 0, isValid: false };
+        }
+        
+        // Validate each die object
+        for (let i = 0; i < this.state.dice.length; i++) {
+            const die = this.state.dice[i];
+            if (!die || typeof die.getEffectiveFace !== 'function') {
+                console.error(`Invalid die at index ${i}:`, die);
+                return { pips: 0, favour: 0, isValid: false };
+            }
+        }
+        
+        // ===== END VALIDATION =====
+        
         // Check if category is locked (for 7s, 8s, 9s)
         if (['Sevens', 'Eights', 'Nines'].includes(category) && !this.state.unlockedCategories[category]) {
             return { pips: 0, favour: 0, isValid: false };
         }
         
-        const faces = this.state.dice.map(d => {
-            let face = d.getEffectiveFace();
-            
-            // Apply substitutions
-            if (this.state.diceSubstitutions.foursAsFives && face === 4) {
-                face = 5;
+        // Get face values with safe fallbacks
+        const faces = this.state.dice.map((d, index) => {
+            try {
+                let face = d.getEffectiveFace();
+                
+                // Validate face value
+                if (typeof face !== 'number' || isNaN(face)) {
+                    console.warn(`Die ${index} returned invalid face: ${face}. Using 0.`);
+                    return 0;
+                }
+                
+                // Apply substitutions
+                if (this.state.diceSubstitutions && this.state.diceSubstitutions.foursAsFives && face === 4) {
+                    face = 5;
+                }
+                
+                return face;
+            } catch (error) {
+                console.error(`Error getting face for die ${index}:`, error);
+                return 0;
             }
-            
-            return face;
         });
         
+        // Build counts with safe defaults
         const counts = faces.reduce((acc, val) => {
-            acc[val] = (acc[val] || 0) + 1;
+            if (val > 0) {  // Only count valid faces
+                acc[val] = (acc[val] || 0) + 1;
+            }
             return acc;
         }, {});
         
@@ -672,7 +771,7 @@ class GameEngine {
         switch (category) {
             case "Ones": case "Twos": case "Threes": case "Fours": case "Fives": case "Sixes":
             case "Sevens": case "Eights": case "Nines":
-                const num = parseInt(category.match(/\d/)?.[0] || category === "Ones" ? 1 : category === "Twos" ? 2 : category === "Threes" ? 3 : category === "Fours" ? 4 : category === "Fives" ? 5 : category === "Sixes" ? 6 : category === "Sevens" ? 7 : category === "Eights" ? 8 : 9);
+                const num = CATEGORY_TO_NUMBER[category];
                 pips = (counts[num] || 0) * num;
                 
                 // Apply pips bonuses
@@ -687,7 +786,7 @@ class GameEngine {
                 break;
                 
             case "Three of a Kind":
-                if (Object.values(counts).some(c => c >= 3)) {
+                if (Object.values(counts).some(c => c >= SCORING_THRESHOLDS.THREE_OF_KIND_REQUIRED)) {
                     pips = faces.reduce((a, b) => a + b, 0);
                     if (this.state.pipsBonuses.threeOfKindBonus) {
                         pips += this.state.pipsBonuses.threeOfKindBonus;
@@ -697,7 +796,7 @@ class GameEngine {
                 break;
                 
             case "Four of a Kind":
-                if (Object.values(counts).some(c => c >= 4)) {
+                if (Object.values(counts).some(c => c >= SCORING_THRESHOLDS.FOUR_OF_KIND_REQUIRED)) {
                     pips = faces.reduce((a, b) => a + b, 0);
                     if (this.state.pipsBonuses.fourOfKindBonus) {
                         pips += this.state.pipsBonuses.fourOfKindBonus;
@@ -707,7 +806,8 @@ class GameEngine {
                 break;
                 
             case "Full House":
-                if (Object.values(counts).includes(3) && Object.values(counts).includes(2)) {
+                if (Object.values(counts).includes(SCORING_THRESHOLDS.FULL_HOUSE_THREE) && 
+                    Object.values(counts).includes(SCORING_THRESHOLDS.FULL_HOUSE_TWO)) {
                     pips = faces.reduce((a, b) => a + b, 0);
                     isValid = true;
                 }
@@ -721,13 +821,13 @@ class GameEngine {
                     for (let i = 1; i < uniqueFaces.length; i++) {
                         if (uniqueFaces[i] === uniqueFaces[i-1] + 1) {
                             run++;
-                            if (run >= 4) break;
+                            if (run >= SCORING_THRESHOLDS.SMALL_STRAIGHT_LENGTH) break;
                         } else if (uniqueFaces[i] !== uniqueFaces[i-1]) {
                             run = 1;
                         }
                     }
-                    if (run >= 4) {
-                        pips = 30;
+                    if (run >= SCORING_THRESHOLDS.SMALL_STRAIGHT_LENGTH) {
+                        pips = BASE_SCORES.SMALL_STRAIGHT;
                         isValid = true;
                     }
                 }
@@ -741,21 +841,21 @@ class GameEngine {
                     for (let i = 1; i < uniqueFaces.length; i++) {
                         if (uniqueFaces[i] === uniqueFaces[i-1] + 1) {
                             run++;
-                            if (run >= 5) break;
+                            if (run >= SCORING_THRESHOLDS.LARGE_STRAIGHT_LENGTH) break;
                         } else if (uniqueFaces[i] !== uniqueFaces[i-1]) {
                             run = 1;
                         }
                     }
-                    if (run >= 5) {
-                        pips = 40;
+                    if (run >= SCORING_THRESHOLDS.LARGE_STRAIGHT_LENGTH) {
+                        pips = BASE_SCORES.LARGE_STRAIGHT;
                         isValid = true;
                     }
                 }
                 break;
                 
             case "Yahtzee":
-                if (Object.values(counts).some(c => c >= 5)) {
-                    pips = 50;
+                if (Object.values(counts).some(c => c >= SCORING_THRESHOLDS.YAHTZEE_REQUIRED)) {
+                    pips = BASE_SCORES.YAHTZEE;
                     isValid = true;
                 }
                 break;
@@ -769,18 +869,8 @@ class GameEngine {
         }
         
         // Apply flat pip bonuses for lower section categories to reward scoring there
-        if (isValid) {
-            const lowerSectionBonuses = {
-                'Three of a Kind': 15,
-                'Four of a Kind': 20,
-                'Full House': 25,
-                'Small Straight': 30,
-                'Large Straight': 40,
-                'Yahtzee': 50
-            };
-            if (lowerSectionBonuses[category]) {
-                pips += lowerSectionBonuses[category];
-            }
+        if (isValid && LOWER_SECTION_BONUSES[category]) {
+            pips += LOWER_SECTION_BONUSES[category];
         }
 
         // Apply boss blind penalties
@@ -813,26 +903,25 @@ class GameEngine {
             // Gold enhancement provides bonus gold when scored (face-specific only)
             if (die.hasEnhancementForCurrentFace && die.hasEnhancementForCurrentFace('gold')) {
                 console.log(`Die ${index + 1} triggered gold enhancement!`);
-                this.state.gold += 1;
+                this.state.gold += ENHANCEMENT_BONUSES.GOLD_COINS;
                 window.game?.showMessage?.("Gold enhancement: +1 Gold!");
             }
             
             // Iron enhancement provides +5 pips when scored (face-specific only)
             if (die.hasEnhancementForCurrentFace && die.hasEnhancementForCurrentFace('iron')) {
-                pips += 5;
-                window.game?.showMessage?.("Iron enhancement: +5 Pips!");
+                pips += ENHANCEMENT_BONUSES.IRON_PIPS;
+                window.game?.showMessage?.(`Iron enhancement: +${ENHANCEMENT_BONUSES.IRON_PIPS} Pips!`);
             }
             
-            // Parchment enhancement: 1/6 chance for +1 favour, 1/15 chance for 15 gold (face-specific only)
+            // Parchment enhancement: chance for +1 favour OR chance for gold (face-specific only)
             if (die.hasEnhancementForCurrentFace && die.hasEnhancementForCurrentFace('parchment')) {
                 const parchmentRoll = Math.random();
-                if (parchmentRoll < 1/6) {
-                    favour += 1;
+                if (parchmentRoll < ENHANCEMENT_CHANCES.PARCHMENT_GOLD_CHANCE) {
+                    this.state.gold += ENHANCEMENT_BONUSES.PARCHMENT_GOLD;
+                    window.game?.showMessage?.(`Parchment fortune: +${ENHANCEMENT_BONUSES.PARCHMENT_GOLD} Gold!`);
+                } else if (parchmentRoll < ENHANCEMENT_CHANCES.PARCHMENT_FAVOUR_CHANCE) {
+                    favour += ENHANCEMENT_BONUSES.PARCHMENT_FAVOUR;
                     window.game?.showMessage?.("Parchment blessing: +1 Favour!");
-                }
-                if (parchmentRoll < 1/15) {
-                    this.state.gold += 15;
-                    window.game?.showMessage?.("Parchment fortune: +15 Gold!");
                 }
             }
             
@@ -856,7 +945,8 @@ class GameEngine {
             
             // Wild enhancement (face-specific): counts as either +1/-1 only if applied to the rolled face
             if (die.hasEnhancementForCurrentFace && die.hasEnhancementForCurrentFace('wild')) {
-                const wildEffect = Math.random() < 0.5 ? 1 : -1;
+                const wildEffect = Math.random() < ENHANCEMENT_CHANCES.WILD_EFFECT_CHANCE ? 
+                    ENHANCEMENT_BONUSES.WILD_PIPS_MAX : ENHANCEMENT_BONUSES.WILD_PIPS_MIN;
                 pips += wildEffect;
                 window.game?.showMessage?.(wildEffect > 0 ? "Wild (face) +1 pips!" : "Wild (face) -1 pips!");
             }
@@ -1055,19 +1145,19 @@ class GameEngine {
     applyArtifactEffects(eventType = 'general') {
         if (eventType === 'general') {
             // FIXED: Only handle capacity bonuses - NO ROLL MODIFICATIONS
-            let boonSlots = 5;
-            let consumableSlots = 2;
+            let boonSlots = GAME_BALANCE.STARTING_BOON_SLOTS;
+            let consumableSlots = GAME_BALANCE.STARTING_LIBATION_SLOTS;
             
             this.state.artifacts.forEach(artifact => {
                 switch (artifact.id) {
                     case 'faded_map_plus':
                         boonSlots += 1;
                         break;
-                    case 'offering_pouch':
+                    case 'libation_pouch':
                         consumableSlots += 1;
                         break;
-                    case 'offering_pouch_plus':
-                        consumableSlots += 2;
+                    case 'libation_pouch_plus':
+                        consumableSlots += 2;  // +2 slots for upgraded version
                         break;
                     case 'bronze_crown':
                         this.state.baseFavour += 1;
@@ -1090,12 +1180,12 @@ class GameEngine {
             
             if (hasSacrificialDagger || (hasRitualKnife && this.state.lowerSanctumStreak >= 2)) {
                 if (this.state.consumables.length < this.state.consumableSlots) {
-                    const libation = new HouseRuleCard(CardData.libations[Math.floor(this.prng.random() * CardData.libations.length)]);
+                    const libation = new LibationCard(CardData.libations[Math.floor(this.prng.random() * CardData.libations.length)]);
                     this.state.consumables.push(libation);
                     this.showMessage(`Ritual fulfilled! Gained ${libation.name}.`);
                     if (hasRitualKnife && !hasSacrificialDagger) this.state.lowerSanctumStreak = 0;
                 } else {
-                    this.showMessage("Ritual fulfilled, but your Offering slots are full!");
+                    this.showMessage("Ritual fulfilled, but your Libation slots are full!");
                 }
             }
             
@@ -1172,6 +1262,11 @@ class GameEngine {
     }
 
     // Utility methods
+    /**
+     * Display a message to the user
+     * @param {string} text - Message to display
+     * @param {number} [duration=3000] - How long to show message (ms)
+     */
     showMessage(text, duration = 3000) {
         if (this.domReady && this.dom.messagePopup) {
             this.dom.messagePopup.textContent = text;
@@ -1182,8 +1277,29 @@ class GameEngine {
         }
     }
 
+    /**
+     * Calculate interest earned based on saved gold (Balatro-inspired)
+     * @returns {number} Interest gold earned
+     */
+    calculateInterest() {
+        const gold = this.state.gold;
+        const interest = Math.min(
+            Math.floor(gold / GAME_BALANCE.INTEREST_RATE),
+            GAME_BALANCE.MAX_INTEREST
+        );
+        return interest;
+    }
+
     // Shop methods (will be expanded in next file)
     openShop() {
+        // Calculate and award interest (Balatro-inspired economy)
+        const interest = this.calculateInterest();
+        if (interest > 0) {
+            this.state.gold += interest;
+            this.showMessage(`💰 Interest earned: +${interest} Gold! (${Math.floor(this.state.gold / GAME_BALANCE.INTEREST_RATE)} × ${GAME_BALANCE.INTEREST_RATE}g)`, 4000);
+            Logger.info(`Interest earned: ${interest}g from ${this.state.gold - interest}g saved`);
+        }
+        
         // Shop logic will be handled by a separate module
         if (window.shopManager) {
             window.shopManager.openShop(this.state, this);
@@ -1191,8 +1307,16 @@ class GameEngine {
     }
 
     closeShop() {
+        Logger.debug('GameEngine.closeShop() called');
+        
         if (window.shopManager) {
             window.shopManager.closeShop();
+        } else if (window.uiManager) {
+            // Fallback to direct UIManager call
+            window.uiManager.closeShop();
+        } else {
+            Logger.error('No shop manager available to close shop');
+            return;
         }
         
         // If this was an end-of-ante shop, start the next ante
@@ -1201,6 +1325,7 @@ class GameEngine {
         }
         
         this.updateAllUI();
+        Logger.info('Shop closed, game resumed');
     }
 
     rerollShop() {
@@ -1213,11 +1338,77 @@ class GameEngine {
     
 
 
-    // Save/Load functionality
-    saveGame() {
-        this.dataManager.saveGame(this.state);
+    /**
+     * Check if game is in a safe state to save
+     * Validates no open dialogs, valid state, not processing
+     * @returns {boolean} True if safe to save
+     */
+    canSave() {
+        // Check for active overlays/dialogs
+        const confirmOverlay = document.getElementById('confirmOverlay');
+        const shopOverlay = document.getElementById('shopOverlay');
+        
+        if (confirmOverlay && !confirmOverlay.classList.contains('hidden')) {
+            console.log('Cannot save: Confirmation dialog is open');
+            return false;
+        }
+        
+        if (shopOverlay && !shopOverlay.classList.contains('hidden')) {
+            console.log('Cannot save: Shop is open');
+            return false;
+        }
+        
+        // Check for invalid game state
+        if (!this.state || this.state.gameOver === undefined) {
+            console.error('Cannot save: Invalid game state');
+            return false;
+        }
+        
+        // Check if dice array is valid
+        if (!Array.isArray(this.state.dice) || this.state.dice.length !== 5) {
+            console.error('Cannot save: Invalid dice array');
+            return false;
+        }
+        
+        // Check if currently animating
+        if (this.state.isAwaitingApi) {
+            console.log('Cannot save: Game is processing');
+            return false;
+        }
+        
+        return true;
     }
 
+    /**
+     * Save the current game state to localStorage
+     * @returns {boolean} True if save was successful
+     */
+    saveGame() {
+        if (!this.canSave()) {
+            console.warn('Save aborted: Game not in safe state');
+            return false;
+        }
+        
+        if (this.dataManager) {
+            try {
+                this.dataManager.saveGame(this.state);
+                console.log('Game saved successfully');
+                return true;
+            } catch (error) {
+                console.error('Save failed:', error);
+                this.showMessage('Failed to save game!', 3000);
+                return false;
+            }
+        } else {
+            console.error('DataManager not available');
+            return false;
+        }
+    }
+
+    /**
+     * Load a saved game from localStorage
+     * @returns {boolean} True if load was successful
+     */
     loadGame() {
         const savedState = this.dataManager.loadGame();
         if (savedState) {

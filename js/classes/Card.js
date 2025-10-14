@@ -1,6 +1,25 @@
-// Base Card class - Foundation for all card types
-
+/**
+ * Base Card class - Foundation for all card types (Boons, Worship, Libations)
+ * @class
+ * @example
+ * const card = new Card({ id: 'test', name: 'Test Card', cost: 5 });
+ */
 class Card {
+    /**
+     * Creates a new card instance
+     * @param {Object} data - Card configuration object
+     * @param {string} data.id - Unique identifier for the card
+     * @param {string} data.name - Display name
+     * @param {string} [data.rarity='common'] - Card rarity (rustic/vibrant/epic/worship/libation)
+     * @param {number} [data.cost=0] - Purchase cost in gold
+     * @param {number} [data.sellValue] - Sell value (defaults to 75% of cost)
+     * @param {string} [data.effect=''] - Effect description
+     * @param {string} [data.type='card'] - Card type (joker/worship/libation/artifact)
+     * @param {string|null} [data.god=null] - Associated god name
+     * @param {string} [data.description=''] - Detailed description
+     * @param {number} [data.usesLeft=-1] - Remaining uses (-1 = unlimited)
+     * @param {number} [data.maxUses=-1] - Maximum uses (-1 = unlimited)
+     */
     constructor(data) {
         // Core properties
         this.id = data.id;
@@ -24,7 +43,12 @@ class Card {
         this.acquired = null; // timestamp when acquired
     }
 
-    // Render the card's HTML element
+    /**
+     * Renders the card as an HTML element
+     * @param {boolean} [isShopItem=false] - Whether card is being displayed in shop
+     * @param {boolean} [isDirectSale=false] - Whether card is a direct purchase (vs pack)
+     * @returns {HTMLElement} The card's DOM element
+     */
     render(isShopItem = false, isDirectSale = false) {
         const el = document.createElement('div');
         el.className = `card ${this.type}-card ${this.rarity}`;
@@ -161,12 +185,18 @@ class Card {
         return el;
     }
 
-    // Check if the card can be used
+    /**
+     * Check if the card can be used
+     * @returns {boolean} True if card can be activated
+     */
     canUse() {
         return this.isActive && (this.usesLeft > 0 || this.usesLeft === -1);
     }
 
-    // Use the card (decrements uses if limited)
+    /**
+     * Use the card (decrements remaining uses if limited)
+     * @returns {boolean} True if card was successfully used
+     */
     use() {
         if (!this.canUse()) return false;
         
@@ -178,23 +208,33 @@ class Card {
         return true;
     }
 
-    // Disable/enable the card
+    /**
+     * Disable the card (prevents usage)
+     */
     disable() {
         this.isActive = false;
     }
 
+    /**
+     * Enable the card (allows usage)
+     */
     enable() {
         this.isActive = true;
     }
 
-    // Reset uses to maximum
+    /**
+     * Reset uses to maximum value
+     */
     resetUses() {
         if (this.maxUses > 0) {
             this.usesLeft = this.maxUses;
         }
     }
 
-    // Get card statistics
+    /**
+     * Get card usage statistics
+     * @returns {{timesTriggered: number, totalValue: number, efficiency: number, isActive: boolean, usesLeft: number}}
+     */
     getStats() {
         return {
             timesTriggered: this.timesTriggered,
@@ -205,7 +245,10 @@ class Card {
         };
     }
 
-    // Clone the card
+    /**
+     * Create a deep copy of this card
+     * @returns {Card} Cloned card instance
+     */
     clone() {
         const CardClass = this.constructor;
         const cloned = new CardClass({
@@ -230,7 +273,10 @@ class Card {
         return cloned;
     }
 
-    // Serialize for saving
+    /**
+     * Serialize card to JSON for saving
+     * @returns {Object} Card data as plain object
+     */
     toJSON() {
         return {
             id: this.id,
@@ -251,12 +297,18 @@ class Card {
         };
     }
 
-    // Load from saved data
+    /**
+     * Load card state from saved data
+     * @param {Object} data - Saved card data
+     */
     fromJSON(data) {
         Object.assign(this, data);
     }
 
-    // Get detailed information about the card
+    /**
+     * Get detailed information about the card
+     * @returns {Object} Comprehensive card information
+     */
     getInfo() {
         return {
             id: this.id,
@@ -273,7 +325,12 @@ class Card {
         };
     }
 
-    // Compare cards for sorting
+    /**
+     * Compare two cards for sorting
+     * @param {Card} a - First card
+     * @param {Card} b - Second card
+     * @returns {number} Negative if a < b, positive if a > b, 0 if equal
+     */
     static compare(a, b) {
         // Sort by rarity first
         const rarityOrder = { 'common': 1, 'uncommon': 2, 'rare': 3, 'legendary': 4 };
@@ -288,12 +345,20 @@ class Card {
         return a.name.localeCompare(b.name);
     }
 
-    // Static method to create card from data
+    /**
+     * Create a card from data object
+     * @static
+     * @param {Object} data - Card configuration
+     * @returns {Card} New card instance
+     */
     static fromData(data) {
         return new Card(data);
     }
 
-    // Get rarity color
+    /**
+     * Get the color associated with this card's rarity
+     * @returns {string} Hex color code
+     */
     getRarityColor() {
         const colors = {
             'common': '#8B4513',
@@ -304,7 +369,10 @@ class Card {
         return colors[this.rarity] || colors.common;
     }
 
-    // Get type-specific icon
+    /**
+     * Get emoji icon for card type
+     * @returns {string} Emoji icon
+     */
     getTypeIcon() {
         const icons = {
             'joker': '⭐',

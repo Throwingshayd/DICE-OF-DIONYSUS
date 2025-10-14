@@ -1,0 +1,84 @@
+/**
+ * Scoring System Constants
+ * All scoring-related magic numbers for game balance
+ * @module ScoringConstants
+ */
+
+/**
+ * Base scores for special hands
+ * @const {Object}
+ */
+const BASE_SCORES = {
+    SMALL_STRAIGHT: 30,
+    LARGE_STRAIGHT: 40,
+    YAHTZEE: 50,  // Heureka
+};
+
+/**
+ * Bonus points added to lower section categories
+ * These reward scoring in the lower section
+ * @const {Object}
+ */
+const LOWER_SECTION_BONUSES = {
+    THREE_OF_KIND: 15,
+    FOUR_OF_KIND: 20,
+    FULL_HOUSE: 25,
+    SMALL_STRAIGHT: 30,
+    LARGE_STRAIGHT: 40,
+    YAHTZEE: 50,
+};
+
+/**
+ * Thresholds for scoring categories
+ * @const {Object}
+ */
+const SCORING_THRESHOLDS = {
+    YAHTZEE_REQUIRED: 5,        // 5 of a kind
+    FOUR_OF_KIND_REQUIRED: 4,
+    THREE_OF_KIND_REQUIRED: 3,
+    FULL_HOUSE_THREE: 3,
+    FULL_HOUSE_TWO: 2,
+    SMALL_STRAIGHT_LENGTH: 4,   // Any run of 4 consecutive
+    LARGE_STRAIGHT_LENGTH: 5,   // Any run of 5 consecutive
+};
+
+/**
+ * Enhancement bonuses (pips added when scored)
+ * @const {Object}
+ */
+const ENHANCEMENT_BONUSES = {
+    IRON_PIPS: 5,           // Iron adds +5 pips when scored
+    GOLD_COINS: 1,          // Gold adds +1 gold when scored
+    PARCHMENT_FAVOUR: 1,    // Parchment can add +1 favour
+    PARCHMENT_GOLD: 15,     // Parchment can add +15 gold
+    WILD_PIPS_MIN: -1,      // Wild can add/subtract pips
+    WILD_PIPS_MAX: 1,
+};
+
+/**
+ * Category to number mapping (for Ones, Twos, etc.)
+ * @const {Object}
+ */
+const CATEGORY_TO_NUMBER = {
+    'Ones': 1,
+    'Twos': 2,
+    'Threes': 3,
+    'Fours': 4,
+    'Fives': 5,
+    'Sixes': 6,
+    'Sevens': 7,
+    'Eights': 8,
+    'Nines': 9,
+};
+
+// Export for use in other files
+if (typeof module !== 'undefined' && module.exports) {
+    module.exports = {
+        BASE_SCORES,
+        LOWER_SECTION_BONUSES,
+        SCORING_THRESHOLDS,
+        ENHANCEMENT_BONUSES,
+        CATEGORY_TO_NUMBER
+    };
+}
+

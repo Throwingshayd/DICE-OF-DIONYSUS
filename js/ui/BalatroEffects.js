@@ -19,7 +19,36 @@ class BalatroEffects {
         this.setupAnimationQueue();
         
         this.isInitialized = true;
-        console.log('Balatro Effects initialized');
+        Logger.info('Balatro Effects initialized');
+    }
+
+    /**
+     * Screen shake effect for impactful moments (Balatro-inspired)
+     * @param {number} intensity - Shake intensity in pixels
+     * @param {number} duration - Duration in milliseconds
+     */
+    screenShake(intensity = 10, duration = 500) {
+        const body = document.body;
+        const startTime = Date.now();
+        
+        const shake = () => {
+            const elapsed = Date.now() - startTime;
+            if (elapsed > duration) {
+                body.style.transform = '';
+                return;
+            }
+            
+            const progress = elapsed / duration;
+            const currentIntensity = intensity * (1 - progress);
+            
+            const x = (Math.random() - 0.5) * currentIntensity * 2;
+            const y = (Math.random() - 0.5) * currentIntensity * 2;
+            
+            body.style.transform = `translate(${x}px, ${y}px)`;
+            requestAnimationFrame(shake);
+        };
+        
+        shake();
     }
 
     // Tooltip System
@@ -252,8 +281,8 @@ class BalatroEffects {
             'rustic': '#8B7355',
             'vibrant': '#4A90E2',
             'epic': '#9B59B6',
-            'planet': '#F39C12',
-            'worship': '#E74C3C',
+            'worship': '#F39C12',
+            'libation': '#E74C3C',
             'artifact': '#2ECC71'
         };
         return colors[rarity] || '#95A5A6';
