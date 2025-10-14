@@ -2058,7 +2058,7 @@ body::after {
     background-repeat: no-repeat;
     display: flex;
     justify-content: center;
-    align-items: center;
+    align-items: flex-end; /* Balatro-style: bottom alignment */
     z-index: 1000;
 }
 
@@ -2067,17 +2067,20 @@ body::after {
     border: none;
     box-shadow: none;
     text-align: center;
-    padding: 20px;
+    padding: 40px 20px; /* More padding at bottom */
     position: relative;
     z-index: 1001;
-    margin-top: 450px;
+    margin-bottom: 80px; /* Balatro-style: buttons at bottom-middle */
+    margin-top: 0; /* Remove top margin */
 }
 
 .start-options {
     display: flex;
-    flex-direction: column;
+    flex-direction: row; /* Balatro-style: horizontal layout */
     gap: 20px;
     align-items: center;
+    justify-content: center;
+    flex-wrap: wrap; /* Allow wrapping on small screens */
 }
 
 .divine-button {
@@ -2183,104 +2186,10 @@ body::after {
     font-family: 'DisneyHeroic', sans-serif;
 }
 
-/* Balatro-style Buy/Sell Labels */
-.buy-sell-label {
-    position: absolute;
-    top: 10px;
-    left: 50%;
-    transform: translateX(-50%) scale(0.8);
-    background: #4CAF50;
-    color: white;
-    padding: 8px 16px;
-    border-radius: 20px;
-    font-size: 14px;
-    font-weight: bold;
-    text-transform: uppercase;
-    letter-spacing: 0.5px;
-    box-shadow: 0 4px 8px rgba(0,0,0,0.4);
-    cursor: pointer;
-    transition: all 0.2s ease;
-    z-index: 10;
-    opacity: 0;
-    pointer-events: none;
-    min-width: 80px;
-    text-align: center;
-    white-space: nowrap;
-}
-
-/* Static sell labels for inventory cards - positioned like shop buy labels */
-.consumable-slots .card .buy-sell-label,
-.joker-slots .card .buy-sell-label {
-    position: absolute;
-    top: 8px !important;
-    right: 8px !important;
-    left: auto !important;
-    transform: none !important;
-    opacity: 1 !important;
-    pointer-events: auto !important;
-    z-index: 15 !important;
-    padding: 2px 6px !important;
-    border-radius: 3px !important;
-    font-size: 10px !important;
-    font-weight: bold !important;
-    cursor: pointer !important;
-    transition: all 0.15s ease !important;
-    text-transform: uppercase !important;
-    letter-spacing: 0.5px !important;
-    background: linear-gradient(135deg, #ff6b6b, #ee5a52) !important;
-    color: white !important;
-    box-shadow: 0 2px 8px rgba(255, 107, 107, 0.3) !important;
-    width: 35px !important;
-    height: 20px !important;
-    min-width: 35px !important;
-    max-width: 35px !important;
-    text-align: center !important;
-    white-space: nowrap !important;
-    line-height: 16px !important;
-}
-
-.consumable-slots .card .buy-sell-label:hover,
-.joker-slots .card .buy-sell-label:hover {
-    background: linear-gradient(135deg, #ee5a52, #d63031) !important;
-    transform: scale(1.05) !important;
-    box-shadow: 0 4px 12px rgba(255, 107, 107, 0.4) !important;
-}
-
-.buy-sell-label:hover {
-    transform: translateX(-50%) scale(1.1);
-    box-shadow: 0 6px 12px rgba(0,0,0,0.5);
-}
-
-.buy-sell-label.buy {
-    background: #4CAF50;
-}
-
-.buy-sell-label.sell {
-    background: #f44336;
-}
-
-.buy-sell-label.take {
-    background: #2196F3;
-}
-
-/* Show labels on card hover */
-.card:hover .buy-sell-label,
-.pack-card:hover .buy-sell-label {
-    opacity: 1;
-    transform: translateX(-50%) scale(1);
-    pointer-events: auto;
-}
-
-/* Ensure pack cards have proper positioning for Take buttons */
-#packOpeningView .card {
-    position: relative;
-    overflow: visible;
-}
-
-#packOpeningView .card .buy-sell-label {
-    top: 10px;
-    z-index: 20;
-}
+/* ===== BALATRO-STYLE BUY/SELL/TAKE BUTTONS ===== 
+ * Consolidated, always-visible, consistent positioning
+ * Following Balatro's design philosophy: obvious, easy, satisfying
+ */
 
 /* Ensure cards have relative positioning for label positioning */
 .card, .pack-card {
@@ -2379,85 +2288,160 @@ body::after {
     margin-top: 8px;
 }
 
-/* Balatro-Style Buy/Sell/Take Labels */
+/* ===== MASTER BUTTON DEFINITION ===== */
 .buy-sell-label {
     position: absolute;
-    padding: 6px 12px;
-    border-radius: 6px;
-    font-size: 0.85rem;
+    top: 8px;
+    right: 8px;
+    min-width: 50px;
+    padding: 6px 10px;
+    font-size: 12px;
     font-weight: bold;
+    border-radius: 4px;
     cursor: pointer;
     text-transform: uppercase;
     letter-spacing: 0.5px;
+    text-align: center;
+    white-space: nowrap;
     z-index: 20;
-    /* Prevent inheriting transforms from card animations */
-    transform: translate(0, 0) !important;
-    transition: background 0.2s ease, box-shadow 0.2s ease;
-    border: 2px solid;
     user-select: none;
+    
+    /* ALWAYS VISIBLE - Balatro principle #1 */
+    opacity: 1;
+    pointer-events: auto;
+    
+    /* Smooth animations on hover/press */
+    transition: transform 0.15s cubic-bezier(0.4, 0, 0.2, 1), 
+                box-shadow 0.15s cubic-bezier(0.4, 0, 0.2, 1),
+                background 0.15s ease;
+    
+    /* Ensure button doesn't inherit card transforms */
+    transform-origin: center;
 }
+
+/* Hover effect - subtle lift (Balatro principle #2: clear feedback) */
+.buy-sell-label:hover {
+    transform: scale(1.08) translateY(-1px);
+}
+
+/* Press effect - satisfying click (Balatro principle #3: feel good) */
+.buy-sell-label:active {
+    transform: scale(0.95);
+    transition: transform 0.05s ease;
+}
+
+/* ===== BUTTON VARIANTS ===== */
 
 /* Buy button (green - for shop purchases) */
 .buy-sell-label.buy {
     background: linear-gradient(135deg, #4ade80, #22c55e);
-    border-color: #16a34a;
     color: white;
-    top: 6px;
-    right: 6px;
-    box-shadow: 0 2px 6px rgba(74, 222, 128, 0.4);
+    box-shadow: 0 2px 4px rgba(34, 197, 94, 0.3);
     text-shadow: 0 1px 2px rgba(0, 0, 0, 0.5);
+    border: 1px solid rgba(22, 163, 74, 0.3);
 }
 
 .buy-sell-label.buy:hover {
     background: linear-gradient(135deg, #22c55e, #16a34a);
-    box-shadow: 0 4px 10px rgba(74, 222, 128, 0.6);
+    box-shadow: 0 4px 8px rgba(34, 197, 94, 0.5);
 }
 
 .buy-sell-label.buy:active {
     background: linear-gradient(135deg, #16a34a, #15803d);
-    box-shadow: 0 1px 3px rgba(74, 222, 128, 0.5);
+    box-shadow: 0 1px 2px rgba(34, 197, 94, 0.4);
 }
 
 /* Take button (blue - for pack claiming) */
 .buy-sell-label.take {
     background: linear-gradient(135deg, #3b82f6, #2563eb);
-    border-color: #1d4ed8;
     color: white;
-    top: 6px;
-    right: 6px;
-    box-shadow: 0 2px 6px rgba(59, 130, 246, 0.4);
+    box-shadow: 0 2px 4px rgba(59, 130, 246, 0.3);
     text-shadow: 0 1px 2px rgba(0, 0, 0, 0.5);
+    border: 1px solid rgba(29, 78, 216, 0.3);
 }
 
 .buy-sell-label.take:hover {
     background: linear-gradient(135deg, #2563eb, #1d4ed8);
-    box-shadow: 0 4px 10px rgba(59, 130, 246, 0.6);
+    box-shadow: 0 4px 8px rgba(59, 130, 246, 0.5);
 }
 
 .buy-sell-label.take:active {
     background: linear-gradient(135deg, #1d4ed8, #1e40af);
-    box-shadow: 0 1px 3px rgba(59, 130, 246, 0.5);
+    box-shadow: 0 1px 2px rgba(59, 130, 246, 0.4);
 }
 
 /* Sell button (red - for selling from inventory) */
 .buy-sell-label.sell {
     background: linear-gradient(135deg, #ef4444, #dc2626);
-    border-color: #b91c1c;
     color: white;
-    bottom: 6px;
-    right: 6px;
-    box-shadow: 0 2px 6px rgba(239, 68, 68, 0.4);
+    box-shadow: 0 2px 4px rgba(239, 68, 68, 0.3);
     text-shadow: 0 1px 2px rgba(0, 0, 0, 0.5);
+    border: 1px solid rgba(185, 28, 28, 0.3);
 }
 
 .buy-sell-label.sell:hover {
     background: linear-gradient(135deg, #dc2626, #b91c1c);
-    box-shadow: 0 4px 10px rgba(239, 68, 68, 0.6);
+    box-shadow: 0 4px 8px rgba(239, 68, 68, 0.5);
 }
 
 .buy-sell-label.sell:active {
     background: linear-gradient(135deg, #b91c1c, #991b1b);
-    box-shadow: 0 1px 3px rgba(239, 68, 68, 0.5);
+    box-shadow: 0 1px 2px rgba(239, 68, 68, 0.4);
+}
+
+/* Disabled state (for future use) */
+.buy-sell-label.disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+    background: linear-gradient(135deg, #6b7280, #4b5563);
+    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.2);
+}
+
+.buy-sell-label.disabled:hover {
+    transform: none;
+    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.2);
+}
+
+/* ===== RIPPLE EFFECT ANIMATION ===== */
+.ripple {
+    position: absolute;
+    border-radius: 50%;
+    background: rgba(255, 255, 255, 0.6);
+    width: 20px;
+    height: 20px;
+    animation: ripple-effect 0.6s ease-out;
+    pointer-events: none;
+    z-index: 1;
+}
+
+@keyframes ripple-effect {
+    0% {
+        transform: scale(1);
+        opacity: 1;
+    }
+    100% {
+        transform: scale(4);
+        opacity: 0;
+    }
+}
+
+/* ===== SUCCESS ANIMATION (on purchase) ===== */
+.buy-sell-label.purchasing {
+    animation: purchase-success 0.4s ease-out;
+}
+
+@keyframes purchase-success {
+    0% { 
+        transform: scale(1); 
+    }
+    50% { 
+        transform: scale(1.2);
+        filter: brightness(1.3);
+    }
+    100% { 
+        transform: scale(0);
+        opacity: 0;
+    }
 }
 
 /* Dice Rolling Physics and Effects */
@@ -2658,20 +2642,60 @@ body::after {
     100% { left: 100%; }
 }
 
-/* Enhanced Collection Grid */
+/* Enhanced Collection Grid - Scrollable */
 .collection-grid {
     display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
     gap: 16px;
     padding: 20px;
+    max-height: 600px; /* Make scrollable */
+    overflow-y: auto; /* Enable vertical scrolling */
+    overflow-x: hidden;
+}
+
+/* Custom scrollbar for collection */
+.collection-grid::-webkit-scrollbar {
+    width: 10px;
+}
+
+.collection-grid::-webkit-scrollbar-track {
+    background: rgba(0, 0, 0, 0.2);
+    border-radius: 5px;
+}
+
+.collection-grid::-webkit-scrollbar-thumb {
+    background: var(--stone-terracotta);
+    border-radius: 5px;
+}
+
+.collection-grid::-webkit-scrollbar-thumb:hover {
+    background: var(--accent-green);
 }
 
 .collection-grid .card {
     transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    min-height: 250px; /* Ensure cards have minimum height */
 }
 
 .collection-grid .card:hover {
     transform: translateY(-12px) scale(1.08);
     box-shadow: 0 16px 32px rgba(0, 0, 0, 0.4);
+}
+
+/* Locked cards with fallback white background */
+.collection-grid .card.locked {
+    opacity: 0.6;
+    filter: grayscale(100%);
+}
+
+/* Ensure fallback background is visible for locked cards */
+.collection-grid .card.locked.no-asset {
+    background: white !important;
+    color: #333 !important;
+}
+
+.collection-grid .card.locked.no-asset .fallback-name {
+    color: #999 !important;
 }
 
 /* Balatro-style Rarity Effects */

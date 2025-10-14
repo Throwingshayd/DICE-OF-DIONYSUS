@@ -61,15 +61,10 @@ getDynamicDisplayStats(gameState) {
 **Mechanic:** High risk/high reward, forces adaptation
 **Balatro Parallel:** Chaos-style random destruction
 
-### 2. **The Fates' Loom** (Epic - 8g)
-**Effect:** "All dice that show consecutive numbers (1-2-3-4-5) give ×3 Favour instead of ×2"
-**Mechanic:** Rewards straights even when not scoring them
-**Synergies:** Hermes (Small Straight), Apollo (Large Straight)
 
-### 3. **Sisyphus' Boulder** (Epic - 8g)
-**Effect:** "+5 Pips for every time you've rerolled this turn. Resets each turn."
-**Mechanic:** Rewards using all your rolls
-**Risk:** Uses gold/rolls inefficiently if rushed
+
+
+
 
 ### 4. **Echo of Narcissus** (Epic - 8g)
 **Effect:** "Pairs (2 of same number) count as Three of a Kind"
@@ -77,13 +72,16 @@ getDynamicDisplayStats(gameState) {
 **Power:** Huge scoring flexibility
 
 ### 5. **Kronos' Hourglass** (Epic - 8g)
-**Effect:** "Gain +2 Rolls permanently, but score threshold increases by 20% each Ante"
+**Effect:** "Gain +2 Rolls permanently, but score reduced by 20% "
 **Mechanic:** More chances but harder game
 **Risk/Reward:** Perfect Balatro-style tradeoff
 
 ---
 
 ## 🔵 VIBRANT TIER BOONS (Interesting Mechanics)
+### 3. **Sisyphus' Boulder** (vibrant - 8g)
+**Effect:** "+5 Pips for every time you've rerolled this turn. Resets each turn."
+**Mechanic:** Rewards using all your rolls
 
 ### 6. **Demeter's Harvest** (Vibrant - 5g)
 **Effect:** "Each turn, one random die permanently gains +1 to its value (max 9)"
@@ -91,47 +89,40 @@ getDynamicDisplayStats(gameState) {
 **Unique:** Permanent upgrades without libations!
 
 ### 7. **Medusa's Gaze** (Vibrant - 5g)
-**Effect:** "Any die showing 6 cannot be rerolled (acts as automatic hold)"
+**Effect:** "Any die showing 6 cannot be rerolled (acts as automatic hold) lower sanctum scores give X0.5 favour bonus"
 **Mechanic:** Forces you to work with high rolls
 **Interesting:** Can be blessing or curse
 
 ### 8. **Dionysus' Revelry** (Vibrant - 5g)
-**Effect:** "After scoring, randomly set one die to a random value 1-6 for next turn"
+**Effect:** "After scoring, randomly set all of die faces on one die to a random value 1-6 for next turn"
 **Mechanic:** Chaos element, ruins planning but exciting
 **Fun Factor:** High unpredictability
 
-### 9. **The Oracle's Whisper** (Vibrant - 5g)
-**Effect:** "Before rolling, see what the next roll will be. Can choose to skip it."
-**Mechanic:** Perfect information, strategic depth
-**Balatro Parallel:** Showman joker (knowledge is power)
 
 ### 10. **Hydra's Heads** (Vibrant - 5g)
-**Effect:** "Whenever you score with exactly 2 dice, gain +30 Pips"
+**Effect:** "Whenever you score with exactly 2 dice, gain +3 favour"
 **Mechanic:** Rewards minimalist scoring (Ones/Twos with 2 dice)
 **Strategy:** Conflicts with "use all dice" strategies
 
 ### 11. **Tantalus' Curse** (Vibrant - 5g)
-**Effect:** "+1 Favour for each gold you have, but cannot spend gold while active"
+**Effect:** "+.5 Favour for each gold you have, but cannot spend gold while active"
 **Mechanic:** Lock gold for power
 **Risk:** Can't buy anything!
 
 ### 12. **Pegasus' Flight** (Vibrant - 5g)
-**Effect:** "Dice with values 5+ give ×0.5 extra Favour when scored"
+**Effect:** "Dice with values 6+ give ×0.5 extra Favour when scored"
 **Mechanic:** Rewards high dice specifically
 **Synergy:** Pairs with high-value strategies
 
 ### 13. **Cerberus' Watch** (Vibrant - 5g)
-**Effect:** "The first 3 dice you hold each turn gain +5 Pips each when scored"
+**Effect:** "The first 3 dice you hold each turn gain +3 Pips each when scored"
 **Mechanic:** Rewards selective holding
 **Strategy:** Makes hold order matter
 
-### 14. **Orpheus' Lyre** (Vibrant - 5g)
-**Effect:** "Scoring the same category twice in a row gives ×2 Favour the second time"
-**Mechanic:** Rewards consistency
-**Risk:** Uses up scorecard faster
 
-### 15. **The Trojan Horse** (Vibrant - 5g)
-**Effect:** "After Turn 10, all your Boons give ×2 their normal effect"
+
+### 15. **The Trojan Horse** (artifact- 10g)
+**Effect:** "After Turn 10 in each ante, all your Boons give ×2 their normal effect"
 **Mechanic:** Late-game power spike
 **Strategy:** Survive to turn 10, then dominate
 
@@ -140,22 +131,15 @@ getDynamicDisplayStats(gameState) {
 ## 🟤 RUSTIC TIER BOONS (Simple but Effective)
 
 ### 16. **Lucky Dice Bag** (Rustic - 3g)
-**Effect:** "Whenever you roll a 1, reroll that die automatically (once per die per turn)"
+**Effect:** "the first 1 rolled, reroll that die automatically (once per die per turn)"
 **Mechanic:** Reduces bad luck
 **Simple:** Just works, no complexity
 
-### 17. **Weighted Dice** (Rustic - 3g)
-**Effect:** "+1 to all dice values when scoring (after rolling complete)"
-**Mechanic:** Flat bonus, always good
-**Reliable:** No conditions
 
-### 18. **Philosopher's Stone** (Rustic - 3g)
-**Effect:** "Convert +3 Favour into +1 Gold when scoring (your choice)"
-**Mechanic:** Favour → Gold exchange
-**Flexible:** Choose based on needs
+
 
 ### 19. **Gambler's Charm** (Rustic - 3g)
-**Effect:** "50% chance to gain +2 Gold when scoring, 50% chance to gain nothing"
+**Effect:** "50% chance to gain +2 Gold when scoring, 50% chance to lose 1 gold "
 **Mechanic:** Pure randomness
 **Fun:** Slot machine feel
 
@@ -168,10 +152,7 @@ getDynamicDisplayStats(gameState) {
 
 ## 🔄 SYNERGY-FOCUSED BOONS
 
-### 21. **The Pantheon** (Epic - 8g)
-**Effect:** "For each unique god represented in your Boons, gain +0.5 Favour"
-**Mechanic:** Rewards diversity
-**Synergy:** Counts all god-themed boons
+s
 
 ### 22. **Olympian Council** (Vibrant - 5g)
 **Effect:** "If you have 3+ Boons with the same god, they all give ×2 effect"
@@ -179,16 +160,16 @@ getDynamicDisplayStats(gameState) {
 **Synergy:** Build around one god
 
 ### 23. **The Symposium** (Vibrant - 5g)
-**Effect:** "Each pair of matching dice gives +1 Favour (not just when scoring)"
+**Effect:** "Each 4 of a kind or greater of matching dice gives + x1 Favour 
 **Mechanic:** Passive favour generation
 **Unique:** Triggers even without scoring
 
-### 24. **Brotherhood of Heroes** (Rustic - 3g)
+### 24. **assembly of Heroes** (Rustic - 3g)
 **Effect:** "If you have 5+ Boons, gain +15 Pips when scoring"
 **Mechanic:** Rewards collecting
 **Late game:** Becomes very powerful
 
-### 25. **Divine Synergy** (Epic - 8g)
+### 25. **Divine Synergy** (Vibrant - 8g)
 **Effect:** "Boons of the same rarity amplify each other (+5 Pips per matching rarity)"
 **Mechanic:** Build mono-rarity decks
 **Strategy:** Completely changes deck building
@@ -197,28 +178,25 @@ getDynamicDisplayStats(gameState) {
 
 ## ⚡ TIMING-BASED BOONS (When Matters)
 
-### 26. **First Blood** (Vibrant - 5g)
-**Effect:** "Your first score each Ante gives ×3 Favour"
+### 26. **First Blood** (rustic - 5g)
+**Effect:** "Your first score each Ante gives +50 Pips"
 **Mechanic:** Front-loaded power
 **Strategy:** Make first turn count!
 
-### 27. **Clutch Play** (Vibrant - 5g)
-**Effect:** "Scoring on your last turn of the Ante gives ×2 Favour"
-**Mechanic:** Rewards close calls
-**Tension:** Creates suspense
 
-### 28. **Early Riser** (Rustic - 3g)
-**Effect:** "Turns 1-5: +20 Pips. Turns 6-13: +5 Pips"
+
+### 28. **Early Bird Gets the Worm** (Rustic - 3g)
+**Effect:** "Turns 1-3: +20 Pips. turns 4-5 gain 2 gold Turns 6-13: -5 Pips"
 **Mechanic:** Front-loaded, then fades
 **Unique:** Temporal power shift
 
-### 29. **Marathon Runner** (Rustic - 3g)
-**Effect:** "Gain +2 Pips per turn completed this Ante (stacks)"
+### 29. **Marathon ** (Rustic - 3g)
+**Effect:** "Gain +1 Pips per roll taken, (stacks, destroyed when scratched score entered or when Pips on it reaches 42 or greater "
 **Mechanic:** Gets better over time
 **Turn 1:** +2, Turn 5:** +10, Turn 13:** +26
 
-### 30. **Midnight Oil** (Vibrant - 5g)
-**Effect:** "Turns 8-13 give +50 Pips but you lose 1 roll each turn"
+### 30. **Midnight Oil** (rustic - 5g)
+**Effect:** "Turns 12-13 give +24 Pips but you lose 1 roll each turn during those turns"
 **Mechanic:** Late-game boost with cost
 **Risk:** Less flexibility when you need it most
 
@@ -226,30 +204,13 @@ getDynamicDisplayStats(gameState) {
 
 ## 🎰 RANDOM/CHAOS BOONS
 
-### 31. **Wheel of Fate** (Vibrant - 5g)
-**Effect:** "Each turn, gain a random effect: +Pips, +Favour, +Gold, or -1 Roll"
-**Mechanic:** Unpredictability
-**Fun:** Slot machine excitement
 
-### 32. **Schrodinger's Die** (Epic - 8g)
-**Effect:** "One random die each turn counts as both its value AND 6"
+
+### 32. **parmenides Die** (Epic - 8g)
+**Effect:** "One random die each turn counts as both its value AND its opposite value (eg, 1-6,2-5,3-4.)"
 **Mechanic:** Quantum superposition!
 **Unique:** Opens impossible scoring combinations
 
-### 33. **Chaos Theory** (Vibrant - 5g)
-**Effect:** "Whenever you score an invalid hand (scratch), gain +10 Gold"
-**Mechanic:** Rewards failure
-**Interesting:** Makes scratching strategic
-
-### 34. **Trickster's Gambit** (Rustic - 3g)
-**Effect:** "33% chance each roll to swap two random dice values"
-**Mechanic:** Controlled chaos
-**Balatro-inspired:** Random but fair
-
-### 35. **The Wild Card** (Epic - 8g)
-**Effect:** "One die becomes permanently wild (counts as any value for scoring)"
-**Mechanic:** Ultimate flexibility
-**Powerful:** Changes everything
 
 ---
 
@@ -260,22 +221,16 @@ getDynamicDisplayStats(gameState) {
 **Mechanic:** Completely changes strategy
 **Deep:** Makes you rethink everything
 
-### 37. **Fibonacci Sequence** (Vibrant - 5g)
-**Effect:** "Dice showing 1, 1, 2, 3, 5 give ×3 Favour"
-**Mechanic:** Easter egg condition
-**Fun:** Math nerds love it
+
 
 ### 38. **Prime Time** (Rustic - 3g)
-**Effect:** "Prime number dice (2,3,5) give +5 Pips each"
+**Effect:** "Prime number dice (2,3,5,7) give +5 Pips each"
 **Mechanic:** Simple math condition
 **Educational:** Teaches primes!
 
-### 39. **Lucky Number 7** (Rustic - 3g)
-**Effect:** "If dice sum to exactly 7, gain +100 Pips"
-**Mechanic:** Specific target
-**Challenge:** Hard to hit, big reward
 
-### 40. **Symmetry** (Vibrant - 5g)
+
+### 40. **Symmetry** (Vepict - 5g)
 **Effect:** "If dice are palindromic (1-2-3-2-1), gain ×3 Favour"
 **Mechanic:** Pattern recognition
 **Cool:** Visual satisfaction
@@ -289,137 +244,84 @@ getDynamicDisplayStats(gameState) {
 **Mechanic:** Poverty bonus
 **Strategy:** Spend everything!
 
-### 42. **Plutocrat's Pride** (Vibrant - 5g)
-**Effect:** "If you have 20+ gold, gain +100 Pips"
-**Mechanic:** Wealth bonus (opposite of Miser)
-**Strategy:** Hoard gold!
 
 ### 43. **Ascetic's Vow** (Epic - 8g)
-**Effect:** "If you have no other Boons, gain ×5 Favour"
+**Effect:** "If you have emtpy other Boon slots, gain + ×1 Favour for each"
 **Mechanic:** Solo boon challenge
 **Extreme:** All or nothing
 
-### 44. **Collector's Pride** (Vibrant - 5g)
-**Effect:** "Gain +10 Pips for each unique Boon rarity you own"
-**Mechanic:** Rewards variety
-**Strategy:** Get one of each rarity
 
-### 45. **Minimalist** (Rustic - 3g)
-**Effect:** "If you score using exactly 1 die, gain ×3 Favour"
-**Mechanic:** Efficiency reward
-**Challenge:** Hard to hit
+
+
 
 ---
 
 ## 🔥 RISK/REWARD BOONS (Negative Effects)
 
-### 46. **Hubris of Icarus** (Epic - 8g)
-**Effect:** "×4 Favour on all hands, but lose 3 Gold at end of each turn"
-**Mechanic:** Massive power, massive cost
-**Math:** Need to earn 3g+ per turn to break even
 
-### 47. **Cursed Treasure** (Vibrant - 5g)
-**Effect:** "+200 Pips on all hands, but cannot buy Boons from shop"
-**Mechanic:** Strong but prevents growth
-**Strategy:** One-boon strategy
 
-### 48. **Glass Cannon** (Vibrant - 5g)
-**Effect:** "×3 Favour on first score each turn, ×0.5 on all others"
-**Mechanic:** Feast or famine
-**Strategy:** Make first turn count!
+
+
 
 ### 49. **Reckless Abandon** (Rustic - 3g)
 **Effect:** "+50 Pips but you cannot hold dice"
 **Mechanic:** Pure luck, no strategy
 **Fun:** YOLO mode
 
-### 50. **The Gambler** (Epic - 8g)
-**Effect:** "50% chance to ×3 your score, 50% chance to score 0"
-**Mechanic:** ALL OR NOTHING
-**Exciting:** Maximum drama
+
 
 ---
 
 ## 🔄 TRANSFORMATION BOONS (Change Game State)
 
-### 51. **Alchemist's Touch** (Vibrant - 5g)
-**Effect:** "Once per Ante, transform a Rustic Boon into a Vibrant one"
-**Mechanic:** Upgrade system
-**Progression:** Power grows
 
-### 52. **The Recycler** (Vibrant - 5g)
+### 52. **Alchemists delight** (Vibrant - 5g)
 **Effect:** "Selling a Boon gives you a random Libation"
 **Mechanic:** Convert resources
 **Economy:** Creates new strategies
 
-### 53. **Divine Metamorphosis** (Epic - 8g)
-**Effect:** "At end of each Ante, one random Boon changes to a different random Boon"
-**Mechanic:** Forced adaptation
-**Chaos:** Never the same twice
 
-### 54. **The Shapeshifter** (Vibrant - 5g)
+
+### 54. **Proteus' disguise** (Vibrant - 5g)
 **Effect:** "Each turn, this Boon mimics the effect of a random other Boon you own"
 **Mechanic:** Wildcard boon
 **Fun:** Unpredictable!
 
-### 55. **Eternal Flame** (Rustic - 3g)
-**Effect:** "Boons cannot be sold (prevents accidental sells)"
-**Mechanic:** Protection
-**QOL:** Prevents mistakes
+
 
 ---
 
 ## 📈 SCALING BOONS (Grow Over Time)
 
-### 56. **Snowball Effect** (Vibrant - 5g)
-**Effect:** "Gain +1 Pip per turn completed this run (permanent, stacks across Antes)"
-**Mechanic:** Linear growth
-**Ante 1 Turn 5:** +5 Pips, **Ante 3 Turn 10:** +30 Pips!
 
-### 57. **Compound Interest** (Vibrant - 5g)
-**Effect:** "Gain +1 Gold per 10 total score accumulated this run"
-**Mechanic:** Score → Gold conversion
-**Late game:** Generates huge gold!
 
-### 58. **Experience Points** (Rustic - 3g) ✅ **DYNAMIC DISPLAY READY**
+
+### 58. **journey of Perseus ** (Rustic - 3g) ✅ **DYNAMIC DISPLAY READY**
 **Effect:** "Every 100 total score, this Boon gains +10 Pips"
 **Display:** Shows current pips bonus (e.g., `+50` in blue)
 **Mechanic:** Leveling system for boon
 **RPG Feel:** Card literally shows its power growing!
 **Implementation Note:** Already has example code in `Joker.getDynamicDisplayStats()`
 
-### 59. **The Veteran** (Vibrant - 5g)
-**Effect:** "+5 Pips per Ante completed (×Ante number)"
-**Mechanic:** Scales with progression
-**Ante 1:** +5, **Ante 5:** +25, **Ante 10:** +50
 
-### 60. **Momentum** (Rustic - 3g)
-**Effect:** "Each consecutive turn scored (not scratched) adds +5 Pips"
-**Mechanic:** Combo system
-**Streak:** 5 turns = +25 Pips!
+
+
 
 ---
 
 ## 🎲 DIE-MANIPULATION BOONS
 
-### 61. **Dice Magnet** (Vibrant - 5g)
-**Effect:** "After rolling, you may swap the values of any two dice"
-**Mechanic:** Tactical repositioning
-**Strategy:** Fix bad rolls!
 
 ### 62. **The Locksmith** (Rustic - 3g)
-**Effect:** "Held dice gain +1 to their value at end of turn"
+**Effect:** "Held dice gain +1 pips for each turn held, when scoring"
 **Mechanic:** Holding becomes better
 **Stacking:** Hold same die 3 turns = +3!
 
-### 63. **Probability Manipulation** (Epic - 8g)
-**Effect:** "Choose one number (1-6). That number appears 50% more often when rolling"
-**Mechanic:** RNG manipulation
-**Power:** Build around one number
 
-### 64. **The Equalizer** (Vibrant - 5g)
-**Effect:** "After rolling, all dice showing 1 or 2 become 3s"
-**Mechanic:** Eliminates low rolls
+
+### 64. **Smog of Morpheus** (Vibrant - 5g)
+**Effect:** "After rolling, all dice showing 2 or 4 become 3s"
+**Mechanic:** Eliminates rolling 4s
 **Consistent:** Smooths variance
 
 ### 65. **Six Shooter** (Rustic - 3g)
@@ -431,28 +333,19 @@ getDynamicDisplayStats(gameState) {
 
 ## 🌟 META/WEIRD BOONS
 
-### 66. **The Archaeologist** (Vibrant - 5g)
-**Effect:** "Discover 1 random Boon from the collection at start of each Ante"
-**Mechanic:** Free cards!
-**Variance:** High swing potential
 
-### 67. **Time Traveler** (Epic - 8g)
-**Effect:** "Once per Ante, undo your last score and choose different category"
-**Mechanic:** Mulligan system
-**Safety:** Prevents misclicks/bad choices
 
-### 68. **The Copycat** (Vibrant - 5g)
-**Effect:** "Copies the effect of the most recently scored Worship card this Ante"
+
+
+### 68. **The zealot** (Vibrant - 5g)
+**Effect:** "gives + x 1 favour of the most recently scored Worship card, to that score this Ante"
 **Mechanic:** Worship synergy
 **Unique:** Bridges card types
 
-### 69. **Deja Vu** (Vibrant - 5g)
-**Effect:** "Repeat the last Boon effect that triggered this turn"
-**Mechanic:** Double effects
-**Powerful:** Can chain combos
 
-### 70. **The Purist** (Rustic - 3g)
-**Effect:** "If you have no Worship or Libation cards, gain ×2 Favour"
+
+### 70. **The heretic** (Rustic - 3g)
+**Effect:** "each turn gain +2 pips (stacks , resets at end of ante or when worship card is used)
 **Mechanic:** Boon-only challenge
 **Build:** Forces specific strategy
 
@@ -460,168 +353,120 @@ getDynamicDisplayStats(gameState) {
 
 ## 💰 ECONOMY BOONS
 
-### 71. **Golden Touch** (Vibrant - 5g)
+### 71. **Golden Touch** (artifact - 5g)
 **Effect:** "Interest is calculated at 1 gold per 3 saved (instead of 5)"
 **Mechanic:** Better interest rate
 **Synergy:** Makes saving more viable
 
 ### 72. **The Merchant** (Rustic - 3g)
-**Effect:** "Selling cards gives +1 extra gold"
+**Effect:** "Selling libation and worship cards gives +1 extra gold"
 **Mechanic:** Better sell value
 **Churn:** Enables sell/buy strategies
 
-### 73. **Coupon Clipper** (Rustic - 3g)
-**Effect:** "First shop purchase each Ante costs -2 gold"
-**Mechanic:** Discount
-**QOL:** Makes tight gold easier
+ 
 
 ### 74. **The Investor** (Vibrant - 5g)
 **Effect:** "At end of Ante, gold ×1.5 (rounded down)"
 **Mechanic:** Exponential gold growth
 **Patience:** Rewards saving
 
-### 75. **Penny Pincher** (Rustic - 3g)
-**Effect:** "Rerolls cost -1 gold (minimum 1)"
-**Mechanic:** Cheaper rerolls
-**Exploration:** See more cards
+
 
 ---
 
 ## 🎯 CATEGORY-SPECIFIC BOONS
 
-### 76. **Ace in the Hole** (Vibrant - 5g)
-**Effect:** "Ones count as 6s when scoring Ones category"
-**Mechanic:** Makes weak category strong
-**Paradox:** Low becomes high
 
-### 77. **Six Sense** (Vibrant - 5g)
-**Effect:** "Sixes category gives ×3 Favour instead of normal"
-**Mechanic:** Supercharge one category
-**Focus:** Build around Sixes
 
-### 78. **Straight Shooter** (Vibrant - 5g)
-**Effect:** "Straights (Small/Large) give +50% Pips"
-**Mechanic:** Straight specialist
-**Synergy:** Hermes/Apollo worship
+#
 
-### 79. **The Duplicator** (Epic - 8g)
+
+
+### 79. **bellows of war** (Epic - 8g)
 **Effect:** "Three/Four of Kind categories score as if you had one more matching die"
 **Mechanic:** Virtual die
 **Power:** Three of Kind counts as Four!
 
-### 80. **Chance Taker** (Rustic - 3g)
-**Effect:** "Chance category gives +100 Pips"
+### 80. **nyxian seductionr** (Rustic - 3g)
+**Effect:** "Chance category gives +69 Pips -chance favour by 1 level,( if level 1 make favour x0.5 instead of 1")
 **Mechanic:** Makes Chance viable
-**Simple:** Just works
+**Simple:** seductive threat
 
 ---
 
 ## 🌈 COLOR/ENHANCEMENT BOONS
 
-### 81. **The Artisan** (Vibrant - 5g)
-**Effect:** "Each enhanced die face gives +1 Favour when rolled"
-**Mechanic:** Enhancement synergy
-**Build:** Collect enhancement libations
 
-### 82. **Gold Standard** (Epic - 8g)
-**Effect:** "All gold enhancements also give +10 Pips"
+
+### 82. **Gold Standard** (vibrantc - 8g)
+**Effect:** "All gold enhancements also give +3 Pips"
 **Mechanic:** Supercharge gold faces
 **Combo:** With Tisane of Hephaestus
 
-### 83. **Mirror, Mirror** (Vibrant - 5g)
-**Effect:** "Mirror enhancements copy to adjacent dice values too"
-**Mechanic:** Enhanced mirrors
-**Weird:** Creates interesting patterns
+s
 
-### 84. **The Perfectionist** (Vibrant - 5g)
-**Effect:** "If all 5 dice have enhancements, gain ×3 Favour"
+### 84. **Carillon of the muses** (epic - 5g)
+**Effect:** "If all 5 dice have enhancements, gain ×3 Favour, (secret bonus, if all 5 die faces are exaclty the same enhancement as each other give x5 favour)"
 **Mechanic:** Completion bonus
 **Goal:** Enhancement collection game
 
-### 85. **Chromatic Scales** (Rustic - 3g)
-**Effect:** "+5 Pips per unique enhancement type you have on dice"
-**Mechanic:** Diversity bonus
-**Strategy:** Spread enhancements around
+
 
 ---
 
 ## 🏆 WIN-CONDITION BOONS
 
-### 86. **The Speedrunner** (Epic - 8g)
-**Effect:** "If you complete an Ante in 10 or fewer turns, gain +200 score"
-**Mechanic:** Speed bonus
-**Challenge:** Efficiency matters
 
-### 87. **Flawless Victory** (Epic - 8g)
-**Effect:** "If you never scratch (all scores valid), gain ×2 Favour on all hands"
-**Mechanic:** Perfection bonus
-**Pressure:** One mistake ruins it
+
+
 
 ### 88. **The Completionist** (Vibrant - 5g)
 **Effect:** "If you score in all 16 categories (including 7s/8s/9s), gain +500 score"
 **Mechanic:** Long-term goal
 **Challenge:** Requires multiple Yahtzees
 
-### 89. **Minimalist Run** (Vibrant - 5g)
-**Effect:** "If you complete Ante with 3 or fewer Boons, gain +300 score"
+### 89. **Message in a bottle** (Vibrant - 5g)
+**Effect:** "If you complete Ante with no other boons for enitre ante gain +50% of score threshold at end of ante"
 **Mechanic:** Anti-collection challenge
 **Interesting:** Opposite of normal strategy
 
-### 90. **Pacifist Route** (Rustic - 3g)
-**Effect:** "Never sell a card → Gain +100 score per Ante completed"
-**Mechanic:** No-sell challenge
-**Accumulation:** Keeps growing
+
 
 ---
 
 ## 🎪 FUN/MEME BOONS
 
-### 91. **Snake Eyes** (Rustic - 3g)
-**Effect:** "Rolling all 1s gives +500 Pips (incredibly rare)"
+### 91. **Typhon** (Rustic - 3g)
+**Effect:** "Rolling all 1s on the first roll gives +90% of score threshold (incredibly rare)"
 **Mechanic:** Jackpot condition
-**Fun:** Will happen once in 7,776 rolls!
+**Fun:** 
 
-### 92. **The Chosen One** (Vibrant - 5g)
-**Effect:** "Pick one die at start of Ante. It gives ×3 its value when scored"
-**Mechanic:** Champion die
-**Story:** That die is special!
+#
 
-### 93. **Betrayal** (Vibrant - 5g)
+### 93. **Betrayal by Paris** (Vibrant - 5g)
 **Effect:** "Destroy a random Boon at end of each Ante, gain +5 Gold"
 **Mechanic:** Sacrificial economy
 **Dark:** Your boons fear you
 
-### 94. **The Hoarder** (Rustic - 3g)
-**Effect:** "Gain +1 Pip for each card in your collection (Boons+Worship+Libations)"
-**Mechanic:** Collection = power
-**Scaling:** Grows all game
 
-### 95. **All or Nothing** (Epic - 8g)
-**Effect:** "If total score is exactly divisible by 100, ×2 that score"
-**Mechanic:** High-risk alignment
-**Tension:** So close... 499 or 500?
+
+
 
 ---
 
 ## 🔗 COMBO/CHAIN BOONS
 
-### 96. **Chain Reaction** (Vibrant - 5g)
-**Effect:** "Each Boon that triggers adds +10 Pips to the next Boon's effect"
-**Mechanic:** Cascading power
-**Ordering:** Makes boon order matter!
 
-### 97. **Domino Effect** (Vibrant - 5g)
+
+### 97. **eruption of etna** (Vibrant - 5g)
 **Effect:** "If 3+ Boons trigger on same turn, ×2 Favour"
 **Mechanic:** Combo multiplier
 **Build:** Get many before_score boons
 
-### 98. **Critical Mass** (Epic - 8g)
-**Effect:** "If your total Boon cost exceeds 30g, gain ×2 Favour"
-**Mechanic:** Expensive deck bonus
-**Late game:** Rewards investment
 
-### 99. **The Catalyst** (Vibrant - 5g)
-**Effect:** "When a Worship card triggers, also trigger a random Boon"
+
+### 99. **The Cycle of seasons** (Vibrant - 5g)
+**Effect:** "When a Worship card triggers, also trigger a +1 favour to anotehr god"
 **Mechanic:** Cross-type synergy
 **Unique:** Bridges systems
 

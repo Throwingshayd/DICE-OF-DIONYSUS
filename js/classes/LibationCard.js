@@ -177,14 +177,10 @@ class LibationCard extends Card {
                 break;
                 
             case 'kylix_hermit':
-                // Destroy a boon, Double your money (max 20)
-                if (gameState.jokers && gameState.jokers.length > 0) {
-                    const randomBoon = gameState.jokers[Math.floor(Math.random() * gameState.jokers.length)];
-                    gameState.jokers = gameState.jokers.filter(j => j.id !== randomBoon.id);
-                    gameState.gold = Math.min(gameState.gold * 2, 20);
-                    const engine = gameEngine || window.game;
-                    engine?.showMessage?.(`Kylix of the Hermit: Destroyed ${randomBoon.name}, doubled gold to ${gameState.gold}!`);
-                }
+                // Double your money (max 20)
+                gameState.gold = Math.min(gameState.gold * 2, 20);
+                const engine = gameEngine || window.game;
+                engine?.showMessage?.(`Kylix of the Hermit: Doubled gold to ${gameState.gold}!`);
                 break;
                 
             case 'elixir_lethe':
@@ -195,20 +191,6 @@ class LibationCard extends Card {
             case 'chalice_helios':
                 // Permanently increase a die face by 1
                 this.promptForDieFaceSelection(gameState, 'permanent_increase');
-                break;
-                
-            case 'distillate_masks':
-                // Apply a random enhancement to a random Boon
-                if (gameState.jokers && gameState.jokers.length > 0) {
-                    const randomBoon = gameState.jokers[Math.floor(Math.random() * gameState.jokers.length)];
-                    const enhancements = ['parchment', 'iron', 'gold', 'mother_of_pearl', 'mirror', 'wild'];
-                    const randomEnhancement = enhancements[Math.floor(Math.random() * enhancements.length)];
-                    const engine = gameEngine || window.game;
-                    engine?.showMessage?.(`Distillate of Masks: Applied ${randomEnhancement} enhancement to ${randomBoon.name}!`);
-                } else {
-                    const engine = gameEngine || window.game;
-                    engine?.showMessage?.("Distillate of Masks: No boons available to enhance!");
-                }
                 break;
                 
             case 'the_eucharist':

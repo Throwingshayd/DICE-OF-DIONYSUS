@@ -1,0 +1,244 @@
+# 🏛️ Dice of Dionysus - Cursor AI Context Rules
+
+## Project Overview
+language: JavaScript (ES6+)
+type: Vanilla JS Web Game (SPA)
+theme: Greek mythology-themed dice strategy game
+inspiration: Balatro's design philosophy
+framework: None (intentionally vanilla)
+buildTool: Vite
+deployment: Web + PWA + Electron
+
+## Core Philosophy
+- **Simplicity First**: Vanilla JS, no framework overhead - keep it debuggable
+- **Performance Target**: 60fps gameplay, minimal bundle size
+- **Modularity**: Clear separation of concerns (classes, config, data, ui, utils)
+- **Maintainability**: Well-documented, consistent patterns
+- **Thematic Consistency**: Greek mythology naming throughout
+
+## Critical Rules - NEVER VIOLATE
+
+### 1. Terminology (Memory ID: 5924352, 5376805, 5065254)
+- ❌ NEVER use "houseRules" or "offerings" 
+- ✅ ALWAYS use "libations" for consumable cards
+- ❌ NEVER introduce new game terms without asking for thematic translation first
+- ✅ Use established terms: Boons (jokers), Worship cards, Pips, Favour, Ante
+
+### 2. Code Style
+- ✅ Keep JavaScript simple and easy to debug
+- ❌ NEVER add TypeScript unless explicitly requested
+- ✅ Prefer existing patterns over "modern" refactors
+- ❌ NEVER restructure working code without clear performance gain
+- ✅ Use the Logger system instead of console.log
+- ❌ NEVER remove Greek mythology theming
+
+### 3. Architecture Preservation
+- ✅ Respect class-based inheritance (Card → Joker/WorshipCard/LibationCard)
+- ✅ Keep GameEngine as single source of truth for state
+- ✅ Use existing config constants (GameConstants, ScoringConstants, UIConstants)
+- ❌ NEVER introduce new frameworks or build systems
+- ❌ NEVER split modules without explicit request
+
+### 4. Testing & Debugging
+- ✅ Debug in browser console using window.game, window.app
+- ❌ NEVER create separate test files unless explicitly requested
+- ✅ Use Logger.debug() for development logging
+- ✅ Test in the actual game window
+
+## Project Structure
+
+```
+DICE-OF-DIONYSUS-WORKING/
+├── index.html              # Entry point
+├── js/
+│   ├── Main.js            # Application controller
+│   ├── classes/           # Game entities (Card, Die, Joker, etc.)
+│   ├── config/            # Constants (GameConstants, ScoringConstants, UIConstants)
+│   ├── data/              # Game content (gameData.js, AnteData_js.js)
+│   ├── game/              # Core logic (GameEngine.js - 2020 lines)
+│   ├── ui/                # Rendering (UIManager.js - 1900 lines)
+│   └── utils/             # Helpers (seededRNG, dataManager, Logger)
+├── css/
+│   ├── styles.css         # Main styles
+│   └── balatro-effects.css # Visual effects
+└── ART/                   # Assets (images, music)
+```
+
+## Key Systems
+
+### 1. GameEngine (js/game/GameEngine.js)
+**What it does**: Single source of truth for game state
+**Key methods**: rollDice(), calculateScore(), confirmScore(), applyJokerEffects()
+**State management**: All game data in this.state object
+**When to edit**: Game logic, scoring, progression, card effects
+
+### 2. UIManager (js/ui/UIManager.js)
+**What it does**: All rendering and UI interactions
+**Key methods**: renderDice(), updateScorecard(), openShop(), renderCard()
+**Note**: Currently 1900 lines - DO NOT split unless explicitly requested
+**When to edit**: Visual changes, shop, animations, user interactions
+
+### 3. Card System (Inheritance)
+```
+Card.js (base class)
+  ├─ Joker.js (Boons - passive effects with timing)
+  ├─ WorshipCard.js (Favour boosters)
+  └─ LibationCard.js (Consumables)
+```
+
+### 4. Die System (js/classes/Die.js)
+**Face-specific enhancements**: Each die has 6 faces with individual enhancements
+**Enhancement types**: Parchment, Iron, Gold, Mirror, Wild, Mother of Pearl
+**Key feature**: faces[1-6] object with value, enhancements Set, modifiedValue
+
+### 5. Data Management
+**gameData.js**: All card definitions (boons, worship, libations, artifacts)
+**AnteData_js.js**: Progression, score thresholds, boss blinds
+**dataManager.js**: Save/load to localStorage
+
+## AI Optimization Guidelines
+
+### When Optimizing Code
+✅ **DO:**
+- Profile before optimizing (use browser DevTools)
+- Optimize hot loops (rollDice, calculateScore, rendering)
+- Cache calculations where safe
+- Use existing patterns (seededRNG for randomness)
+- Preserve game balance constants in config/
+
+❌ **DON'T:**
+- Introduce new dependencies
+- Change architecture without benchmarking
+- Optimize prematurely
+- Break deterministic seeded RNG
+- Change game balance without permission
+
+### When Adding Features
+✅ **DO:**
+- Add new boons to gameData.js → implement in Joker.js applyTimingEffect()
+- Add new libations to gameData.js → implement in LibationCard.js applyLibationEffect()
+- Use existing timing system (before_roll, before_score, after_score, etc.)
+- Follow Greek mythology theming
+- Add to card_database.csv for documentation
+
+❌ **DON'T:**
+- Create new card types without asking
+- Introduce new game mechanics without thematic names
+- Break existing card interactions
+- Ignore rarity system (rustic, vibrant, epic, worship, libation)
+
+### When Fixing Bugs
+✅ **DO:**
+- Use Logger.error() to log issues
+- Check BUGS_FIXED_LOG.md for previous fixes
+- Test with deterministic seeds
+- Verify save/load compatibility
+- Update CHANGELOG.md
+
+❌ **DON'T:**
+- Make defensive changes that hide root cause
+- Break backwards compatibility with saves
+- Remove error handling to "clean up code"
+
+## Code Patterns to Follow
+
+### 1. Logging (NEW in Phase 3)
+```javascript
+// Use Logger, not console.log
+Logger.debug('Dice rolled', { faces: [1,2,3,4,5] });
+Logger.info('Ante started', { ante: 2 });
+Logger.warn('Low gold warning', { gold: 1 });
+Logger.error('Save failed', error);
+```
+
+### 2. Configuration Constants
+```javascript
+// Use constants from config/, don't hardcode
+GAME_BALANCE.STARTING_GOLD  // ✅
+SCORING.YAHTZEE_BASE        // ✅
+15                          // ❌
+```
+
+### 3. Card Effects (Timing-based)
+```javascript
+// Jokers use timing system
+timing: { 
+    before_roll: true,     // Before dice roll
+    before_score: true,    // Before scoring
+    after_score: true,     // After scoring
+    turn_start: true,      // Start of turn
+    turn_end: true         // End of turn
+}
+```
+
+### 4. Seeded RNG
+```javascript
+// ALWAYS use this.prng, NEVER Math.random()
+this.prng.random()           // ✅ Returns 0-1
+this.prng.randomInt(1, 6)    // ✅ Returns 1-6
+Math.random()                // ❌ Breaks determinism
+```
+
+## Performance Targets
+- **Bundle size**: ~120KB total
+- **Frame rate**: 60fps during gameplay
+- **Load time**: <2s on modern browsers
+- **Memory**: Minimal allocations in game loop
+
+## Common AI Tasks
+
+### "Add a new boon"
+1. Define in gameData.js (jokers array)
+2. Implement effect in Joker.js applyTimingEffect() switch
+3. Add to assetMapping.js if custom image
+4. Test with seed for reproducibility
+
+### "Optimize performance"
+1. Profile with Chrome DevTools first
+2. Focus on: rollDice(), calculateScore(), rendering loops
+3. Cache where safe, pool objects if needed
+4. Verify determinism still works
+
+### "Fix a bug"
+1. Reproduce with specific seed
+2. Check BUGS_FIXED_LOG.md for similar issues
+3. Use Logger to trace issue
+4. Fix root cause, not symptom
+5. Update CHANGELOG.md
+
+### "Add UI feature"
+1. Edit UIManager.js (keep existing structure)
+2. Use balatro-effects.css for animations
+3. Maintain responsive design
+4. Test on mobile viewport
+
+## GitHub Integration Notes
+- Main branch: production-ready code
+- Commit messages: Follow conventional commits
+- PRs: Include testing steps with seed
+- Issues: Reference BUGS_FIXED_LOG.md for context
+
+## Known Technical Debt
+- UIManager.js is 1900 lines (split deferred to future)
+- Some console.log statements remain (migrating to Logger)
+- Limited automated test coverage (manual testing in browser)
+
+## AI Behavior Expectations
+✅ **Good AI behavior:**
+- Suggest improvements, don't force them
+- Explain reasoning for changes
+- Respect existing architecture
+- Ask before introducing new concepts
+- Provide seeds for testing
+
+❌ **Bad AI behavior:**
+- Restructure entire codebase "for best practices"
+- Add frameworks "because modern"
+- Change working code "to be cleaner"
+- Introduce new terminology without theming
+- Break backwards compatibility
+
+---
+
+**Remember**: This is a working game with players. Stability > novelty. Performance > elegance. Simplicity > "best practices".
+

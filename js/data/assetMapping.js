@@ -55,7 +55,6 @@ const AssetMapping = {
         'kylix_hermit': 'kylix of hermit.png',
         'elixir_lethe': 'ekuxur of lethe.png',
         'chalice_helios': 'chalice of helios.png',
-        'distillate_masks': 'distilatte of masks.png',
         'the_eucharist': 'the eucharist.png',
         'divine_guidance': 'dviine guidance.png'
     },

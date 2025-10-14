@@ -421,10 +421,17 @@ class CollectionManager {
             
             if (!isUnlocked) {
                 cardEl.classList.add('locked');
+                cardEl.classList.add('no-asset'); // Force fallback white background
                 const effectEl = cardEl.querySelector('.card-effect');
                 const nameEl = cardEl.querySelector('.card-name');
+                const rarityEl = cardEl.querySelector('.card-rarity');
                 if (effectEl) effectEl.textContent = '???';
                 if (nameEl) nameEl.textContent = '???';
+                if (rarityEl) rarityEl.textContent = '???';
+                
+                // Remove background image for locked cards
+                const bgEl = cardEl.querySelector('.card-background');
+                if (bgEl) bgEl.remove();
             }
             
             // Add unlock info
@@ -460,11 +467,14 @@ class CollectionManager {
                 
                 if (!isUnlocked) {
                     el.classList.add('locked');
+                    el.classList.add('no-asset'); // Force fallback white background
+                    el.style.background = 'white';
+                    el.style.color = '#333';
                 }
                 
                 el.innerHTML = `
-                    <div class="card-name">${isUnlocked ? artifact.name : '???'}</div>
-                    <div class="card-effect">${isUnlocked ? artifact.effect : 'Complete requirements to unlock'}</div>
+                    <div class="card-name" style="${!isUnlocked ? 'color: #999;' : ''}">${isUnlocked ? artifact.name : '???'}</div>
+                    <div class="card-effect" style="${!isUnlocked ? 'color: #999;' : ''}">${isUnlocked ? artifact.effect : 'Locked'}</div>
                     ${isUnlocked ? `<div class="card-cost">${artifact.cost}g</div>` : ''}
                 `;
                 
@@ -485,10 +495,17 @@ class CollectionManager {
             
             if (!isUnlocked) {
                 cardEl.classList.add('locked');
+                cardEl.classList.add('no-asset'); // Force fallback white background
                 const effectEl = cardEl.querySelector('.card-effect');
                 const nameEl = cardEl.querySelector('.card-name');
+                const rarityEl = cardEl.querySelector('.card-rarity');
                 if (effectEl) effectEl.textContent = '???';
                 if (nameEl) nameEl.textContent = '???';
+                if (rarityEl) rarityEl.textContent = '???';
+                
+                // Remove background image for locked cards
+                const bgEl = cardEl.querySelector('.card-background');
+                if (bgEl) bgEl.remove();
             }
             
             grid.appendChild(cardEl);
@@ -507,10 +524,17 @@ class CollectionManager {
             
             if (!isUnlocked) {
                 cardEl.classList.add('locked');
+                cardEl.classList.add('no-asset'); // Force fallback white background
                 const effectEl = cardEl.querySelector('.card-effect');
                 const nameEl = cardEl.querySelector('.card-name');
+                const rarityEl = cardEl.querySelector('.card-rarity');
                 if (effectEl) effectEl.textContent = '???';
                 if (nameEl) nameEl.textContent = '???';
+                if (rarityEl) rarityEl.textContent = '???';
+                
+                // Remove background image for locked cards
+                const bgEl = cardEl.querySelector('.card-background');
+                if (bgEl) bgEl.remove();
             }
             
             grid.appendChild(cardEl);

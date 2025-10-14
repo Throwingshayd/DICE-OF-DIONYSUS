@@ -126,17 +126,6 @@ const CardData = {
             timing: { before_score: true }
         },
         { 
-            id: "hephaestus_forge", 
-            name: "Hephaestus' Forge", 
-            rarity: "epic", 
-            cost: 8, 
-            sellValue: 2, 
-            effect: "Pairs (2 of same number) count as Three of a Kind.",
-            god: "Hephaestus",
-            description: "The master craftsman forges duplicates into triplicates.",
-            timing: { before_score: true }
-        },
-        { 
             id: "kronos_hourglass", 
             name: "Kronos' Hourglass", 
             rarity: "epic", 
@@ -145,17 +134,6 @@ const CardData = {
             effect: "Gain +2 Rolls permanently, but score reduced by 20%.",
             god: "Kronos",
             timing: { turn_start: true, before_score: true }
-        },
-        { 
-            id: "the_fates_loom", 
-            name: "The Fates' Loom", 
-            rarity: "epic", 
-            cost: 8, 
-            sellValue: 2, 
-            effect: "All dice that show consecutive numbers give ×3 Favour instead of ×2.",
-            god: "The Fates",
-            description: "The three sisters weave destiny in sequential patterns.",
-            timing: { before_score: true }
         },
         { 
             id: "pandoras_jar", 
@@ -253,16 +231,6 @@ const CardData = {
             timing: { before_score: true }
         },
         { 
-            id: "orpheus_lyre", 
-            name: "Orpheus' Lyre", 
-            rarity: "vibrant", 
-            cost: 5, 
-            sellValue: 1, 
-            effect: "Scoring the same category twice in a row gives ×2 Favour the second time.",
-            god: "Orpheus",
-            timing: { before_score: true }
-        },
-        { 
             id: "trojan_horse", 
             name: "The Trojan Horse", 
             rarity: "vibrant", 
@@ -282,25 +250,6 @@ const CardData = {
             sellValue: 1, 
             effect: "Whenever you roll a 1, reroll that die automatically (once per die per turn).",
             timing: { after_roll: true }
-        },
-        { 
-            id: "weighted_dice", 
-            name: "Weighted Dice", 
-            rarity: "rustic", 
-            cost: 3, 
-            sellValue: 1, 
-            effect: "+1 to all dice values when scoring (after rolling complete).",
-            timing: { before_score: true }
-        },
-        { 
-            id: "philosophers_stone", 
-            name: "Philosopher's Stone", 
-            rarity: "rustic", 
-            cost: 3, 
-            sellValue: 1, 
-            effect: "Convert +3 Favour into +1 Gold when scoring (automatic).",
-            description: "Alchemical transformation of divine favor into earthly wealth.",
-            timing: { after_score: true }
         },
         { 
             id: "gamblers_charm", 
@@ -332,16 +281,6 @@ const CardData = {
             description: "Better interest rate on saved gold.",
             timing: { turn_start: true }
         },
-        { 
-            id: "the_pantheon", 
-            name: "The Pantheon", 
-            rarity: "epic", 
-            cost: 8, 
-            sellValue: 2, 
-            effect: "For each unique god represented in your Boons, gain +0.5 Favour.",
-            description: "The collective power of all the gods.",
-            timing: { before_score: true }
-        },
         
         // === NEW BOONS - Wave 2 ===
         { 
@@ -360,7 +299,7 @@ const CardData = {
             rarity: "rustic", 
             cost: 3, 
             sellValue: 1, 
-            effect: "Prime number dice (2,3,5,7) give +1 Pips each.",
+            effect: "Prime number dice (2,3,5,7) give +5 Pips each.",
             description: "The elegance of prime numbers.",
             timing: { before_score: true }
         },
@@ -492,7 +431,7 @@ const CardData = {
             rarity: "vibrant", 
             cost: 5, 
             sellValue: 1, 
-            effect: "Double even numbers and -1 to odd numbers except 1.",
+            effect: "All even numbers give +2 pips, odd numbers give -1 pip.",
             description: "Growth and decay in balance - evens flourish, odds wither.",
             timing: { before_score: true }
         },
@@ -575,8 +514,8 @@ const CardData = {
             rarity: "vibrant", 
             cost: 5, 
             sellValue: 1, 
-            effect: "If all available categories are scored in the ante, gain +500 pips.",
-            description: "Complete the journey - perfect completion rewarded.",
+            effect: "Gain pips equal to the square root of the number of categories scored (rounded up).",
+            description: "The journey grows with each step - progress compounds.",
             timing: { before_score: true }
         },
         { 
@@ -816,10 +755,9 @@ const CardData = {
         { id: "ambrosial_krasi", name: "Ambrosial Krasi", rarity: "libation", cost: 2, sellValue: 0, effect: "Enhance a die face to Gold.", type: "instant" },
         { id: "retsina_echoes", name: "Retsina of Echoes", rarity: "libation", cost: 2, sellValue: 0, effect: "Enhance a die face to Mirror.", type: "instant" },
         { id: "soma_wild", name: "Soma of the Wild", rarity: "libation", cost: 2, sellValue: 0, effect: "Enhance a die face to Wild.", type: "instant" },
-        { id: "kylix_hermit", name: "Kylix of the Hermit", rarity: "libation", cost: 3, sellValue: 0, effect: "Destroy a boon, Double your money (max 20).", type: "instant" },
+        { id: "kylix_hermit", name: "Kylix of the Hermit", rarity: "libation", cost: 3, sellValue: 0, effect: "Double your money (max 20).", type: "instant" },
         { id: "elixir_lethe", name: "Elixir of Lethe", rarity: "libation", cost: 2, sellValue: 0, effect: "Reduce a die face by 1.", type: "instant" },
         { id: "chalice_helios", name: "Chalice of Helios", rarity: "libation", cost: 2, sellValue: 0, effect: "Increase a die face by 1.", type: "instant" },
-        { id: "distillate_masks", name: "Distillate of Masks", rarity: "libation", cost: 2, sellValue: 0, effect: "Apply a random enhancement to a random Boon.", type: "instant" },
         { id: "the_eucharist", name: "The Eucharist", rarity: "libation", cost: 2, sellValue: 0, effect: "Gain +1 worship level in god of choice.", type: "instant" },
         { id: "divine_guidance", name: "Divine Guidance", rarity: "libation", cost: 2, sellValue: 0, effect: "Gain 2 random levels in any 2 scores.", type: "instant" },
     ],

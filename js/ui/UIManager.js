@@ -705,11 +705,12 @@ class UIManager {
         gameState.jokers.forEach(joker => {
             const cardEl = joker.render();
             
-            // Add sell label click handler
+            // Add sell label click handler with Balatro-style ripple effect
             const sellLabel = cardEl.querySelector('.buy-sell-label.sell');
             if (sellLabel) {
                 sellLabel.addEventListener('click', (e) => {
                     e.stopPropagation();
+                    this.createRippleEffect(sellLabel, e);
                     this.sellCard(joker, gameState, gameEngine);
                 });
             }
@@ -737,11 +738,12 @@ class UIManager {
         gameState.consumables.forEach(card => {
             const cardEl = card.render();
             
-            // Add sell label click handler
+            // Add sell label click handler with Balatro-style ripple effect
             const sellLabel = cardEl.querySelector('.buy-sell-label.sell');
             if (sellLabel) {
                 sellLabel.addEventListener('click', (e) => {
                     e.stopPropagation();
+                    this.createRippleEffect(sellLabel, e);
                     this.sellCard(card, gameState, gameEngine);
                 });
             }
@@ -1494,13 +1496,12 @@ class UIManager {
             // Temporarily disable rarity indicators to fix shop
             // this.addRarityIndicator(cardEl, cardData.rarity);
             
-            // Add click listener for buy/sell labels
+            // Add click listener for buy labels with Balatro-style ripple effect
             const buyLabel = cardEl.querySelector('.buy-sell-label.buy');
             if (buyLabel) {
-        
                 buyLabel.addEventListener('click', (e) => {
-            
                     e.stopPropagation();
+                    this.createRippleEffect(buyLabel, e);
                     this.buyCard(card, gameState, gameEngine, cardEl);
                 });
             }
@@ -2142,10 +2143,11 @@ class UIManager {
                 takeLabel.textContent = 'Take';
                 takeLabel.classList.remove('buy');
                 takeLabel.classList.add('take');
-                console.log(`Added Take button to card: ${card.name}`);
+                Logger.debug(`Added Take button to card: ${card.name}`);
                 takeLabel.addEventListener('click', (e) => {
                     e.stopPropagation(); // Prevent card click event
-                    console.log(`Take button clicked for card: ${card.name}`);
+                    this.createRippleEffect(takeLabel, e);
+                    Logger.debug(`Take button clicked for card: ${card.name}`);
             
                     // Disable all card interactions
                     packCards.forEach(p => {
@@ -2162,7 +2164,7 @@ class UIManager {
                     }, 100);
                 });
             } else {
-                console.log(`No Take button found for card: ${card.name}`);
+                Logger.debug(`No Take button found for card: ${card.name}`);
             }
             
             container.appendChild(cardEl);
@@ -2257,10 +2259,11 @@ class UIManager {
                 takeLabel.textContent = 'Take';
                 takeLabel.classList.remove('buy');
                 takeLabel.classList.add('take');
-                console.log(`Added Take button to chaos card: ${card.name}`);
+                Logger.debug(`Added Take button to chaos card: ${card.name}`);
                 takeLabel.addEventListener('click', (e) => {
                     e.stopPropagation(); // Prevent card click event
-                    console.log(`Take button clicked for chaos card: ${card.name}`);
+                    this.createRippleEffect(takeLabel, e);
+                    Logger.debug(`Take button clicked for chaos card: ${card.name}`);
             
                     // Disable all card interactions
                     packCards.forEach(p => {
@@ -2277,7 +2280,7 @@ class UIManager {
                     }, 100);
                 });
             } else {
-                console.log(`No Take button found for chaos card: ${card.name}`);
+                Logger.debug(`No Take button found for chaos card: ${card.name}`);
             }
             
             container.appendChild(cardEl);
@@ -2342,5 +2345,45 @@ class UIManager {
         }
         
         console.log('Pack opening view closed successfully');
+    }
+
+    /**
+     * Create Balatro-style ripple effect on button click
+     * @param {HTMLElement} button - The button element clicked
+     * @param {MouseEvent} event - The click event
+     */
+    createRippleEffect(button, event) {
+        // Create ripple element
+        const ripple = document.createElement('span');
+        ripple.className = 'ripple';
+        
+        // Position ripple at click coordinates
+        const rect = button.getBoundingClientRect();
+        const x = event.clientX - rect.left;
+        const y = event.clientY - rect.top;
+        
+        ripple.style.left = `${x}px`;
+        ripple.style.top = `${y}px`;
+        
+        // Add ripple to button
+        button.style.position = 'relative';
+        button.style.overflow = 'hidden';
+        button.appendChild(ripple);
+        
+        // Remove ripple after animation completes
+        setTimeout(() => {
+            ripple.remove();
+        }, 600);
+    }
+
+    /**
+     * Add success animation to button on purchase
+     * @param {HTMLElement} button - The button element
+     */
+    playPurchaseAnimation(button) {
+        button.classList.add('purchasing');
+        setTimeout(() => {
+            button.classList.remove('purchasing');
+        }, 400);
     }
 }

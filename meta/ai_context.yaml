@@ -1,0 +1,257 @@
+# AI Context Metadata for Dice of Dionysus
+# This file helps AI understand the project's internal logic and priorities
+
+project:
+  name: "Dice of Dionysus"
+  version: "1.4.0"
+  language: "JavaScript ES6+"
+  framework: "Vanilla JS (no framework)"
+  buildTool: "Vite"
+  targetPlatforms: ["Web", "PWA", "Electron"]
+
+architecture:
+  pattern: "Class-based OOP with separation of concerns"
+  stateManagement: "Single source of truth in GameEngine.state"
+  rendering: "DOM manipulation via UIManager"
+  dataFlow: "Unidirectional (GameEngine → UIManager → DOM)"
+
+performance:
+  targets:
+    fps: 60
+    bundleSize: "~120KB"
+    loadTime: "<2s"
+    memoryFootprint: "Minimal allocations in game loop"
+  hotPaths:
+    - "GameEngine.rollDice()"
+    - "GameEngine.calculateScore()"
+    - "UIManager.renderDice()"
+    - "UIManager.updateScorecard()"
+  optimizationNotes: |
+    - Profile before optimizing (use Chrome DevTools)
+    - Cache where safe, but preserve determinism
+    - Use seededRNG, never Math.random()
+    - Minimize DOM manipulations in render loops
+
+coreModules:
+  gameEngine:
+    file: "js/game/GameEngine.js"
+    lines: 2020
+    priority: critical
+    dependencies: [seededRNG, dataManager, Die, Card classes]
+    guidance: |
+      Single source of truth for game state.
+      All game logic flows through here.
+      DO NOT split without explicit request.
+      
+  uiManager:
+    file: "js/ui/UIManager.js"
+    lines: 1900
+    priority: high
+    dependencies: [GameEngine, BalatroEffects, MusicManager]
+    guidance: |
+      Currently large but intentionally monolithic.
+      Splitting deferred to future phase.
+      Focus on optimizing existing methods, not restructuring.
+      
+  cardSystem:
+    files: ["js/classes/Card.js", "js/classes/Joker.js", "js/classes/WorshipCard.js", "js/classes/LibationCard.js"]
+    priority: high
+    dependencies: [GameEngine]
+    guidance: |
+      Inheritance hierarchy: Card → Joker/WorshipCard/LibationCard
+      Jokers use timing-based effect system
+      All new boons go in gameData.js + Joker.js switch statement
+      
+  dieSystem:
+    file: "js/classes/Die.js"
+    priority: high
+    dependencies: []
+    guidance: |
+      Face-specific enhancement system (faces[1-6])
+      Each face has value, enhancements Set, modifiedValue
+      Enhancements: Parchment, Iron, Gold, Mirror, Wild, Mother of Pearl
+
+gameMechanics:
+  scoring:
+    priority: critical
+    dependencies: [ScoringConstants, worshipLevels, enhancements]
+    guidance: |
+      Pips (base score) × Favour (multiplier) = Final Score
+      Worship cards add +1 favour per category
+      Enhancements modify pips (Iron: +5, etc.)
+      
+  progression:
+    guidance: |
+      13 turns per ante
+      Score threshold increases each ante
+      Boss blinds on certain antes
+      Shop phase between turns
+      
+  economy:
+    guidance: |
+      Starting gold: 15
+      Shop reroll cost: 2 (3 after free reroll used)
+      Cards have cost and sellValue
+      Gold earned from: scoring, card effects, enhancements
+
+dataManagement:
+  gameData:
+    file: "js/data/gameData.js"
+    purpose: "All card definitions, packs, artifacts"
+    guidance: |
+      Central registry for all game content
+      New cards always start here
+      
+  anteData:
+    file: "js/data/AnteData_js.js"
+    purpose: "Progression, thresholds, blinds"
+    guidance: |
+      Defines difficulty curve
+      Boss blind mechanics
+      
+  constants:
+    files: 
+      - "js/config/GameConstants.js"
+      - "js/config/ScoringConstants.js"
+      - "js/config/UIConstants.js"
+    purpose: "Game balance and configuration"
+    guidance: |
+      ALL magic numbers go here
+      Never hardcode values in logic
+      Easy balance tweaking
+
+criticalPatterns:
+  seededRNG:
+    priority: critical
+    guidance: |
+      ALWAYS use this.prng.random() or this.prng.randomInt()
+      NEVER use Math.random()
+      Required for deterministic gameplay and testing
+      
+  logging:
+    priority: high
+    guidance: |
+      Use Logger.debug/info/warn/error, not console.log
+      Logger auto-detects production mode
+      Provides export/download functionality
+      
+  timing:
+    priority: high
+    guidance: |
+      Joker effects use timing system:
+      - before_roll: Before dice roll
+      - before_score: Before scoring calculation
+      - after_score: After score confirmed
+      - turn_start: Start of turn
+      - turn_end: End of turn
+      
+  cardEffects:
+    priority: critical
+    guidance: |
+      New joker effects:
+      1. Add to gameData.js with timing
+      2. Implement in Joker.js applyTimingEffect() switch
+      3. Test with deterministic seed
+      4. Document in card_database.csv
+
+terminology:
+  enforced:
+    jokers: "Boons (internal: jokers)"
+    consumables: "Libations/Worship (internal: consumables)"
+    pips: "Base score value"
+    favour: "Score multiplier"
+    ante: "Difficulty level"
+    yahtzee: "Heureka (5-of-a-kind)"
+  forbidden:
+    - "houseRules" → use "libations"
+    - "offerings" → use "libations"
+    - "hands" → ask for thematic translation
+    - "discards" → ask for thematic translation
+  reasoning: |
+    Greek mythology theming is core to game identity
+    All terms must fit thematic context
+    Always ask before introducing new mechanics/terms
+
+debugging:
+  consoleAccess:
+    - "window.game → Current GameEngine instance"
+    - "window.app → App instance"
+    - "window.uiManager → UIManager instance"
+    - "window.dataManager → DataManager instance"
+  testingStrategy: |
+    Use browser console, not separate test files
+    Test with specific seeds for reproducibility
+    Use Logger for tracing
+    Reference BUGS_FIXED_LOG.md for past issues
+
+technicalDebt:
+  knownIssues:
+    - "UIManager.js too large (1900 lines) - split deferred"
+    - "Some console.log remain - migrating to Logger"
+    - "Limited automated tests - manual browser testing"
+  futureConsiderations:
+    - "Event system (pub/sub)"
+    - "TypeScript migration (not now)"
+    - "Formal state machine"
+    - "Modding support"
+
+aiInstructions:
+  whenOptimizing:
+    do:
+      - "Profile first with Chrome DevTools"
+      - "Focus on hot loops (rollDice, calculateScore, render)"
+      - "Cache calculations where safe"
+      - "Preserve deterministic behavior"
+    dont:
+      - "Add new dependencies"
+      - "Change architecture without benchmarking"
+      - "Optimize prematurely"
+      - "Break seeded RNG"
+      
+  whenAdding:
+    do:
+      - "Follow Greek mythology theming"
+      - "Use existing timing system"
+      - "Add to gameData.js first"
+      - "Implement in appropriate class"
+      - "Test with seed"
+    dont:
+      - "Create new card types without asking"
+      - "Introduce new game mechanics without thematic names"
+      - "Break existing card interactions"
+      
+  whenFixing:
+    do:
+      - "Use Logger.error() to log"
+      - "Check BUGS_FIXED_LOG.md"
+      - "Test with deterministic seeds"
+      - "Verify save/load compatibility"
+      - "Update CHANGELOG.md"
+    dont:
+      - "Hide symptoms instead of fixing root cause"
+      - "Break backwards save compatibility"
+      - "Remove error handling to 'clean up'"
+
+behaviorExpectations:
+  good:
+    - "Suggest improvements, don't force them"
+    - "Explain reasoning for changes"
+    - "Respect existing architecture"
+    - "Ask before introducing new concepts"
+    - "Provide seeds for testing"
+  bad:
+    - "Restructure codebase 'for best practices'"
+    - "Add frameworks 'because modern'"
+    - "Change working code 'to be cleaner'"
+    - "Introduce terminology without theming"
+    - "Break backwards compatibility"
+
+philosophy: |
+  This is a WORKING GAME with players.
+  Stability > novelty
+  Performance > elegance  
+  Simplicity > "best practices"
+  
+  Respect what works. Improve incrementally.
+  Always preserve the player experience.
+

@@ -531,32 +531,10 @@ class Joker extends Card {
                 }
                 break;
             
-            case 'hephaestus_forge':
-                // Pairs (2 of same number) count as Three of a Kind - handled in scoring logic
-                window.game?.showMessage?.("Hephaestus' Forge: Pairs count as Three of a Kind!");
-                break;
-            
             case 'kronos_hourglass':
                 // Reduce score by 20%
                 result.pips = Math.floor(result.pips * BOON_EFFECTS.KRONOS_HOURGLASS.SCORE_PENALTY);
                 window.game?.showMessage?.("Kronos' Hourglass: Score reduced by 20%!");
-                break;
-            
-            case 'the_fates_loom':
-                // All dice that show consecutive numbers give ×3 Favour instead of ×2
-                // Check for consecutive numbers
-                const sortedFaces = [...gameState.dice].map(d => d.face).sort((a, b) => a - b);
-                let hasConsecutive = false;
-                for (let i = 0; i < sortedFaces.length - 1; i++) {
-                    if (sortedFaces[i + 1] === sortedFaces[i] + 1) {
-                        hasConsecutive = true;
-                        break;
-                    }
-                }
-                if (hasConsecutive) {
-                    result.favour += 3; // +3 instead of normal +2
-                    window.game?.showMessage?.("The Fates' Loom: ×3 Favour for consecutive dice!");
-                }
                 break;
             
             case 'pandoras_jar':
@@ -620,14 +598,6 @@ class Joker extends Card {
                 }
                 break;
             
-            case 'orpheus_lyre':
-                // Scoring same category twice in a row gives ×2 Favour
-                if (gameState.lastScoredCategory === result.category) {
-                    result.favour += 2;
-                    window.game?.showMessage?.("Orpheus' Lyre: ×2 Favour for repeat category!");
-                }
-                break;
-            
             case 'trojan_horse':
                 // After Turn 10, all Boons give ×2 effect (handled by global multiplier in applyTimingEffect)
                 // Show big activation message at turn 11
@@ -640,16 +610,6 @@ class Joker extends Card {
             // === NEW BOONS - Rustic Tier ===
             case 'lucky_dice_bag':
                 // Reroll 1s automatically (handled in after_roll)
-                break;
-            
-            case 'weighted_dice':
-                // +1 to all dice values when scoring
-                result.pips += gameState.dice.length;
-                window.game?.showMessage?.(`Weighted Dice: +${gameState.dice.length} Pips!`);
-                break;
-            
-            case 'philosophers_stone':
-                // Convert +3 Favour into +1 Gold (handled in after_score)
                 break;
             
             case 'gamblers_charm':
@@ -671,20 +631,6 @@ class Joker extends Card {
                 // Better interest rate (handled in shop/economy)
                 break;
             
-            case 'the_pantheon':
-                // +0.5 Favour for each unique god in Boons
-                const gods = new Set();
-                (gameState.jokers || []).forEach(boon => {
-                    if (boon.god) gods.add(boon.god);
-                });
-                const pantheonFavour = gods.size * 0.5;
-                result.favour += pantheonFavour;
-                this.dynamicStats.favour = pantheonFavour;
-                if (pantheonFavour > 0) {
-                    window.game?.showMessage?.(`The Pantheon: +${pantheonFavour} Favour from ${gods.size} gods!`);
-                }
-                break;
-            
             // === NEW BOONS - Wave 2 ===
             case 'mathematicians_compass':
                 // +10 Pips if dice sum to even number
@@ -696,7 +642,7 @@ class Joker extends Card {
                 break;
             
             case 'prime_time':
-                // Prime number dice (2,3,5,7) give +1 Pips each (only if unlocked)
+                // Prime number dice (2,3,5,7) give +5 Pips each (only if unlocked)
                 const primes = [2, 3, 5];
                 // Add 7 only if Sevens unlocked
                 if (gameState.unlockedCategories?.Sevens) {
@@ -706,8 +652,9 @@ class Joker extends Card {
                 const primeCount = gameState.dice.filter(die => primes.includes(die.face)).length;
                 
                 if (primeCount > 0) {
-                    const primeBonus = primeCount * 1;
+                    const primeBonus = primeCount * 5;
                     result.pips += primeBonus;
+                    this.dynamicStats.pips = primeBonus;
                     window.game?.showMessage?.(`Prime Time: +${primeBonus} Pips from ${primeCount} primes!`);
                 }
                 break;
@@ -903,7 +850,7 @@ class Joker extends Card {
                 break;
             
             case 'the_odyssey':
-                // If all available categories are scored, gain +500 pips
+                // Gain pips equal to square root of number of categories scored (rounded up)
                 const allCategories = [
                     'Ones', 'Twos', 'Threes', 'Fours', 'Fives', 'Sixes',
                     'Three of a Kind', 'Four of a Kind', 'Full House',
@@ -916,12 +863,12 @@ class Joker extends Card {
                 if (gameState.unlockedCategories?.Nines) allCategories.push('Nines');
                 
                 const odysseyScored = allCategories.filter(cat => gameState.scorecard[cat] !== undefined).length;
-                const odysseyTotal = allCategories.length;
+                const odysseyBonus = Math.ceil(Math.sqrt(odysseyScored));
                 
-                if (odysseyScored === odysseyTotal && !gameState.odysseyAwarded) {
-                    result.pips += 500;
-                    gameState.odysseyAwarded = true;
-                    window.game?.showMessage?.(`🏆 THE ODYSSEY COMPLETE! +500 Pips! (${odysseyTotal}/${odysseyTotal})`, 6000);
+                if (odysseyBonus > 0) {
+                    result.pips += odysseyBonus;
+                    this.dynamicStats.pips = odysseyBonus;
+                    window.game?.showMessage?.(`The Odyssey: +${odysseyBonus} Pips (√${odysseyScored} categories)!`);
                 }
                 break;
             
@@ -1142,19 +1089,6 @@ class Joker extends Card {
                 });
                 
                 window.game?.showMessage?.(`Dionysus' Revelry: One die's ALL faces randomized!`, 3000);
-                break;
-            
-            case 'philosophers_stone':
-                // Convert +3 Favour into +1 Gold
-                if (result.favour >= 3) {
-                    const goldGained = Math.floor(result.favour / 3);
-                    if (window.game && typeof window.game.updateGoldAnimated === 'function') {
-                        window.game.updateGoldAnimated(goldGained, "Philosopher's Stone");
-                    } else {
-                        gameState.gold += goldGained;
-                    }
-                    window.game?.showMessage?.(`Philosopher's Stone: +${goldGained} Gold from Favour!`);
-                }
                 break;
             
             case 'gamblers_charm':

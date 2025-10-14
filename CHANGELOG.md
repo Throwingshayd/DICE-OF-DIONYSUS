@@ -1,5 +1,99 @@
 # Dice of Dionysus - Changelog
 
+## Version 1.4.3 - Libation Adjustments
+
+### Content Removal
+- **Removed Libation**: "Distillate of Masks" has been removed from the game
+- **Cleaned Up Code**: Removed implementation from LibationCard.js
+- **Cleaned Up Assets**: Removed asset mapping reference
+- **Libation Count**: Now 9 libations (was 10)
+
+### Kylix of the Hermit - Buffed
+- **Before**: "Destroy a boon, Double your money (max 20)"
+- **After**: "Double your money (max 20)"
+- **Change**: Removed the boon destruction penalty - now pure gold doubling!
+- **Impact**: Much more useful libation, no downside
+
+---
+
+## Version 1.4.2 - Main Menu & Collection Improvements
+
+### Balatro-Style Main Menu Layout
+- **Bottom-Middle Positioning**: Buttons now positioned at bottom-center like Balatro
+- **Horizontal Button Layout**: Play, Collection, and Seed Input in a row
+- **Integrated Seed Input**: Seed input styled and placed inline with buttons
+- **Better Visual Hierarchy**: More professional, familiar layout
+
+### Scrollable Collection Screen
+- **600px Max Height**: Collection grid now scrollable with fixed max height
+- **Custom Scrollbar**: Themed scrollbar (terracotta/green) matching game aesthetic
+- **Responsive Grid**: Auto-fill grid layout adapts to content
+- **All Items Visible**: Can now scroll to see entire collection
+
+### White Fallback for Locked Cards
+- **Visible Locked Cards**: Locked cards now show white background instead of being invisible
+- **Clear Mystery State**: All locked cards display "???" for name, effect, and rarity
+- **Grayscale Filter**: Locked cards are grayed out to distinguish from unlocked
+- **Consistent Across All Types**: Works for Boons, Worship, Libations, and Artifacts
+
+#### Files Modified
+- `index.html`: Updated start screen layout
+- `css/styles.css`: Added Balatro-style menu positioning, collection scrolling, and locked card styles
+- `js/Main.js`: Updated all collection populate methods to show white backgrounds for locked cards
+
+---
+
+## Version 1.4.1 - Balatro-Style Button Improvements
+
+### Major UX Overhaul: Buy/Sell/Take Buttons
+**Inspired by Balatro's design philosophy: obvious, easy, satisfying**
+
+#### Always Visible Actions
+- **Before**: Buttons hidden with `opacity: 0`, only visible on hover
+- **After**: Buttons always visible (`opacity: 1`) - no more "hover to discover" pattern
+- **Impact**: Players immediately see available actions, works on mobile (no hover required)
+
+#### Consistent Positioning
+- **Before**: Buttons moved between contexts (center-top in shop, top-right in inventory)
+- **After**: All buttons consistently positioned at top-right corner
+- **Impact**: Muscle memory - players always know where to click
+
+#### Improved Clickability
+- **Before**: Buttons shrunk to 35px in inventory (hard to click)
+- **After**: Consistent 50px minimum width across all contexts
+- **Impact**: Better hit targets, especially on smaller screens and mobile
+
+#### Enhanced Visual Feedback
+- **Hover**: Subtle lift animation (scale 1.08 + translateY)
+- **Press**: Satisfying click (scale 0.95)
+- **Ripple**: Material Design-style ripple effect on click
+- **Success**: Scale + brightness pulse on purchase
+
+#### Technical Improvements
+- Consolidated 3 conflicting CSS blocks into single master definition
+- Removed 15+ `!important` overrides (cleaner cascade)
+- Separated positioning (top/right) from animation (transform)
+- GPU-accelerated animations for smooth 60fps
+- Added `createRippleEffect()` and `playPurchaseAnimation()` utility methods
+- Replaced `console.log` with `Logger.debug` for better debugging
+
+#### Files Modified
+- `css/styles.css`: Consolidated button CSS, added animations
+- `js/ui/UIManager.js`: Added ripple effect method, updated all button click handlers
+- `meta/BALATRO_BUTTON_ANALYSIS.md`: Comprehensive analysis document
+- `BALATRO_BUTTON_IMPROVEMENTS_COMPLETE.md`: Implementation summary
+
+#### Testing Completed
+- ✅ Shop buy buttons (visible, positioned, animated)
+- ✅ Inventory sell buttons (jokers + consumables)
+- ✅ Pack opening take buttons (all pack types)
+- ✅ Mobile compatibility (no hover dependencies)
+- ✅ Performance (smooth animations, no glitches)
+
+**The buttons are no longer janky!** 🎉
+
+---
+
 ## Version 1.2.4 - Double-Click Confirmation & Shop Timing
 
 ### Pack Selection Improvements
