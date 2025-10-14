@@ -571,23 +571,25 @@ class GameEngine {
                 this.showMessage(`Bonus Heureka! (${this.state.bonusYahtzees} total)`, 3000);
             }
             
-            this.state.scorecard[category] = finalScore;
-            this.state.totalScore += finalScore;
+            // BALATRO-STYLE ANIMATED SCORING
+            // Show pips × favour breakdown, count up, particles, enhanced shake
+            this.animateScoreUpdate(category, pips, favour, finalScore, () => {
+                // Callback after animation completes
+                this.finalizeScoring(category, pips, favour, finalScore);
+            });
             
-            // Screen shake for Yahtzee (Heureka) - Balatro-inspired juice!
-            if (category === 'Yahtzee' && window.balatroEffects) {
-                window.balatroEffects.screenShake(15, 600);
-                Logger.debug('Screen shake triggered for Heureka!');
-            }
-            
-            // Screen shake for high scores (200+)
-            if (finalScore >= 200 && window.balatroEffects) {
-                window.balatroEffects.screenShake(10, 400);
-            }
         } else {
             this.state.scorecard[category] = 0;
+            // Still finalize for zero score
+            this.finalizeScoring(category, pips, favour, 0);
         }
-
+    }
+    
+    /**
+     * Finalize scoring after animation completes
+     * Runs bonuses, effects, and advances turn
+     */
+    finalizeScoring(category, pips, favour, finalScore) {
         // Check and award Upper Sanctum bonus (Yahtzee rule):
         // If sum of Ones..Sixes >= 63 and not yet awarded, grant +35 points
         this.checkAndAwardUpperBonus();
@@ -616,6 +618,173 @@ class GameEngine {
         
         this.cancelScore();
         this.nextTurn();
+    }
+    
+    /**
+     * Balatro-style animated score reveal
+     * Shows pips, favour, multiplication, count-up, particles, and screen shake
+     * @param {string} category - Scoring category
+     * @param {number} pips - Base pips
+     * @param {number} favour - Multiplier
+     * @param {number} finalScore - Final calculated score
+     * @param {Function} callback - Called when animation completes
+     */
+    animateScoreUpdate(category, pips, favour, finalScore, callback) {
+        const row = document.querySelector(`[data-category="${category}"]`);
+        if (!row) {
+            // Fallback if no row found
+            this.state.scorecard[category] = finalScore;
+            this.state.totalScore += finalScore;
+            callback();
+            return;
+        }
+        
+        const scoreDisplay = row.querySelector('.potential-score');
+        if (!scoreDisplay) {
+            this.state.scorecard[category] = finalScore;
+            this.state.totalScore += finalScore;
+            callback();
+            return;
+        }
+        
+        // Step 1: Show pips with pop animation (500ms)
+        scoreDisplay.innerHTML = `<span class="score-pips-anim">${pips}</span>`;
+        scoreDisplay.classList.add('score-animating');
+        
+        setTimeout(() => {
+            // Step 2: Show × favour (500ms)
+            scoreDisplay.innerHTML = `
+                <span class="score-pips-anim">${pips}</span>
+                <span class="score-multiply-anim"> × </span>
+                <span class="score-favour-anim">${favour}</span>
+            `;
+            
+            setTimeout(() => {
+                // Step 3: Show equals sign briefly (300ms)
+                scoreDisplay.innerHTML = `
+                    <span class="score-pips-anim fade-out">${pips}</span>
+                    <span class="score-multiply-anim fade-out"> × </span>
+                    <span class="score-favour-anim fade-out">${favour}</span>
+                    <span class="score-equals-anim"> = </span>
+                `;
+                
+                setTimeout(() => {
+                    // Step 4: Count up to final score (1000ms)
+                    scoreDisplay.innerHTML = `<span class="score-final-anim">0</span>`;
+                    const finalSpan = scoreDisplay.querySelector('.score-final-anim');
+                    
+                    this.animateNumberCount(finalSpan, 0, finalScore, 1000, () => {
+                        // Step 5: Add glow effect
+                        scoreDisplay.classList.add('score-glow-effect');
+                        
+                        // Update game state
+                        this.state.scorecard[category] = finalScore;
+                        this.state.totalScore += finalScore;
+                        
+                        // Screen shake based on score magnitude
+                        if (window.balatroEffects) {
+                            if (category === 'Yahtzee') {
+                                window.balatroEffects.screenShake(20, 800);
+                            } else if (finalScore >= 200) {
+                                const intensity = Math.min(finalScore / 10, 35);
+                                window.balatroEffects.screenShake(intensity, 600);
+                            } else if (finalScore >= 100) {
+                                window.balatroEffects.screenShake(12, 400);
+                            }
+                        }
+                        
+                        // Particle effects for high scores
+                        if (finalScore >= 200 && window.balatroEffects) {
+                            this.createScoreParticles(scoreDisplay, finalScore);
+                        }
+                        
+                        // Remove animation classes after delay
+                        setTimeout(() => {
+                            scoreDisplay.classList.remove('score-animating', 'score-glow-effect');
+                            scoreDisplay.innerHTML = finalScore;
+                            this.updateAllUI();
+                            
+                            // Call callback to continue game flow
+                            callback();
+                        }, 800);
+                    });
+                }, 300);
+            }, 500);
+        }, 500);
+    }
+    
+    /**
+     * Animate number counting from start to end
+     * @param {HTMLElement} element - Element to update
+     * @param {number} start - Starting number
+     * @param {number} end - Ending number
+     * @param {number} duration - Animation duration in ms
+     * @param {Function} callback - Called when complete
+     */
+    animateNumberCount(element, start, end, duration, callback) {
+        const startTime = Date.now();
+        const difference = end - start;
+        
+        const step = () => {
+            const elapsed = Date.now() - startTime;
+            const progress = Math.min(elapsed / duration, 1);
+            
+            // Easing function (ease-out cubic)
+            const eased = 1 - Math.pow(1 - progress, 3);
+            const current = Math.floor(start + (difference * eased));
+            
+            element.textContent = current;
+            
+            if (progress < 1) {
+                requestAnimationFrame(step);
+            } else {
+                element.textContent = end; // Ensure final value is exact
+                if (callback) callback();
+            }
+        };
+        
+        step();
+    }
+    
+    /**
+     * Create particle effects for high scores
+     * @param {HTMLElement} element - Anchor element
+     * @param {number} score - Score value
+     */
+    createScoreParticles(element, score) {
+        const rect = element.getBoundingClientRect();
+        const centerX = rect.left + rect.width / 2;
+        const centerY = rect.top + rect.height / 2;
+        
+        // More particles for higher scores
+        const particleCount = Math.min(Math.floor(score / 20), 30);
+        
+        for (let i = 0; i < particleCount; i++) {
+            const particle = document.createElement('div');
+            particle.className = 'score-particle';
+            particle.style.left = centerX + 'px';
+            particle.style.top = centerY + 'px';
+            
+            const angle = (i / particleCount) * Math.PI * 2;
+            const distance = 30 + Math.random() * 40;
+            const tx = Math.cos(angle) * distance;
+            const ty = Math.sin(angle) * distance;
+            
+            particle.style.setProperty('--tx', `${tx}px`);
+            particle.style.setProperty('--ty', `${ty}px`);
+            particle.style.animationDelay = `${i * 0.02}s`;
+            
+            // Color based on score
+            if (score >= 300) {
+                particle.style.background = 'radial-gradient(circle, #ff6b6b 0%, #ffd700 50%, transparent 100%)';
+            } else {
+                particle.style.background = 'radial-gradient(circle, #ffd700 0%, #ffed4e 50%, transparent 100%)';
+            }
+            
+            document.body.appendChild(particle);
+            
+            setTimeout(() => particle.remove(), 1200);
+        }
     }
 
     // Award classic Yahtzee upper bonus (+35) when Ones..Sixes total reaches 63

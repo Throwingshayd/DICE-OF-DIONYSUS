@@ -3733,3 +3733,207 @@ body::after {
     opacity: 1;
 }
 
+/* ===== BALATRO-STYLE SCORING ANIMATIONS ===== */
+/* Dramatic score reveal with pips × favour breakdown and count-up */
+
+/* Score animation container */
+.score-animating {
+    font-size: 1.3rem !important;
+    font-weight: bold;
+    display: inline-block;
+}
+
+/* Pips display (Blue like Balatro's chips) */
+.score-pips-anim {
+    color: #6EC1E4;
+    font-weight: bold;
+    animation: pipsPop 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+    display: inline-block;
+    text-shadow: 0 0 10px rgba(110, 193, 228, 0.6);
+}
+
+@keyframes pipsPop {
+    0% { 
+        transform: scale(0) translateY(20px);
+        opacity: 0;
+    }
+    50% { 
+        transform: scale(1.3) translateY(0);
+    }
+    100% { 
+        transform: scale(1);
+        opacity: 1;
+    }
+}
+
+/* Multiply symbol */
+.score-multiply-anim {
+    color: #ffffff;
+    font-weight: bold;
+    margin: 0 8px;
+    animation: multiplyRotate 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+    display: inline-block;
+    text-shadow: 0 2px 4px rgba(0, 0, 0, 0.8);
+}
+
+@keyframes multiplyRotate {
+    0% { 
+        transform: scale(0) rotate(-180deg);
+        opacity: 0;
+    }
+    50% {
+        transform: scale(1.3) rotate(0deg);
+    }
+    100% { 
+        transform: scale(1);
+        opacity: 1;
+    }
+}
+
+/* Favour display (Red like Balatro's mult) */
+.score-favour-anim {
+    color: #FF6B6B;
+    font-weight: bold;
+    animation: favourPop 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+    display: inline-block;
+    text-shadow: 0 0 10px rgba(255, 107, 107, 0.6);
+}
+
+@keyframes favourPop {
+    0% { 
+        transform: scale(0) translateY(20px);
+        opacity: 0;
+    }
+    50% { 
+        transform: scale(1.3) translateY(0);
+    }
+    100% { 
+        transform: scale(1);
+        opacity: 1;
+    }
+}
+
+/* Equals sign */
+.score-equals-anim {
+    color: #ffd700;
+    font-weight: bold;
+    margin: 0 8px;
+    animation: equalsFlash 0.3s ease-out;
+    display: inline-block;
+    font-size: 1.5rem;
+}
+
+@keyframes equalsFlash {
+    0% { 
+        transform: scale(0);
+        opacity: 0;
+    }
+    50% {
+        transform: scale(1.5);
+        opacity: 1;
+    }
+    100% { 
+        transform: scale(1);
+    }
+}
+
+/* Fade out for breakdown when showing final score */
+.fade-out {
+    animation: fadeOutQuick 0.3s ease-out forwards;
+}
+
+@keyframes fadeOutQuick {
+    0% { opacity: 1; transform: scale(1); }
+    100% { opacity: 0; transform: scale(0.8); }
+}
+
+/* Final score display */
+.score-final-anim {
+    color: #ffd700;
+    font-weight: bold;
+    font-size: 1.8rem;
+    animation: finalScoreEntrance 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+    display: inline-block;
+    text-shadow: 0 0 15px rgba(255, 215, 0, 0.8);
+}
+
+@keyframes finalScoreEntrance {
+    0% { 
+        transform: scale(0);
+        opacity: 0;
+    }
+    50% {
+        transform: scale(1.3);
+    }
+    100% { 
+        transform: scale(1);
+        opacity: 1;
+    }
+}
+
+/* Glow effect for final score */
+.score-glow-effect {
+    animation: scoreGlowPulse 0.8s ease-out;
+}
+
+@keyframes scoreGlowPulse {
+    0%, 100% {
+        transform: scale(1);
+        filter: brightness(1);
+    }
+    50% {
+        transform: scale(1.15);
+        filter: brightness(1.4) drop-shadow(0 0 20px #ffd700);
+    }
+}
+
+/* Score particles */
+.score-particle {
+    position: fixed;
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+    pointer-events: none;
+    z-index: 10000;
+    animation: scoreParticleBurst 1.2s ease-out forwards;
+    box-shadow: 0 0 8px rgba(255, 215, 0, 0.8);
+}
+
+@keyframes scoreParticleBurst {
+    0% {
+        transform: translate(0, 0) scale(1);
+        opacity: 1;
+    }
+    50% {
+        opacity: 1;
+    }
+    100% {
+        transform: translate(var(--tx), var(--ty)) scale(0.3);
+        opacity: 0;
+    }
+}
+
+/* High score celebration effect */
+.score-row.mega-score {
+    animation: megaScoreCelebration 1s ease-out;
+}
+
+@keyframes megaScoreCelebration {
+    0%, 100% {
+        background: transparent;
+        transform: scale(1);
+    }
+    25% {
+        background: radial-gradient(circle, rgba(255, 215, 0, 0.3), transparent);
+        transform: scale(1.05);
+    }
+    50% {
+        background: radial-gradient(circle, rgba(255, 107, 107, 0.3), transparent);
+        transform: scale(1.08);
+    }
+    75% {
+        background: radial-gradient(circle, rgba(255, 215, 0, 0.2), transparent);
+        transform: scale(1.03);
+    }
+}
+
