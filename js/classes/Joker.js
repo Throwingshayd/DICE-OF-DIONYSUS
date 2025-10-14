@@ -569,6 +569,21 @@ class Joker extends Card {
                     window.game?.showMessage?.(`The Heretic: +${hereticPips} Pips!`);
                 }
                 break;
+            
+            case 'reckless_abandon':
+                // +50 Pips flat bonus
+                result.pips += 50;
+                window.game?.showMessage?.("Reckless Abandon: +50 Pips!");
+                break;
+            
+            case 'typhon':
+                // Apply stored typhon bonus if triggered
+                if (gameState.typhonBonus > 0) {
+                    result.pips += gameState.typhonBonus;
+                    window.game?.showMessage?.(`🌋 Typhon's Power: +${gameState.typhonBonus} Pips!`, 5000);
+                    gameState.typhonBonus = 0; // Reset after use
+                }
+                break;
 
             default:
                 // Unknown joker effect - log for debugging but don't break the game
@@ -630,6 +645,26 @@ class Joker extends Card {
                         die.rollsHeld = (die.rollsHeld || 0) + 1;
                     }
                 });
+                break;
+            
+            case 'reckless_abandon':
+                // Force all dice to be unheld - no strategy allowed!
+                gameState.dice.forEach(die => {
+                    die.held = false;
+                });
+                break;
+            
+            case 'typhon':
+                // Check if this is the first roll of the turn and all dice show 1
+                const isFirstRoll = (gameState.rollsLeft === (GAME_BALANCE.STARTING_ROLLS - 1));
+                const allOnes = gameState.dice.every(die => die.face === 1);
+                
+                if (isFirstRoll && allOnes) {
+                    const typhonBonus = Math.floor(gameState.scoreThreshold * 0.9);
+                    gameState.typhonBonus = typhonBonus;
+                    window.game?.showMessage?.(`🌋 TYPHON AWAKENS! All 1s = +${typhonBonus} Pips!`, 6000);
+                    Logger.info(`Typhon triggered! Incredibly rare event - 1 in 7,776 chance!`);
+                }
                 break;
         }
         return result;

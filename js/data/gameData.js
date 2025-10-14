@@ -393,6 +393,27 @@ const CardData = {
             effect: "Each turn gain +2 pips (stacks, resets at end of ante or when worship card is used).",
             description: "Growing stronger without divine intervention.",
             timing: { before_score: true, turn_start: true }
+        },
+        { 
+            id: "reckless_abandon", 
+            name: "Reckless Abandon", 
+            rarity: "rustic", 
+            cost: 3, 
+            sellValue: 1, 
+            effect: "+50 Pips but you cannot hold dice.",
+            description: "Pure chaos, no strategy - YOLO mode.",
+            timing: { before_score: true, after_roll: true }
+        },
+        { 
+            id: "typhon", 
+            name: "Typhon", 
+            rarity: "rustic", 
+            cost: 3, 
+            sellValue: 1, 
+            effect: "Rolling all 1s on the first roll gives +90% of score threshold.",
+            description: "The father of monsters - catastrophic luck!",
+            god: "Typhon",
+            timing: { after_roll: true, before_score: true }
         }
     ],
 
