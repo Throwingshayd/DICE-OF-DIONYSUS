@@ -274,28 +274,14 @@ class LibationCard extends Card {
         this.createDieFaceSelectionUI(gameState, enhancementType, gameEngine);
     }
 
-    // Create UI for Balatro-style enhancement (roll dice, enhance one face)
+    /**
+     * Create Balatro-style die face selection UI
+     * Clean, elegant overlay similar to Balatro's tarot card selection
+     * @param {Object} gameState - Current game state
+     * @param {string} enhancementType - Type of enhancement to apply
+     * @param {Object} gameEngine - Game engine reference
+     */
     createDieFaceSelectionUI(gameState, enhancementType, gameEngine = null) {
-
-        
-        // Create overlay for die face selection
-        const overlay = document.createElement('div');
-        overlay.className = 'enhancement-overlay';
-
-        const modal = document.createElement('div');
-        modal.className = 'enhancement-modal';
-
-        // Roll all dice randomly to show faces
-        const rolledFaces = [];
-        gameState.dice.forEach((die, index) => {
-            // Roll the die to get a random face
-            const randomFace = Math.floor(Math.random() * 6) + 1;
-            rolledFaces[index] = randomFace;
-            // Store the rolled face temporarily for enhancement
-            die.tempRolledFace = randomFace;
-
-        });
-
         const enhancementNames = {
             'parchment': 'Parchment',
             'iron': 'Iron',
@@ -303,53 +289,147 @@ class LibationCard extends Card {
             'mother_of_pearl': 'Mother of Pearl',
             'mirror': 'Mirror',
             'wild': 'Wild',
-            'permanent_reduce': 'Permanently Reduce by 1',
-            'permanent_increase': 'Permanently Increase by 1'
+            'permanent_reduce': 'Reduce Value (-1)',
+            'permanent_increase': 'Increase Value (+1)'
+        };
+        
+        const enhancementDescriptions = {
+            'parchment': '+1 Pip when scored',
+            'iron': 'x1.5 Favour if not selected',
+            'gold': '+3 Gold when scored',
+            'mother_of_pearl': 'Retrigger scoring (2x effect)',
+            'mirror': 'Counts as all numbers',
+            'wild': 'Can be held infinitely',
+            'permanent_reduce': 'Permanently decrease face value',
+            'permanent_increase': 'Permanently increase face value'
         };
 
         const enhancementName = enhancementNames[enhancementType];
+        const enhancementDesc = enhancementDescriptions[enhancementType];
 
+        // Create Balatro-style overlay
+        const overlay = document.createElement('div');
+        overlay.className = 'balatro-enhancement-overlay';
+        overlay.style.opacity = '0';
+
+        const modal = document.createElement('div');
+        modal.className = 'balatro-enhancement-modal';
+
+        // Get dice faces (use current rolled faces if available, otherwise show 1-6)
+        const diceFaces = gameState.dice.map((die, index) => {
+            if (gameState.hasRolled) {
+                return die.getEffectiveFace();
+            } else {
+                // Show default faces 1-6 if dice haven't been rolled
+                return (index % 6) + 1;
+            }
+        });
+
+        // Build the clean Balatro-style UI
         modal.innerHTML = `
-            <h3>Enhance a Die Face</h3>
-            <p>The dice have been cast! Choose one face to apply <strong>${enhancementName}</strong> enhancement.</p>
-            <div class="die-selection">
-                ${gameState.dice.map((die, index) => `
-                    <div class="die-option" data-die-index="${index}" data-face="${rolledFaces[index]}">
-                        <div class="die-label">Die ${index + 1}</div>
-                        <div class="die-face-display" data-face="${rolledFaces[index]}">${rolledFaces[index]}</div>
-                        <div class="die-instruction">Click to enhance this face</div>
-                    </div>
-                `).join('')}
+            <div class="enhancement-header">
+                <h2 class="enhancement-title">${this.name}</h2>
+                <div class="enhancement-subtitle">
+                    <span class="enhancement-name">${enhancementName}</span>
+                    <span class="enhancement-description">${enhancementDesc}</span>
+                </div>
             </div>
-            <button class="divine-button" id="cancelEnhancement">Cancel</button>
+            
+            <div class="enhancement-instruction">Select a die face to enhance</div>
+            
+            <div class="balatro-dice-grid">
+                ${gameState.dice.map((die, index) => {
+                    const face = diceFaces[index];
+                    const dieId = die.dieId || (index + 1);
+                    
+                    // Get die asset
+                    const faceAsset = AssetMapping.getAssetPath(AssetMapping.getDiceFaceAsset(face));
+                    
+                    // Check if die already has enhancements on this face
+                    const faceEnhancements = die.faces[face]?.enhancements || [];
+                    const hasEnhancement = faceEnhancements.length > 0;
+                    const enhancementBadge = hasEnhancement ? 
+                        `<div class="die-enhancement-badge">${faceEnhancements[0]}</div>` : '';
+                    
+                    return `
+                        <div class="balatro-die-option" 
+                             data-die-index="${index}" 
+                             data-face="${face}"
+                             data-die-id="${dieId}">
+                            <div class="die-card">
+                                <div class="die-card-inner">
+                                    <div class="die-face-large" style="background-image: url('${faceAsset}')"></div>
+                                    ${enhancementBadge}
+                                </div>
+                                <div class="die-card-label">
+                                    <span class="die-number">Die ${dieId}</span>
+                                    <span class="die-face-value">Face: ${face}</span>
+                                </div>
+                            </div>
+                        </div>
+                    `;
+                }).join('')}
+            </div>
+            
+            <div class="enhancement-actions">
+                <button class="balatro-button cancel-button" id="cancelEnhancement">
+                    <span>Cancel</span>
+                </button>
+            </div>
         `;
 
-        // Add click handlers for die selection
-        const dieOptions = modal.querySelectorAll('.die-option');
-        dieOptions.forEach(option => {
+        // Add smooth fade-in animation
+        requestAnimationFrame(() => {
+            overlay.style.transition = 'opacity 0.3s ease-in-out';
+            overlay.style.opacity = '1';
+        });
+
+        // Add click handlers for die selection (Balatro-style)
+        const dieOptions = modal.querySelectorAll('.balatro-die-option');
+        dieOptions.forEach((option, idx) => {
+            // Staggered entrance animation
+            option.style.animationDelay = `${idx * 0.05}s`;
+            
             option.addEventListener('click', () => {
                 const dieIndex = parseInt(option.dataset.dieIndex);
-                const targetFace = parseInt(option.getAttribute('data-face'));
-        
-                this.applyEnhancementToDie(gameState, dieIndex, enhancementType, targetFace, gameEngine);
-                document.body.removeChild(overlay);
+                const targetFace = parseInt(option.dataset.face);
+                
+                // Add selection animation
+                option.classList.add('selected');
+                
+                // Apply enhancement after brief animation
+                setTimeout(() => {
+                    this.applyEnhancementToDie(gameState, dieIndex, enhancementType, targetFace, gameEngine);
+                    
+                    // Fade out and remove
+                    overlay.style.opacity = '0';
+                    setTimeout(() => {
+                        if (overlay.parentNode) {
+                            document.body.removeChild(overlay);
+                        }
+                    }, 300);
+                }, 200);
             });
             
+            // Hover effects (Balatro-style)
             option.addEventListener('mouseenter', () => {
-                option.style.transform = 'translateY(-5px)';
-                option.style.boxShadow = '0 5px 15px var(--shadow-dark)';
+                option.classList.add('hovered');
             });
             
             option.addEventListener('mouseleave', () => {
-                option.style.transform = 'translateY(0)';
-                option.style.boxShadow = 'none';
+                option.classList.remove('hovered');
             });
         });
 
-        // Add cancel button handler
+        // Cancel button handler
         const cancelButton = modal.querySelector('#cancelEnhancement');
         cancelButton.addEventListener('click', () => {
-            document.body.removeChild(overlay);
+            overlay.style.opacity = '0';
+            setTimeout(() => {
+                if (overlay.parentNode) {
+                    document.body.removeChild(overlay);
+                }
+            }, 300);
         });
 
         overlay.appendChild(modal);
