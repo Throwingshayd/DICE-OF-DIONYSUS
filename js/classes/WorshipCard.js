@@ -56,6 +56,9 @@ class WorshipCard extends Card {
                 window.game?.showMessage?.("The Heretic: Stacks reset by worship!");
             }
         }
+        
+        // Track last worship god for The Zealot boon
+        gameState.lastWorshipGod = this.god;
 
         this.use();
         return true;

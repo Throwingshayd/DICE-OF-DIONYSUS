@@ -526,6 +526,16 @@ const CardData = {
             description: "The god of dreams shapes your final reality.",
             god: "Morpheus",
             timing: { after_roll: true }
+        },
+        { 
+            id: "the_zealot", 
+            name: "The Zealot", 
+            rarity: "rustic", 
+            cost: 3, 
+            sellValue: 1, 
+            effect: "Gives +×1 favour of the most recently scored Worship card, to that score this Ante.",
+            description: "Zealous devotion to the last worshipped god.",
+            timing: { before_score: true }
         }
     ],
 

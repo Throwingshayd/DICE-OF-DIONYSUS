@@ -697,6 +697,27 @@ class Joker extends Card {
                     window.game?.showMessage?.("Misery: ×2 Favour (broke!)");
                 }
                 break;
+            
+            case 'the_zealot':
+                // Give +1 favour if scoring matches last worship god's category
+                if (gameState.lastWorshipGod) {
+                    const godToCategory = {
+                        'Artemis': 'Ones', 'Persephone': 'Twos', 'Morpheus': 'Threes',
+                        'Hera': 'Fours', 'Athena': 'Fives', 'Heracles': 'Sixes',
+                        'The Pleiades': 'Sevens', 'Poseidon': 'Eights', 'The Nine Muses': 'Nines',
+                        'Hephaestus': 'Three of a Kind', 'Ares': 'Four of a Kind', 
+                        'Dionysus': 'Full House', 'Hermes': 'Small Straight', 
+                        'Apollo': 'Large Straight', 'Zeus': 'Yahtzee', 'Nyx': 'Chance'
+                    };
+                    
+                    const zealotCategory = godToCategory[gameState.lastWorshipGod];
+                    
+                    if (result.category === zealotCategory) {
+                        result.favour += 1;
+                        window.game?.showMessage?.(`The Zealot: +×1 Favour (${gameState.lastWorshipGod})!`);
+                    }
+                }
+                break;
 
             default:
                 // Unknown joker effect - log for debugging but don't break the game

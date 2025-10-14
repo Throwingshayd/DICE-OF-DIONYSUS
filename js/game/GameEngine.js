@@ -1599,6 +1599,9 @@ class GameEngine {
             this.state.hereticStacks = 0;
         }
         
+        // Reset The Zealot's last worship god at end of ante
+        this.state.lastWorshipGod = null;
+        
         // Get threshold from AnteData array (Balatro-style progression)
         const nextAnteData = AnteData[this.state.ante - 1];
         if (nextAnteData) {
