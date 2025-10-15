@@ -50,9 +50,8 @@ const ENHANCEMENT_BONUSES = {
     IRON_PIPS: 5,           // Iron adds +5 pips when scored
     GOLD_COINS: 1,          // Gold adds +1 gold when scored
     PARCHMENT_FAVOUR: 1,    // Parchment can add +1 favour
-    PARCHMENT_GOLD: 15,     // Parchment can add +15 gold
-    WILD_PIPS_MIN: -1,      // Wild can add/subtract pips
-    WILD_PIPS_MAX: 1,
+    PARCHMENT_GOLD: 5,      // Parchment can add +5 gold (reduced from 15)
+    // Wild and Mother of Pearl now work differently - no fixed bonuses
 };
 
 /**

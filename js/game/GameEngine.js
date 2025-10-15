@@ -430,6 +430,11 @@ class GameEngine {
             });
         }
         
+        // Process mother of pearl enhancements after rolling
+        this.state.dice.forEach((die, index) => {
+            die.processMotherOfPearl(this.state.dice, index);
+        });
+        
         // Apply joker dice roll effects
         this.state.jokers.forEach(joker => {
             if (joker.affectsDiceRoll && joker.affectsDiceRoll()) {
@@ -651,13 +656,23 @@ class GameEngine {
             favour += this.state.tempFavour;
             
             // Apply BEFORE_SCORE joker effects (Balatro-inspired timing)
-            let eventData = { category, pips, favour };
+            // Separate tracking for additive (+favour) and multiplicative (×favour)
+            let eventData = { 
+                category, 
+                pips, 
+                favour,           // Additive favour (like Balatro's +mult)
+                favourMult: 1     // Multiplicative favour (like Balatro's ×mult)
+            };
+            
             this.state.jokers.forEach(joker => {
                 eventData = joker.onTimingEvent('before_score', this.state, eventData);
             });
             
             pips = eventData.pips;
-            favour = eventData.favour;
+            
+            // BALATRO FORMULA: (Base + Additive) × Multiplicative
+            // favour = (base favour + all +favour bonuses) × (all ×favour multipliers)
+            favour = eventData.favour * (eventData.favourMult || 1);
             
             // Apply global bonuses
             if (this.state.globalBonuses.fivesToAll) {
@@ -704,11 +719,13 @@ class GameEngine {
         
         // Apply AFTER_SCORE joker effects (Balatro-inspired timing)
         this.state.jokers.forEach(joker => {
-            joker.onTimingEvent('after_score', this.state, { category, pips, favour });
+            joker.onTimingEvent('after_score', this.state, { category, pips, favour, finalScore });
         });
         
-        // Gain gold for scoring with animation (increased from +1 to +2 for better economy)
-        this.updateGoldAnimated(GAME_BALANCE.GOLD_PER_SCORE, "scoring");
+        // Gain gold for scoring - ONLY if not a scratch (finalScore > 0)
+        if (finalScore > 0) {
+            this.updateGoldAnimated(GAME_BALANCE.GOLD_PER_SCORE, "scoring");
+        }
         
         // Reset temporary modifiers
         this.state.tempPips = 0;
@@ -735,85 +752,78 @@ class GameEngine {
      */
     animateScoreUpdate(category, pips, favour, finalScore, callback) {
         const row = document.querySelector(`[data-category="${category}"]`);
-        if (!row) {
-            // Fallback if no row found
+        const scoreDisplay = row?.querySelector('.potential-score');
+        
+        // SUSPENSEFUL CALCULATION IN GNOSIS!
+        // Show the calculation with count-up animation, then place result in pantheon
+        if (!this.domReady || !this.dom.liveScoreDisplay) {
+            // Fallback if no Gnosis display
+            if (scoreDisplay) scoreDisplay.innerHTML = finalScore;
             this.state.scorecard[category] = finalScore;
             this.state.totalScore += finalScore;
             callback();
             return;
         }
         
-        const scoreDisplay = row.querySelector('.potential-score');
-        if (!scoreDisplay) {
-            this.state.scorecard[category] = finalScore;
-            this.state.totalScore += finalScore;
-            callback();
-            return;
-        }
+        const el = this.dom.liveScoreDisplay;
         
-        // Step 1: Show pips with pop animation (500ms)
-        scoreDisplay.innerHTML = `<span class="score-pips-anim">${pips}</span>`;
-        scoreDisplay.classList.add('score-animating');
+        // Step 1: Show pips × favour = (500ms)
+        el.innerHTML = `
+            <span class="pips">${pips}</span>
+            <span class="multiply-symbol"> × </span>
+            <span class="favour">${favour}</span>
+            <span class="equals-symbol"> = </span>
+        `;
+        el.classList.add('visible');
         
         setTimeout(() => {
-            // Step 2: Show × favour (500ms)
-            scoreDisplay.innerHTML = `
-                <span class="score-pips-anim">${pips}</span>
-                <span class="score-multiply-anim"> × </span>
-                <span class="score-favour-anim">${favour}</span>
+            // Step 2: Count up to final score in Gnosis (1000ms)
+            el.innerHTML = `
+                <span class="pips">${pips}</span>
+                <span class="multiply-symbol"> × </span>
+                <span class="favour">${favour}</span>
+                <span class="equals-symbol"> = </span>
+                <span class="score-preview">0</span>
             `;
             
-            setTimeout(() => {
-                // Step 3: Show equals sign briefly (300ms)
-                scoreDisplay.innerHTML = `
-                    <span class="score-pips-anim fade-out">${pips}</span>
-                    <span class="score-multiply-anim fade-out"> × </span>
-                    <span class="score-favour-anim fade-out">${favour}</span>
-                    <span class="score-equals-anim"> = </span>
-                `;
+            const finalSpan = el.querySelector('.score-preview');
+            
+            this.animateNumberCount(finalSpan, 0, finalScore, 1000, () => {
+                // Step 3: Update game state
+                this.state.scorecard[category] = finalScore;
+                this.state.totalScore += finalScore;
                 
+                // Step 4: Screen shake and particles
+                if (window.balatroEffects) {
+                    if (category === 'Yahtzee') {
+                        window.balatroEffects.screenShake(20, 800);
+                    } else if (finalScore >= 200) {
+                        const intensity = Math.min(finalScore / 10, 35);
+                        window.balatroEffects.screenShake(intensity, 600);
+                    } else if (finalScore >= 100) {
+                        window.balatroEffects.screenShake(12, 400);
+                    }
+                }
+                
+                if (finalScore >= 200 && window.balatroEffects && scoreDisplay) {
+                    this.createScoreParticles(scoreDisplay, finalScore);
+                }
+                
+                // Step 5: Place final number in pantheon scorecard (after brief pause)
                 setTimeout(() => {
-                    // Step 4: Count up to final score (1000ms)
-                    scoreDisplay.innerHTML = `<span class="score-final-anim">0</span>`;
-                    const finalSpan = scoreDisplay.querySelector('.score-final-anim');
-                    
-                    this.animateNumberCount(finalSpan, 0, finalScore, 1000, () => {
-                        // Step 5: Add glow effect
-                        scoreDisplay.classList.add('score-glow-effect');
+                    if (scoreDisplay) {
+                        scoreDisplay.innerHTML = finalScore;
+                        scoreDisplay.classList.add('score-flash');
                         
-                        // Update game state
-                        this.state.scorecard[category] = finalScore;
-                        this.state.totalScore += finalScore;
-                        
-                        // Screen shake based on score magnitude
-                        if (window.balatroEffects) {
-                            if (category === 'Yahtzee') {
-                                window.balatroEffects.screenShake(20, 800);
-                            } else if (finalScore >= 200) {
-                                const intensity = Math.min(finalScore / 10, 35);
-                                window.balatroEffects.screenShake(intensity, 600);
-                            } else if (finalScore >= 100) {
-                                window.balatroEffects.screenShake(12, 400);
-                            }
-                        }
-                        
-                        // Particle effects for high scores
-                        if (finalScore >= 200 && window.balatroEffects) {
-                            this.createScoreParticles(scoreDisplay, finalScore);
-                        }
-                        
-                        // Remove animation classes after delay
                         setTimeout(() => {
-                            scoreDisplay.classList.remove('score-animating', 'score-glow-effect');
-                            scoreDisplay.innerHTML = finalScore;
-                            this.updateAllUI();
-                            
-                            // Call callback to continue game flow
-                            callback();
-                        }, 800);
-                    });
+                            scoreDisplay.classList.remove('score-flash');
+                        }, 400);
+                    }
+                    
+                    this.updateAllUI();
+                    callback();
                 }, 300);
-            }, 500);
+            });
         }, 500);
     }
     
@@ -1219,6 +1229,10 @@ class GameEngine {
             try {
                 let face = d.getEffectiveFace();
                 
+                // Debug: Log face data
+                const faceData = d.faces[d.currentFace];
+                Logger.debug(`Die ${index}: currentFace=${d.currentFace}, value=${faceData?.value}, modifiedValue=${faceData?.modifiedValue}, effectiveFace=${face}`);
+                
                 // Validate face value
                 if (typeof face !== 'number' || isNaN(face)) {
                     Logger.warn(`Die ${index} returned invalid face: ${face}. Using 0.`);
@@ -1250,6 +1264,8 @@ class GameEngine {
                 }
             }
         });
+        
+        Logger.debug(`Scoring ${category}: faces=[${faces.join(', ')}], counts=`, counts);
         
         let pips = 0;
         let isValid = false;
@@ -1446,30 +1462,25 @@ class GameEngine {
                 }
             }
             
-            // Mother of Pearl enhancement: adds adjacent dice pips (face-specific only)
+            // Mother of Pearl enhancement: randomly selects one adjacent die and adds its value
             if (die.hasEnhancementForCurrentFace && die.hasEnhancementForCurrentFace('mother_of_pearl')) {
-                const adjacentIndices = [];
-                if (index > 0) adjacentIndices.push(index - 1);
-                if (index < this.state.dice.length - 1) adjacentIndices.push(index + 1);
-                
-                let adjacentPips = 0;
-                adjacentIndices.forEach(adjIndex => {
-                    const adjacentDie = this.state.dice[adjIndex];
-                    adjacentPips += adjacentDie.getEffectiveFace();
-                });
-                
-                if (adjacentPips > 0) {
-                    pips += adjacentPips;
-                    window.game?.showMessage?.(`Mother of Pearl: Added ${adjacentPips} pips from adjacent dice!`);
+                // Mother of pearl value is set during the random selection phase after rolling
+                if (die.motherOfPearlBonus !== undefined) {
+                    pips += die.motherOfPearlBonus;
+                    // Silent - no message to player
                 }
             }
             
-            // Wild enhancement (face-specific): counts as either +1/-1 only if applied to the rolled face
+            // Wild enhancement (face-specific): uses wildValue set by player choice
             if (die.hasEnhancementForCurrentFace && die.hasEnhancementForCurrentFace('wild')) {
-                const wildEffect = Math.random() < ENHANCEMENT_CHANCES.WILD_EFFECT_CHANCE ? 
-                    ENHANCEMENT_BONUSES.WILD_PIPS_MAX : ENHANCEMENT_BONUSES.WILD_PIPS_MIN;
-                pips += wildEffect;
-                window.game?.showMessage?.(wildEffect > 0 ? "Wild (face) +1 pips!" : "Wild (face) -1 pips!");
+                // Wild value is set during the arrow selection phase
+                if (die.wildValue !== undefined) {
+                    const wildBonus = die.wildValue - die.currentFace;
+                    pips += wildBonus;
+                    if (wildBonus !== 0) {
+                        window.game?.showMessage?.(`Wild enhancement: ${wildBonus > 0 ? '+' : ''}${wildBonus} Pips!`);
+                    }
+                }
             }
         });
         
@@ -1529,7 +1540,8 @@ class GameEngine {
         if (this.state.turn > this.state.maxTurns) {
             this.endAnte();
         } else if ([4, 8].includes(this.state.turn)) {
-            this.openShop();
+            // Show gold + interest calculation in Gnosis BEFORE opening shop
+            this.showInterestThenOpenShop();
         } else if (this.domReady) {
             this.updateAllUI();
         }
@@ -1641,79 +1653,13 @@ class GameEngine {
         // Reset The Zealot's last worship god at end of ante
         this.state.lastWorshipGod = null;
         
-        // The Investor/Cornucopia of Ploutos: multiply gold at end of ante
-        const hasInvestor = this.state.jokers?.some(j => j.id === 'cornucopia_of_ploutos');
-        if (hasInvestor && this.state.gold > 0) {
-            const originalGold = this.state.gold;
-            const investorGold = Math.floor(this.state.gold * 1.5);
-            const gained = investorGold - originalGold;
-            
-            this.state.gold = investorGold;
-            this.showMessage(`Cornucopia of Ploutos: Gold ×1.5! (+${gained}g)`, 4000);
-            Logger.info(`Cornucopia triggered: ${originalGold}g → ${investorGold}g (+${gained}g)`);
-        }
-        
-        // The Odyssey: perfect completion bonus at end of ante
-        const hasOdyssey = this.state.jokers?.some(j => j.id === 'the_odyssey');
-        if (hasOdyssey) {
-            // Build list of all required categories
-            const requiredCategories = [
-                'Ones', 'Twos', 'Threes', 'Fours', 'Fives', 'Sixes',
-                'Three of a Kind', 'Four of a Kind', 'Full House',
-                'Small Straight', 'Large Straight', 'Yahtzee', 'Chance'
-            ];
-            
-            // Add unlocked categories (7s, 8s, 9s)
-            if (this.state.unlockedCategories?.Sevens) requiredCategories.push('Sevens');
-            if (this.state.unlockedCategories?.Eights) requiredCategories.push('Eights');
-            if (this.state.unlockedCategories?.Nines) requiredCategories.push('Nines');
-            
-            // Check if ALL categories are filled (not undefined)
-            const allFilled = requiredCategories.every(cat => this.state.scorecard[cat] !== undefined);
-            
-            // Check if NO scratches (all scores > 0)
-            const noScratches = requiredCategories.every(cat => 
-                this.state.scorecard[cat] !== undefined && this.state.scorecard[cat] > 0
-            );
-            
-            if (allFilled && noScratches) {
-                const totalCategories = requiredCategories.length;
-                const odysseyBonus = totalCategories * totalCategories; // (total)²
-                
-                this.state.totalScore += odysseyBonus;
-                this.showMessage(`🏛️ THE ODYSSEY: Perfect Completion! +${odysseyBonus} Pips! (${totalCategories}² categories)`, 6000);
-                Logger.info(`The Odyssey triggered: ${totalCategories} categories completed perfectly = ${odysseyBonus} pips`);
-            } else {
-                Logger.debug(`The Odyssey not triggered - allFilled: ${allFilled}, noScratches: ${noScratches}`);
+        // === ANTE_END TIMING HOOK ===
+        // Trigger all ante_end effects via timing system (Balatro-style)
+        this.state.jokers.forEach(joker => {
+            if (joker.timing && joker.timing.ante_end) {
+                joker.onTimingEvent('ante_end', this.state, {});
             }
-        }
-        
-        // Message in a Bottle: solo boon bonus at end of ante
-        const hasMessage = this.state.jokers?.some(j => j.id === 'message_in_a_bottle');
-        const isSoloBoon = this.state.jokers?.length === 1;
-        
-        if (hasMessage && isSoloBoon) {
-            const messageBonus = Math.floor(this.state.scoreThreshold * 0.5);
-            this.state.totalScore += messageBonus;
-            this.showMessage(`📜 Message in a Bottle: +${messageBonus} Score! (Solo Ante Complete)`, 5000);
-            Logger.info(`Message in a Bottle triggered: Solo ante bonus +${messageBonus} score`);
-        }
-        
-        // Betrayal by Paris: destroy random boon, gain +10 gold
-        const hasBetrayal = this.state.jokers?.some(j => j.id === 'betrayal_by_paris');
-        
-        if (hasBetrayal && this.state.jokers?.length > 1) {
-            // Pick random boon (excluding Paris itself if possible)
-            const otherBoons = this.state.jokers.filter(b => b.id !== 'betrayal_by_paris');
-            const targetBoons = otherBoons.length > 0 ? otherBoons : this.state.jokers;
-            
-            const randomIndex = Math.floor(Math.random() * targetBoons.length);
-            const betrayedBoon = this.state.jokers.splice(this.state.jokers.indexOf(targetBoons[randomIndex]), 1)[0];
-            
-            this.updateGoldAnimated(10, "Betrayal by Paris");
-            this.showMessage(`🗡️ Betrayal by Paris: ${betrayedBoon.name} destroyed! +10 Gold`, 5000);
-            Logger.info(`Betrayal by Paris: Destroyed ${betrayedBoon.name} for 10g`);
-        }
+        });
         
         // Get threshold from AnteData array (Balatro-style progression)
         const nextAnteData = AnteData[this.state.ante - 1];
@@ -1847,45 +1793,67 @@ class GameEngine {
     }
 
     updateLiveScoreDisplay(category) {
-        if (!this.domReady) {
+        if (!this.domReady || !this.dom.liveScoreDisplay) {
             return;
         }
+        
+        // Clear any running animation
+        if (this.liveScoreAnimationTimeout) {
+            clearTimeout(this.liveScoreAnimationTimeout);
+        }
+        
+        const el = this.dom.liveScoreDisplay;
+        
         // Resting/default state: show 0 x 0 when nothing is selected or before first roll
         if (!category || !this.state.hasRolled) {
-            this.dom.liveScoreDisplay.innerHTML = `
+            el.innerHTML = `
                 <span class="pips">0</span>
-                <span class="multiply-symbol">x</span>
+                <span class="multiply-symbol"> × </span>
                 <span class="favour">0</span>
             `;
-            this.dom.liveScoreDisplay.classList.add('visible');
+            el.classList.add('visible');
             return;
         }
         
         let { pips, favour, isValid } = this.calculateScore(category);
         
         if (isValid) {
-            // Apply joker effects to the live score display
-            let eventData = { category, pips, favour };
+            // Apply boon effects to preview the potential score (like Balatro!)
+            let eventData = { 
+                category, 
+                pips, 
+                favour,
+                favourMult: 1  // Balatro-style multiplicative favour
+            };
+            
+            // Apply all before_score boon effects
             this.state.jokers.forEach(joker => {
-                eventData = joker.onEvent('score', this.state, eventData);
+                if (joker.timing && joker.timing.before_score) {
+                    eventData = joker.onTimingEvent('before_score', this.state, eventData);
+                }
             });
             
             pips = eventData.pips;
-            favour = eventData.favour;
+            favour = eventData.favour * (eventData.favourMult || 1); // Apply multiplicative favour
             
-            this.dom.liveScoreDisplay.innerHTML = `
+            // PREVIEW MODE: Just show pips × favour (no final result yet!)
+            // The suspenseful calculation happens when you CONFIRM
+            el.innerHTML = `
                 <span class="pips">${pips}</span>
-                <span class="multiply-symbol">x</span>
+                <span class="multiply-symbol"> × </span>
                 <span class="favour">${favour}</span>
             `;
+            el.classList.add('visible');
+            
         } else {
-            this.dom.liveScoreDisplay.innerHTML = `
+            // Invalid hand - show N/A
+            el.innerHTML = `
                 <span class="n-letter">N</span>
                 <span class="slash-symbol">/</span>
                 <span class="a-letter">A</span>
             `;
+            el.classList.add('visible');
         }
-        this.dom.liveScoreDisplay.classList.add('visible');
     }
 
     // Utility methods
@@ -1910,22 +1878,80 @@ class GameEngine {
      */
     calculateInterest() {
         const gold = this.state.gold;
+        
+        // Check for Golden Touch boon (better interest rate: 1 per 3 instead of 1 per 5)
+        const hasGoldenTouch = this.state.jokers?.some(j => j.id === 'golden_touch');
+        const interestRate = hasGoldenTouch ? 3 : GAME_BALANCE.INTEREST_RATE;
+        
         const interest = Math.min(
-            Math.floor(gold / GAME_BALANCE.INTEREST_RATE),
+            Math.floor(gold / interestRate),
             GAME_BALANCE.MAX_INTEREST
         );
         return interest;
     }
 
+    // Show gold + interest calculation in Gnosis, THEN open shop
+    showInterestThenOpenShop() {
+        if (!this.domReady || !this.dom.liveScoreDisplay) {
+            // Fallback if no Gnosis display
+            this.openShop();
+            return;
+        }
+        
+        const currentGold = this.state.gold;
+        const interest = this.calculateInterest();
+        const totalGold = currentGold + interest;
+        
+        // Check for Golden Touch to show correct rate
+        const hasGoldenTouch = this.state.jokers?.some(j => j.id === 'golden_touch');
+        const rate = hasGoldenTouch ? 3 : GAME_BALANCE.INTEREST_RATE;
+        
+        const el = this.dom.liveScoreDisplay;
+        
+        // If no interest, just open shop immediately
+        if (interest === 0) {
+            this.openShop();
+            return;
+        }
+        
+        // PANTHEON-STYLE INTEREST ANIMATION IN GNOSIS
+        const frames = [
+            { html: `<span class="pips">Saved Gold</span> <span class="multiply-symbol">:</span> <span class="favour">${currentGold}g</span>` },
+            { html: `<span class="pips">Interest</span> <span class="multiply-symbol">(1 per ${rate}g)</span>` },
+            { html: `<span class="pips">Interest</span> <span class="multiply-symbol">+</span> <span class="favour">${interest}g</span>` },
+            { html: `<span class="pips">=</span> <span class="favour">${totalGold}g</span>` }
+        ];
+        
+        el.classList.add('visible');
+        
+        let i = 0;
+        const step = () => {
+            if (i >= frames.length) {
+                // Animation complete - award interest and open shop
+                setTimeout(() => {
+                    el.classList.remove('visible');
+                    
+                    // Award the interest
+                    this.updateGoldAnimated(interest, "interest");
+                    this.showMessage(`💰 Interest earned: +${interest} Gold!`, 3000);
+                    Logger.info(`Interest earned: ${interest}g from ${currentGold}g saved (rate: 1/${rate})`);
+                    
+                    // Now open the shop
+                    this.openShop();
+                }, 500);
+                return;
+            }
+            el.innerHTML = frames[i].html;
+            i++;
+            setTimeout(step, 600); // 600ms per frame (like pantheon)
+        };
+        step();
+    }
+    
     // Shop methods (will be expanded in next file)
     openShop() {
-        // Calculate and award interest (Balatro-inspired economy)
-        const interest = this.calculateInterest();
-        if (interest > 0) {
-            this.updateGoldAnimated(interest, "interest");
-            this.showMessage(`💰 Interest earned: +${interest} Gold! (${Math.floor((this.state.gold - interest) / GAME_BALANCE.INTEREST_RATE)} × ${GAME_BALANCE.INTEREST_RATE}g)`, 4000);
-            Logger.info(`Interest earned: ${interest}g from ${this.state.gold - interest}g saved`);
-        }
+        // Interest is now awarded BEFORE shop opens (in showInterestThenOpenShop)
+        // This method just opens the shop UI
         
         // Shop logic will be handled by a separate module
         if (window.shopManager) {

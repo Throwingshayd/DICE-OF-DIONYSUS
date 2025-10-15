@@ -167,8 +167,8 @@ class LibationCard extends Card {
                 break;
                 
             case 'retsina_echoes':
-                // Enhance a die face to Mirror
-                this.promptForDieFaceSelection(gameState, 'mirror', gameEngine);
+                // Enhance a die face to Mother of Pearl
+                this.promptForDieFaceSelection(gameState, 'mother_of_pearl', gameEngine);
                 break;
                 
             case 'soma_wild':
@@ -454,7 +454,7 @@ class LibationCard extends Card {
             case 'parchment':
                 if (die.addFaceEnhancement(targetFace, 'parchment')) {
             
-                    message = `Die ${dieNumber} face ${targetFace} enhanced with Parchment (1/6 +Favour, 1/15 +15 Gold).`;
+                    message = `Die ${dieNumber} face ${targetFace} enhanced with Parchment (25% +1 Favour, 15% +5 Gold).`;
                 } else {
                     message = 'Failed to apply parchment enhancement!';
                 }

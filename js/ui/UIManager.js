@@ -478,6 +478,11 @@ class UIManager {
                 dieEl.appendChild(overlay);
             }
             
+            // Add wild enhancement arrow system
+            if (currentFace > 0 && die.hasEnhancementForCurrentFace('wild') && die.wildValue === undefined) {
+                this.addWildArrows(dieEl, die, index);
+            }
+            
             // Also add face value overlays for modified faces (7, 8, 9)
             if (currentFace > 0 && currentFace >= 7) {
                 const faceOverlay = document.createElement('div');
@@ -542,6 +547,67 @@ class UIManager {
             'chaos': '#9932CC' // Dark orchid
         };
         return colors[enhancement] || '#666666';
+    }
+
+    /**
+     * Add wild enhancement arrow system to a die
+     * @param {HTMLElement} dieEl - The die element
+     * @param {Die} die - The die object
+     * @param {number} index - Die index
+     */
+    addWildArrows(dieEl, die, index) {
+        const arrowContainer = document.createElement('div');
+        arrowContainer.className = 'wild-arrows';
+        arrowContainer.style.cssText = `
+            position: absolute;
+            top: -20px;
+            left: 50%;
+            transform: translateX(-50%);
+            display: flex;
+            flex-direction: column;
+            gap: 2px;
+            z-index: 10;
+        `;
+
+        // Up arrow (increase value)
+        const upArrow = document.createElement('div');
+        upArrow.textContent = '▲';
+        upArrow.style.cssText = `
+            cursor: pointer;
+            font-size: 12px;
+            color: #4CAF50;
+            text-shadow: 1px 1px 2px rgba(0,0,0,0.5);
+            transition: all 0.2s ease;
+        `;
+        upArrow.onmouseover = () => upArrow.style.color = '#66BB6A';
+        upArrow.onmouseout = () => upArrow.style.color = '#4CAF50';
+        upArrow.onclick = () => {
+            die.setWildValue(1);
+            arrowContainer.remove();
+            this.updateDiceUI(window.game.state);
+        };
+
+        // Down arrow (decrease value)
+        const downArrow = document.createElement('div');
+        downArrow.textContent = '▼';
+        downArrow.style.cssText = `
+            cursor: pointer;
+            font-size: 12px;
+            color: #F44336;
+            text-shadow: 1px 1px 2px rgba(0,0,0,0.5);
+            transition: all 0.2s ease;
+        `;
+        downArrow.onmouseover = () => downArrow.style.color = '#EF5350';
+        downArrow.onmouseout = () => downArrow.style.color = '#F44336';
+        downArrow.onclick = () => {
+            die.setWildValue(-1);
+            arrowContainer.remove();
+            this.updateDiceUI(window.game.state);
+        };
+
+        arrowContainer.appendChild(upArrow);
+        arrowContainer.appendChild(downArrow);
+        dieEl.appendChild(arrowContainer);
     }
 
     updateScorecardUI(gameState) {
@@ -1026,32 +1092,54 @@ class UIManager {
     }
 
     createCardElement(cardData, type, gameState, gameEngine) {
-        const card = document.createElement('div');
-        card.className = 'card';
-        card.dataset.cardId = cardData.id;
-        card.dataset.cardType = type;
+        let cardInstance;
+        let cardEl;
         
-        // Set card styling based on type
-        if (cardData.rarity) {
-            card.classList.add(cardData.rarity);
+        // Create proper card instance based on type
+        if (type === 'artifact') {
+            // Use Artifact class for artifacts (like Balatro vouchers)
+            cardInstance = new Artifact(cardData);
+            cardEl = cardInstance.render(true, true); // isShopItem, isDirectSale
+        } else {
+            // For other types, create appropriate instances
+            if (cardData.rarity === 'worship') {
+                cardInstance = new WorshipCard(cardData);
+            } else if (cardData.rarity === 'libation') {
+                cardInstance = new LibationCard(cardData);
+            } else {
+                cardInstance = new Joker(cardData);
+            }
+            cardEl = cardInstance.render(true, type === 'direct' || type === 'artifact');
         }
         
-        // Add card content
-        card.innerHTML = `
-            <div class="card-name">${cardData.name}</div>
-            <div class="card-effect">${cardData.effect || cardData.description}</div>
-            <div class="card-cost">${cardData.cost}g</div>
-            <button class="card-button buy-button" data-card-id="${cardData.id}">Buy</button>
-        `;
+        // Add click handler to buy label
+        const buyLabel = cardEl.querySelector('.buy-sell-label.buy');
+        if (buyLabel) {
+            buyLabel.addEventListener('click', (e) => {
+                e.stopPropagation();
+                this.createRippleEffect(buyLabel, e);
+                
+                if (type === 'artifact') {
+                    this.buyArtifact(cardData, gameState, gameEngine, cardEl);
+                } else {
+                    this.buyCard(cardInstance, gameState, gameEngine, cardEl);
+                }
+            });
+        }
         
-        // Add click handler
-        const buyButton = card.querySelector('.buy-button');
-        buyButton.addEventListener('click', (e) => {
-            e.stopPropagation();
-            this.purchaseCard(cardData, type, gameState, gameEngine);
-        });
+        // For pack cards, add "Take" functionality
+        if (type === 'pack') {
+            const takeLabel = cardEl.querySelector('.buy-sell-label.take');
+            if (takeLabel) {
+                takeLabel.addEventListener('click', (e) => {
+                    e.stopPropagation();
+                    this.createRippleEffect(takeLabel, e);
+                    this.claimCard(cardInstance, gameState, gameEngine, cardEl);
+                });
+            }
+        }
         
-        return card;
+        return cardEl;
     }
 
     createPackElement(packData, gameState, gameEngine) {
@@ -1750,23 +1838,13 @@ class UIManager {
             const soldCard = inventory.splice(cardIndex, 1)[0];
             let totalGold = soldCard.sellValue;
             
-            // Check for The Merchant boon - gives +1 gold for selling libations/worship
-            const hasMerchant = gameState.jokers?.some(j => j.id === 'the_merchant');
-            if (hasMerchant && (soldCard.type === 'libation' || soldCard.type === 'worship')) {
-                totalGold += 1;
-                gameEngine.showMessage("The Merchant: +1 Gold!");
-            }
-            
-            // Check for Mortal Vineyard - selling a boon gives random libation
-            const hasVineyard = gameState.jokers?.some(j => j.id === 'mortal_vineyard');
-            if (hasVineyard && soldCard.type === 'joker' && gameState.consumables.length < gameState.consumableSlots) {
-                const libationPool = CardData.libations;
-                const randomLibationData = libationPool[Math.floor(Math.random() * libationPool.length)];
-                const newLibation = new LibationCard(randomLibationData);
-                
-                gameState.consumables.push(newLibation);
-                gameEngine.showMessage(`Mortal Vineyard: Gained ${newLibation.name}!`, 3000);
-            }
+            // === SELL TIMING HOOK ===
+            // Trigger all sell effects via timing system (Balatro-style)
+            gameState.jokers.forEach(joker => {
+                if (joker.timing && joker.timing.sell) {
+                    joker.onTimingEvent('sell', gameState, { cardType: soldCard.type, card: soldCard });
+                }
+            });
             
             gameEngine.updateGoldAnimated(totalGold, "card sale");
             gameEngine.showMessage(`Sold ${soldCard.name} for ${totalGold} Gold.`);

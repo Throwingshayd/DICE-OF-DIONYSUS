@@ -141,9 +141,10 @@ const CardData = {
             rarity: "epic", 
             cost: 8, 
             sellValue: 2, 
-            effect: "Every 3rd turn, randomly destroy a Boon and gain ×4 Favour for that turn.",
+            effect: "Every 3rd turn, randomly destroy a Boon and gain ×2 Favour (MULTIPLICATIVE!) for that turn.",
             god: "Pandora",
-            timing: { before_score: true, turn_start: true }
+            timing: { before_score: true, turn_start: true },
+            favourType: "multiplicative"  // Like Balatro's ×mult
         },
         
         // === VIBRANT TIER - Interesting Mechanics ===
@@ -321,7 +322,7 @@ const CardData = {
             sellValue: 1, 
             effect: "Selling libation and worship cards gives +1 extra gold.",
             description: "A keen trader in sacred goods.",
-            timing: {} // Special - passive effect on sell actions
+            timing: { sell: true }
         },
         { 
             id: "the_heretic", 
@@ -484,7 +485,7 @@ const CardData = {
             sellValue: 1, 
             effect: "Selling a Boon gives you a random Libation.",
             description: "Transform the divine into sacred wine - alchemical conversion.",
-            timing: {} // Special - triggers on sell action
+            timing: { sell: true }
         },
         { 
             id: "proteus_disguise", 
@@ -506,7 +507,7 @@ const CardData = {
             effect: "At end of Ante, gold ×1.5 (rounded down).",
             description: "The horn of plenty - wealth multiplies for the patient.",
             god: "Ploutos",
-            timing: {} // Special - triggers at ante end
+            timing: { ante_end: true }
         },
         { 
             id: "the_odyssey", 
@@ -517,7 +518,7 @@ const CardData = {
             effect: "At end of Ante, if ALL categories filled with NO scratches, gain (total categories)² pips.",
             description: "Complete the perfect journey - 13² = 169, 14² = 196, 15² = 225, 16² = 256 pips.",
             god: "Odysseus",
-            timing: {} // Special - triggers at ante end
+            timing: { ante_end: true }
         },
         { 
             id: "message_in_a_bottle", 
@@ -527,7 +528,7 @@ const CardData = {
             sellValue: 1, 
             effect: "If you complete Ante with no other boons for entire ante gain +50% of score threshold.",
             description: "A solo journey - isolation brings great reward.",
-            timing: {} // Special - triggers at ante end
+            timing: { ante_end: true }
         },
         { 
             id: "betrayal_by_paris", 
@@ -538,7 +539,7 @@ const CardData = {
             effect: "Destroy a random Boon at end of each Ante, gain +10 Gold.",
             description: "The betrayer of Troy - your boons fear you.",
             god: "Paris",
-            timing: {} // Special - triggers at ante end
+            timing: { ante_end: true }
         },
         { 
             id: "eruption_of_etna", 
@@ -608,10 +609,11 @@ const CardData = {
             rarity: "epic", 
             cost: 10, 
             sellValue: 3, 
-            effect: "If all 5 dice have enhancements, gain ×3 Favour (secret: if all same enhancement, ×5 Favour).",
-            description: "Perfect harmony - the bells ring when all are enhanced.",
+            effect: "If all 5 dice have enhancements, gain +3 Favour (secret: if all same enhancement, ×2.5 MULTIPLICATIVE!).",
+            description: "Perfect harmony - the bells ring when all are enhanced. Secret bonus is multiplicative like Balatro's ×mult!",
             god: "The Nine Muses",
-            timing: { before_score: true }
+            timing: { before_score: true },
+            favourType: "mixed"  // Additive normally, multiplicative for secret
         },
         { 
             id: "reflection_of_narcissus", 
@@ -754,7 +756,7 @@ const CardData = {
         { id: "kyphi_mead", name: "Kyphi Mead", rarity: "libation", cost: 2, sellValue: 0, effect: "Enhance a die face to Parchment.", type: "instant" },
         { id: "tisane_hephaestus", name: "Tisane of Hephaestus", rarity: "libation", cost: 2, sellValue: 0, effect: "Enhance a die face to Steel.", type: "instant" },
         { id: "ambrosial_krasi", name: "Ambrosial Krasi", rarity: "libation", cost: 2, sellValue: 0, effect: "Enhance a die face to Gold.", type: "instant" },
-        { id: "retsina_echoes", name: "Retsina of Echoes", rarity: "libation", cost: 2, sellValue: 0, effect: "Enhance a die face to Mirror.", type: "instant" },
+        { id: "retsina_echoes", name: "Retsina of Echoes", rarity: "libation", cost: 2, sellValue: 0, effect: "Enhance a die face to Mother of Pearl.", type: "instant" },
         { id: "soma_wild", name: "Soma of the Wild", rarity: "libation", cost: 2, sellValue: 0, effect: "Enhance a die face to Wild.", type: "instant" },
         { id: "kylix_hermit", name: "Kylix of the Hermit", rarity: "libation", cost: 3, sellValue: 0, effect: "Double your money (max 20).", type: "instant" },
         { id: "elixir_lethe", name: "Elixir of Lethe", rarity: "libation", cost: 2, sellValue: 0, effect: "Reduce a die face by 1.", type: "instant" },
@@ -772,22 +774,54 @@ const CardData = {
 
     artifacts: {
         'temple_market': {
-            base: { id: "artifact_temple_market", name: "Temple Market", cost: 12, effect: "Shop inventory size increased by 1.", rarity: "artifact" }
+            base: { 
+                id: "artifact_temple_market", 
+                name: "Temple Market", 
+                cost: 10, 
+                effect: "Shop inventory size increased by 1.",
+                description: "Like Balatro's voucher system - permanent passive effect. Expands your shopping options each visit.",
+                rarity: "artifact" 
+            }
         },
         'clearance_sale': {
-            base: { id: "artifact_clearance_sale", name: "Merchants Arrival", cost: 12, effect: "All shop prices reduced by 25%.", rarity: "artifact" }
+            base: { 
+                id: "artifact_clearance_sale", 
+                name: "Merchants Arrival", 
+                cost: 10, 
+                effect: "All shop prices reduced by 25%.",
+                description: "Divine artifact - permanent passive effect. Makes all future purchases cheaper.",
+                rarity: "artifact" 
+            }
         },
         'crystal_ball': {
-            base: { id: "artifact_crystal_ball", name: "Crystal Ball", cost: 12, effect: "+1 Libation slot.", rarity: "artifact" }
+            base: { 
+                id: "artifact_crystal_ball", 
+                name: "Crystal Ball", 
+                cost: 10, 
+                effect: "+1 Libation slot.",
+                description: "Divine artifact - permanent passive effect. Carry more libations for strategic plays.",
+                rarity: "artifact" 
+            }
         },
         'telescope': {
-            base: { id: "artifact_telescope", name: "Altar", cost: 12, effect: "+1 Worship card slot.", rarity: "artifact" }
+            base: { 
+                id: "artifact_telescope", 
+                name: "Altar", 
+                cost: 10, 
+                effect: "Double the Favour gained from Worship cards.",
+                description: "Divine artifact - permanent passive effect. Your devotion to the gods is rewarded with greater divine favour!",
+                rarity: "artifact" 
+            }
         },
         'antimatter': {
-            base: { id: "artifact_antimatter", name: "Antikythra", cost: 12, effect: "+1 Boon slot.", rarity: "artifact" }
-        },
-        'trojan_horse': {
-            base: { id: "artifact_trojan_horse", name: "The Trojan Horse", cost: 10, effect: "After Turn 10 in each Ante, all your Boons give ×2 their normal effect.", rarity: "artifact" }
+            base: { 
+                id: "artifact_antimatter", 
+                name: "Antikythra", 
+                cost: 10, 
+                effect: "+1 Boon slot.",
+                description: "Divine artifact - permanent passive effect. Collect more powerful boons for your build.",
+                rarity: "artifact" 
+            }
         }
     },
 

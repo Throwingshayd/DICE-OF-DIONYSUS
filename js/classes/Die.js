@@ -21,6 +21,10 @@ class Die {
         this.tempModifier = 0;
         /** @type {number|null} Unique identifier for this die */
         this.dieId = dieId;
+        /** @type {number|undefined} Wild enhancement chosen value (set by player) */
+        this.wildValue = undefined;
+        /** @type {number|undefined} Mother of pearl bonus from adjacent die (set randomly) */
+        this.motherOfPearlBonus = undefined;
         
         // Each face is an independent entity with its own properties
         this.faces = {
@@ -40,6 +44,10 @@ class Die {
      */
     roll(prng) {
         if (!this.isLocked) {
+            // Clear wild value when rolling to new face
+            this.wildValue = undefined;
+            this.motherOfPearlBonus = undefined;
+            
             this.currentFace = Math.floor(prng.random() * GAME_BALANCE.MAX_DIE_FACE) + GAME_BALANCE.MIN_DIE_FACE;
             
             // Add Balatro-style rolling effect if effects system is available
@@ -57,6 +65,7 @@ class Die {
         this.currentFace = 0;
         this.isLocked = false;
         this.tempModifier = 0;
+        // Don't reset wildValue and motherOfPearlBonus - they should persist until die is rolled to new face
         // Face enhancements persist across turns
     }
 
@@ -67,6 +76,8 @@ class Die {
         this.currentFace = 0;
         this.isLocked = false;
         this.tempModifier = 0;
+        this.wildValue = undefined;
+        this.motherOfPearlBonus = undefined;
         // Reset all face enhancements
         Object.values(this.faces).forEach(face => {
             face.enhancements.clear();
@@ -185,6 +196,11 @@ class Die {
         // Start with the face's modified value, ensuring it's never below 1
         let effectiveFace = Math.max(1, currentFaceData.modifiedValue || currentFaceData.value);
         
+        // Apply wild enhancement if set
+        if (this.wildValue !== undefined && this.hasEnhancementForCurrentFace('wild')) {
+            effectiveFace = this.wildValue;
+        }
+        
         // Apply temporary modifiers
         effectiveFace += this.tempModifier;
         
@@ -244,11 +260,7 @@ class Die {
         const currentFaceData = this.faces[this.currentFace];
         if (!currentFaceData) return false;
         
-        const hasEnhancement = currentFaceData.enhancements.has(enhancement);
-        if (hasEnhancement) {
-    
-        }
-        return hasEnhancement;
+        return currentFaceData.enhancements.has(enhancement);
     }
 
     // Summary string for tooltips: face-specific enhancements
@@ -279,12 +291,11 @@ class Die {
     // Get enhancement description
     getEnhancementDescription(enhancement) {
         const descriptions = {
-            'parchment': '1/6 chance for +1 Favour, 1/15 chance for +15 Gold when scored',
+            'parchment': '25% chance for +1 Favour, 15% chance for +5 Gold when scored',
             'iron': '+5 Pips when scored',
             'gold': '+1 Gold when scored',
-            'mother_of_pearl': 'Adds adjacent dice pips when scored',
-            'wild': 'Can be treated as +1 or -1 when scored (face-specific)',
-            'mirror': 'Copies the value of adjacent dice',
+            'mother_of_pearl': 'Randomly selects adjacent die and adds its value',
+            'wild': 'Choose +1 or -1 from rolled value (click arrows)',
             'lucky': 'Has a 20% chance to count as 6',
             'cursed': 'Subtracts 1 from its value (minimum 1)',
             'divine': 'Always counts as 6',
@@ -307,12 +318,50 @@ class Die {
         this.currentFace = Math.max(GAME_BALANCE.MIN_DIE_FACE, Math.min(GAME_BALANCE.MAX_DIE_FACE, value));
     }
 
+    /**
+     * Set wild enhancement value (called by arrow selection UI)
+     * @param {number} value - The chosen value (+1 or -1 from rolled face)
+     */
+    setWildValue(value) {
+        if (this.hasEnhancementForCurrentFace('wild')) {
+            const baseFace = this.currentFace;
+            const newValue = Math.max(1, Math.min(6, baseFace + value));
+            this.wildValue = newValue;
+            Logger.debug(`Wild die ${this.dieId}: face ${baseFace} → ${newValue}`);
+        }
+    }
+
+    /**
+     * Process mother of pearl enhancement - randomly select adjacent die
+     * @param {Die[]} allDice - Array of all dice
+     * @param {number} dieIndex - Index of this die in the array
+     */
+    processMotherOfPearl(allDice, dieIndex) {
+        if (!this.hasEnhancementForCurrentFace('mother_of_pearl')) {
+            return;
+        }
+
+        // Find adjacent dice
+        const adjacentDice = [];
+        if (dieIndex > 0) adjacentDice.push({ die: allDice[dieIndex - 1], index: dieIndex - 1 });
+        if (dieIndex < allDice.length - 1) adjacentDice.push({ die: allDice[dieIndex + 1], index: dieIndex + 1 });
+
+        if (adjacentDice.length > 0) {
+            // Randomly select one adjacent die
+            const randomAdjacent = adjacentDice[Math.floor(Math.random() * adjacentDice.length)];
+            this.motherOfPearlBonus = randomAdjacent.die.getEffectiveFace();
+            Logger.debug(`Mother of Pearl die ${this.dieId}: selected adjacent die ${randomAdjacent.die.dieId} (value: ${this.motherOfPearlBonus})`);
+        }
+    }
+
     // Get a copy of this die
     clone() {
         const newDie = new Die(this.dieId);
         newDie.currentFace = this.currentFace;
         newDie.isLocked = this.isLocked;
         newDie.tempModifier = this.tempModifier;
+        newDie.wildValue = this.wildValue;
+        newDie.motherOfPearlBonus = this.motherOfPearlBonus;
         
         // Clone all face data
         Object.entries(this.faces).forEach(([faceNum, faceData]) => {
@@ -339,7 +388,9 @@ class Die {
             faces: facesData,
             isLocked: this.isLocked,
             tempModifier: this.tempModifier,
-            dieId: this.dieId
+            dieId: this.dieId,
+            wildValue: this.wildValue,
+            motherOfPearlBonus: this.motherOfPearlBonus
         };
     }
 
@@ -349,6 +400,8 @@ class Die {
         this.isLocked = data.isLocked || false;
         this.tempModifier = data.tempModifier || 0;
         this.dieId = data.dieId || null;
+        this.wildValue = data.wildValue;
+        this.motherOfPearlBonus = data.motherOfPearlBonus;
         
         if (data.faces) {
             Object.entries(data.faces).forEach(([faceNum, faceData]) => {

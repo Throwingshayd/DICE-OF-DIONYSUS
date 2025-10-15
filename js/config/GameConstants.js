@@ -23,6 +23,7 @@ const GAME_BALANCE = {
     // Economy - Balatro-inspired
     SHOP_REROLL_COST: 4,  // Increased from 2 - rerolls are now expensive!
     FREE_REROLLS_PER_ANTE: 1,
+    GOLD_PER_SCORE: 1,  // Gold gained when scoring (no gold on scratches)
     
     // Interest system (NEW - Balatro-inspired)
     INTEREST_RATE: 5,  // +1 gold per 5 saved
@@ -92,9 +93,9 @@ const RARITY_WEIGHTS = {
  * @const {Object}
  */
 const ENHANCEMENT_CHANCES = {
-    PARCHMENT_FAVOUR_CHANCE: 1/6,    // 16.67% for +1 favour
-    PARCHMENT_GOLD_CHANCE: 1/15,     // 6.67% for +15 gold
-    WILD_EFFECT_CHANCE: 0.5,         // 50% for positive/negative
+    PARCHMENT_FAVOUR_CHANCE: 0.25,   // 25% for +1 favour (improved from 16.67%)
+    PARCHMENT_GOLD_CHANCE: 0.15,     // 15% for +5 gold (improved from 6.67%)
+    // Removed WILD_EFFECT_CHANCE - wild now always gives +1 pips
 };
 
 // Export for use in other files

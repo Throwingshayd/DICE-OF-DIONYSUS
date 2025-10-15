@@ -137,9 +137,13 @@ const AssetMapping = {
 
     // Helper function to get asset path for a card
     getCardAsset(cardId, cardType) {
+        // Boons (jokers) use fallback white design - no assets
+        if (cardType === 'joker') {
+            return null;
+        }
+        
         // Map card types to the correct mapping keys
         const typeMapping = {
-            'joker': 'jokers',
             'worship': 'worship',
             'libation': 'libations'
         };
@@ -172,6 +176,17 @@ const AssetMapping = {
     // Helper function to get god asset
     getGodAsset(godName) {
         return this.gods[godName] || null;
+    },
+
+    // Helper function to get artifact asset
+    getArtifactAsset(artifactId) {
+        // Artifacts use white fallback (no images) - like Balatro vouchers
+        return null;
+    },
+
+    // Helper function to get boon asset (always returns null for white fallback)
+    getBoonAsset(boonId) {
+        return null; // All boons use white fallback design
     },
 
     // Helper function to get full asset path
