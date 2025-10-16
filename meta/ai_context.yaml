@@ -9,6 +9,26 @@ project:
   buildTool: "Vite"
   targetPlatforms: ["Web", "PWA", "Electron"]
 
+# === AI LEARNING REFERENCES ===
+# All .md files in meta/ are for AI learning and reference
+# When updating game systems, update these files:
+aiLearningFiles:
+  primary: "meta/development_workflow.md"  # Master guide - game mechanics, timing, formulas
+  boonReference: "meta/CONSOLIDATED_BOON_REFERENCE.md"  # All boon patterns and implementations
+  designPrinciples: "meta/BALATRO_DESIGN_PRINCIPLES.md"  # Balatro-inspired design system
+  definitiveMethods: "meta/definitive_methods_reference.md"  # Method documentation
+  performance: "meta/performance_notes.md"  # Performance guidelines
+  buttonAnalysis: "meta/BALATRO_BUTTON_ANALYSIS.md"  # UI/UX patterns
+  thisFile: "meta/ai_context.yaml"  # Project structure and rules
+
+# Maintenance workflow:
+# - Boon added/updated → Update CONSOLIDATED_BOON_REFERENCE.md
+# - Shop/economy changed → Update development_workflow.md + BALATRO_DESIGN_PRINCIPLES.md
+# - UI pattern added → Update BALATRO_DESIGN_PRINCIPLES.md
+# - Bug fixed → Update development_workflow.md (bug fixes section)
+# - Performance change → Update performance_notes.md
+# See: meta/META_MAINTENANCE_GUIDE.md
+
 architecture:
   pattern: "Class-based OOP with separation of concerns"
   stateManagement: "Single source of truth in GameEngine.state"
@@ -61,6 +81,7 @@ coreModules:
       Inheritance hierarchy: Card → Joker/WorshipCard/LibationCard
       Jokers use timing-based effect system
       All new boons go in gameData.js + Joker.js switch statement
+      **When adding/updating boons: Update meta/CONSOLIDATED_BOON_REFERENCE.md**
       
   dieSystem:
     file: "js/classes/Die.js"
@@ -75,12 +96,15 @@ gameMechanics:
   scoring:
     priority: critical
     dependencies: [ScoringConstants, worshipLevels, enhancements]
+    reference: "meta/development_workflow.md (Scoring Formula section)"
     guidance: |
       Pips (base score) × Favour (multiplier) = Final Score
       Worship cards add +1 favour per category
       Enhancements modify pips (Iron: +5, etc.)
+      Sequential animation shows calculation step-by-step
       
   progression:
+    reference: "meta/development_workflow.md (Ante Progression section)"
     guidance: |
       13 turns per ante
       Score threshold increases each ante
@@ -88,11 +112,13 @@ gameMechanics:
       Shop phase between turns
       
   economy:
+    reference: "meta/BALATRO_DESIGN_PRINCIPLES.md (Economy System section)"
     guidance: |
       Starting gold: 15
       Shop reroll cost: 2 (3 after free reroll used)
       Cards have cost and sellValue
       Gold earned from: scoring, card effects, enhancements
+      **When changing economy: Update BALATRO_DESIGN_PRINCIPLES.md**
 
 dataManagement:
   gameData:
@@ -101,6 +127,7 @@ dataManagement:
     guidance: |
       Central registry for all game content
       New cards always start here
+      **When adding cards: Update meta/CONSOLIDATED_BOON_REFERENCE.md**
       
   anteData:
     file: "js/data/AnteData_js.js"
@@ -119,14 +146,17 @@ dataManagement:
       ALL magic numbers go here
       Never hardcode values in logic
       Easy balance tweaking
+      **When changing constants: Update meta/development_workflow.md**
 
 criticalPatterns:
   seededRNG:
     priority: critical
+    reference: "meta/CONSOLIDATED_BOON_REFERENCE.md (Edge Case Protections)"
     guidance: |
       ALWAYS use this.prng.random() or this.prng.randomInt()
       NEVER use Math.random()
       Required for deterministic gameplay and testing
+      **CRITICAL BUG:** Mother of Pearl (Die.js:351) uses Math.random() - needs fix
       
   logging:
     priority: high
@@ -136,23 +166,28 @@ criticalPatterns:
       Provides export/download functionality
       
   timing:
-    priority: high
+    priority: critical
+    reference: "meta/CONSOLIDATED_BOON_REFERENCE.md (Timing System)"
     guidance: |
       Joker effects use timing system:
+      - turn_start: ONLY in nextTurn(), never in executeRoll()
       - before_roll: Before dice roll
-      - before_score: Before scoring calculation
+      - before_score: Before scoring calculation (main phase for bonuses)
       - after_score: After score confirmed
-      - turn_start: Start of turn
       - turn_end: End of turn
+      - ante_end: End of ante
+      **CRITICAL:** turn_start must be in nextTurn() AFTER setting default rolls
       
   cardEffects:
     priority: critical
+    reference: "meta/CONSOLIDATED_BOON_REFERENCE.md (Implementation Patterns)"
     guidance: |
       New joker effects:
       1. Add to gameData.js with timing
       2. Implement in Joker.js applyTimingEffect() switch
       3. Test with deterministic seed
-      4. Document in card_database.csv
+      4. Document in tracking/card_database.csv
+      5. **Update meta/CONSOLIDATED_BOON_REFERENCE.md with new pattern**
 
 terminology:
   enforced:
@@ -182,13 +217,14 @@ debugging:
     Use browser console, not separate test files
     Test with specific seeds for reproducibility
     Use Logger for tracing
-    Reference BUGS_FIXED_LOG.md for past issues
+    Reference tracking/BUGS_FIXED_LOG.md for past issues
 
 technicalDebt:
   knownIssues:
     - "UIManager.js too large (1900 lines) - split deferred"
     - "Some console.log remain - migrating to Logger"
     - "Limited automated tests - manual browser testing"
+    - "Mother of Pearl uses Math.random() instead of prng (breaks determinism)"
   futureConsiderations:
     - "Event system (pub/sub)"
     - "TypeScript migration (not now)"
@@ -202,6 +238,7 @@ aiInstructions:
       - "Focus on hot loops (rollDice, calculateScore, render)"
       - "Cache calculations where safe"
       - "Preserve deterministic behavior"
+      - "Update meta/performance_notes.md if optimization pattern is reusable"
     dont:
       - "Add new dependencies"
       - "Change architecture without benchmarking"
@@ -215,22 +252,34 @@ aiInstructions:
       - "Add to gameData.js first"
       - "Implement in appropriate class"
       - "Test with seed"
+      - "**Update meta/CONSOLIDATED_BOON_REFERENCE.md if adding boon**"
+      - "**Update meta/BALATRO_DESIGN_PRINCIPLES.md if adding UI pattern**"
     dont:
       - "Create new card types without asking"
       - "Introduce new game mechanics without thematic names"
       - "Break existing card interactions"
+      - "Forget to update meta/ learning files"
       
   whenFixing:
     do:
       - "Use Logger.error() to log"
-      - "Check BUGS_FIXED_LOG.md"
+      - "Check tracking/BUGS_FIXED_LOG.md"
       - "Test with deterministic seeds"
       - "Verify save/load compatibility"
       - "Update CHANGELOG.md"
+      - "**Update meta/development_workflow.md if bug fix reveals pattern**"
     dont:
       - "Hide symptoms instead of fixing root cause"
       - "Break backwards save compatibility"
       - "Remove error handling to 'clean up'"
+  
+  whenUpdatingShop:
+    do:
+      - "Update meta/BALATRO_DESIGN_PRINCIPLES.md (Economy System)"
+      - "Update meta/development_workflow.md if mechanics changed"
+      - "Test economy balance thoroughly"
+      - "Document in CHANGELOG.md"
+    location: "js/ui/UIManager.js (shop methods)"
 
 behaviorExpectations:
   good:
@@ -239,12 +288,14 @@ behaviorExpectations:
     - "Respect existing architecture"
     - "Ask before introducing new concepts"
     - "Provide seeds for testing"
+    - "Update meta/ files when adding game parameters/patterns"
   bad:
     - "Restructure codebase 'for best practices'"
     - "Add frameworks 'because modern'"
     - "Change working code 'to be cleaner'"
     - "Introduce terminology without theming"
     - "Break backwards compatibility"
+    - "Add features without updating meta/ learning files"
 
 philosophy: |
   This is a WORKING GAME with players.
@@ -254,4 +305,7 @@ philosophy: |
   
   Respect what works. Improve incrementally.
   Always preserve the player experience.
+  
+  **NEW:** Keep meta/ files updated for AI learning.
+  All game parameters, patterns, and design principles belong in meta/.
 

@@ -21,11 +21,12 @@ const BASE_SCORES = {
  */
 const LOWER_SECTION_BONUSES = {
     'Three of a Kind': 15,
-    'Four of a Kind': 20,
+    'Small Straight': 20,
     'Full House': 25,
-    'Small Straight': 30,
+    'Four of a Kind': 30,
     'Large Straight': 40,
     'Yahtzee': 50,
+    'Chance': 0,
 };
 
 /**

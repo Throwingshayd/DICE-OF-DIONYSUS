@@ -31,6 +31,11 @@ class App {
             window.balatroEffects.initialize();
         }
         
+        // Initialize juice system
+        if (window.juiceIntegration) {
+            window.juiceIntegration.initialize();
+        }
+        
         // Make globally available
         window.dataManager = this.dataManager;
         window.uiManager = this.uiManager;

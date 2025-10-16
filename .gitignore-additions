@@ -1,0 +1,44 @@
+# Additions to .gitignore for Dice of Dionysus
+# Add these lines to your existing .gitignore file
+
+# Windows system files
+desktop.ini
+Thumbs.db
+
+# Temporary session files
+SESSION_STATE.json
+SAVE_CONFIRMATION.txt
+
+# User-specific IDE files
+*.code-workspace
+!DICE\ OF\ DIONYSUS\ WORKING.code-workspace
+
+# Backup directories (optional - comment out if you want to track backups)
+BACKUP_*/
+MODERNIZED_BACKUP_*/
+archive/
+
+# Local development files
+.vscode/settings.json
+.idea/
+*.swp
+*.swo
+*~
+
+# Testing and debug files
+test-saves/
+debug-logs/
+*.log
+
+# Node modules and build artifacts (should already be in .gitignore)
+node_modules/
+dist/
+.parcel-cache/
+.cache/
+
+# OS-specific files
+.DS_Store
+._.DS_Store
+**/.DS_Store
+**/._.DS_Store
+

@@ -39,6 +39,7 @@ class GameEngine {
             jokers: [],
             artifacts: [],
             consumables: [],
+            packs: [], // Track opened packs for collection
             
             // Slots (capacities)
             boonSlots: GAME_BALANCE.STARTING_BOON_SLOTS,
@@ -893,13 +894,19 @@ class GameEngine {
                 // After showing addition, update to new total
                 setTimeout(() => {
                     liveScoreEl.innerHTML = `<span class="pips pips-pulse">${currentPips}</span>`;
+                    
+                    // Juice the live score display (Balatro-style)
+                    if (window.juiceManager) {
+                        window.juiceManager.juiceUp(liveScoreEl, 0.3);
+                    }
                 }, 150);
             }, delay);
         });
         
-        // Step 1.5: Add category bonus (like Full House +25)
+        // Step 1.5: Add category bonus (like Full House +25) - only for categories that don't include it in base pips
         const categoryBonus = LOWER_SECTION_BONUSES[category] || 0;
-        if (categoryBonus > 0) {
+        const shouldShowBonus = categoryBonus > 0 && !['Small Straight', 'Large Straight', 'Yahtzee', 'Full House', 'Three of a Kind', 'Four of a Kind'].includes(category);
+        if (shouldShowBonus) {
             delay += 200; // Pause after dice
             setTimeout(() => {
                 const prevPips = currentPips;
@@ -969,7 +976,7 @@ class GameEngine {
                         liveScoreEl.innerHTML = `
                             <span class="pips">${Math.floor(currentPips)}</span>
                             <span class="multiply-symbol"> × </span>
-                            <span class="favour favour-pulse">${currentFavour.toFixed(1)}</span>
+                            <span class="favour favour-pulse">${this.formatFavour(currentFavour)}</span>
                         `;
                     }, 150);
                 }
@@ -982,10 +989,15 @@ class GameEngine {
             liveScoreEl.innerHTML = `
                 <span class="pips">${Math.floor(pips)}</span>
                 <span class="multiply-symbol"> × </span>
-                <span class="favour">${favour.toFixed(1)}</span>
+                <span class="favour">${this.formatFavour(favour)}</span>
                 <span class="equals-symbol"> = </span>
                 <span class="score-preview">0</span>
             `;
+            
+            // Juice when showing the multiplication (Balatro-style)
+            if (window.juiceManager) {
+                window.juiceManager.juiceUp(liveScoreEl, 0.4);
+            }
             
             const finalSpan = liveScoreEl.querySelector('.score-preview');
             
@@ -1214,10 +1226,13 @@ class GameEngine {
      */
     jiggleDie(dieIndex) {
         const dieElements = document.querySelectorAll('.die');
-        if (dieElements[dieIndex]) {
-            dieElements[dieIndex].classList.add('die-scoring-jiggle');
+        const dieElement = dieElements[dieIndex];
+        
+        // Jiggle any die that contributed to the score (held or not)
+        if (dieElement) {
+            dieElement.classList.add('die-scoring-jiggle');
             setTimeout(() => {
-                dieElements[dieIndex].classList.remove('die-scoring-jiggle');
+                dieElement.classList.remove('die-scoring-jiggle');
             }, 400);
         }
     }
@@ -1545,8 +1560,8 @@ class GameEngine {
     checkAndAwardLowerBonus() {
         if (this.state.lowerBonusAwarded) return;
         const lowerCats = [
-            "Three of a Kind", "Four of a Kind", "Full House",
-            "Small Straight", "Large Straight", "Yahtzee", "Chance"
+            "Three of a Kind", "Small Straight", "Full House",
+            "Four of a Kind", "Large Straight", "Yahtzee", "Chance"
         ];
         const allScored = lowerCats.every(cat => this.state.scorecard[cat] !== undefined);
         if (allScored) {
@@ -1711,7 +1726,7 @@ class GameEngine {
                     }
                     
                     if (Object.values(counts).some(c => c >= threeKindThreshold)) {
-                        pips = faces.reduce((a, b) => a + b, 0);
+                        pips = faces.reduce((a, b) => a + b, 0) + LOWER_SECTION_BONUSES['Three of a Kind'];
                         
                         // Add virtual die value
                         if (hasBellows) {
@@ -1739,7 +1754,7 @@ class GameEngine {
                     }
                     
                     if (Object.values(counts).some(c => c >= fourKindThreshold)) {
-                        pips = faces.reduce((a, b) => a + b, 0);
+                        pips = faces.reduce((a, b) => a + b, 0) + LOWER_SECTION_BONUSES['Four of a Kind'];
                         
                         // Add virtual die value
                         if (hasBellows) {
@@ -1767,7 +1782,7 @@ class GameEngine {
                 const hasTwoPairs = pairCount >= 2;
                 
                 if ((hasThreeOfKind && hasPair) || (hasDionysusRevelry && hasTwoPairs)) {
-                    pips = faces.reduce((a, b) => a + b, 0);
+                    pips = faces.reduce((a, b) => a + b, 0) + LOWER_SECTION_BONUSES['Full House'];
                     isValid = true;
                     
                     if (hasDionysusRevelry && hasTwoPairs && !(hasThreeOfKind && hasPair)) {
@@ -1790,7 +1805,7 @@ class GameEngine {
                         }
                     }
                     if (run >= SCORING_THRESHOLDS.SMALL_STRAIGHT_LENGTH) {
-                        pips = BASE_SCORES.SMALL_STRAIGHT;
+                        pips = faces.reduce((a, b) => a + b, 0) + LOWER_SECTION_BONUSES['Small Straight'];
                         isValid = true;
                     }
                 }
@@ -1810,7 +1825,7 @@ class GameEngine {
                         }
                     }
                     if (run >= SCORING_THRESHOLDS.LARGE_STRAIGHT_LENGTH) {
-                        pips = BASE_SCORES.LARGE_STRAIGHT;
+                        pips = faces.reduce((a, b) => a + b, 0) + LOWER_SECTION_BONUSES['Large Straight'];
                         isValid = true;
                     }
                 }
@@ -1818,7 +1833,7 @@ class GameEngine {
                 
             case "Yahtzee":
                 if (Object.values(counts).some(c => c >= SCORING_THRESHOLDS.YAHTZEE_REQUIRED)) {
-                    pips = BASE_SCORES.YAHTZEE;
+                    pips = faces.reduce((a, b) => a + b, 0) + LOWER_SECTION_BONUSES['Yahtzee'];
                     isValid = true;
                 }
                 break;
@@ -1831,10 +1846,7 @@ class GameEngine {
                 break;
         }
         
-        // Apply flat pip bonuses for lower section categories to reward scoring there
-        if (isValid && LOWER_SECTION_BONUSES[category]) {
-            pips += LOWER_SECTION_BONUSES[category];
-        }
+        // Note: Lower section bonuses are now applied directly in each case statement
 
         // Apply boss blind penalties
         if (this.state.activeBlind === 'half_upper_pips' && 
@@ -2029,7 +2041,7 @@ class GameEngine {
     areAllCategoriesFilled() {
         // Get all available categories (including unlocked high categories)
         const upperCats = ["Ones", "Twos", "Threes", "Fours", "Fives", "Sixes"];
-        const lowerCats = ["Three of a Kind", "Four of a Kind", "Full House", "Small Straight", "Large Straight", "Yahtzee", "Chance"];
+        const lowerCats = ["Three of a Kind", "Small Straight", "Full House", "Four of a Kind", "Large Straight", "Yahtzee", "Chance"];
         
         // Add high categories if unlocked
         const highCats = [];
@@ -2062,7 +2074,7 @@ class GameEngine {
 
             // Compute tally numbers BEFORE resetting state
             const upperCats = ["Ones","Twos","Threes","Fours","Fives","Sixes"];
-            const lowerCats = ["Three of a Kind","Four of a Kind","Full House","Small Straight","Large Straight","Yahtzee","Chance"];
+            const lowerCats = ["Three of a Kind","Small Straight","Full House","Four of a Kind","Large Straight","Yahtzee","Chance"];
             const sumUpper = upperCats.reduce((s,c)=> s + (this.state.scorecard[c] || 0), 0);
             const sumLower = lowerCats.reduce((s,c)=> s + (this.state.scorecard[c] || 0), 0);
             const upperBonus = sumUpper >= 63 ? 35 : 0;
@@ -2307,6 +2319,8 @@ class GameEngine {
                 <span class="favour">0</span>
             `;
             el.classList.add('visible');
+            this.lastPreviewPips = 0;
+            this.lastPreviewFavour = 0;
             return;
         }
         
@@ -2331,6 +2345,10 @@ class GameEngine {
             pips = eventData.pips;
             favour = eventData.favour * (eventData.favourMult || 1); // Apply multiplicative favour
             
+            // Calculate deltas for Balatro-style feedback
+            const pipsDelta = this.lastPreviewPips !== undefined ? pips - this.lastPreviewPips : 0;
+            const favourDelta = this.lastPreviewFavour !== undefined ? favour - this.lastPreviewFavour : 0;
+            
             // PREVIEW MODE: Just show pips × favour (no final result yet!)
             // The suspenseful calculation happens when you CONFIRM
             el.innerHTML = `
@@ -2339,6 +2357,15 @@ class GameEngine {
                 <span class="favour">${favour}</span>
             `;
             el.classList.add('visible');
+            
+            // Juice the display if values changed (Balatro-style)
+            if (window.juiceManager && (pipsDelta !== 0 || favourDelta !== 0)) {
+                window.juiceManager.juiceUp(el, 0.3);
+            }
+            
+            // Store for next comparison
+            this.lastPreviewPips = pips;
+            this.lastPreviewFavour = favour;
             
         } else {
             // Invalid hand - show N/A
@@ -2570,4 +2597,19 @@ class GameEngine {
     // Cash out functionality removed as requested
 
     // All cash out methods removed as requested
+    
+    /**
+     * Format favour value to remove unnecessary decimals
+     * Shows "1" instead of "1.0", "1.5" stays as "1.5"
+     * @param {number} favour - Favour value to format
+     * @returns {string} Formatted favour string
+     */
+    formatFavour(favour) {
+        // If it's a whole number, return without decimal
+        if (favour === Math.floor(favour)) {
+            return Math.floor(favour).toString();
+        }
+        // Otherwise show one decimal place
+        return favour.toFixed(1);
+    }
 }

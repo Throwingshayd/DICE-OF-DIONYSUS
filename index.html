@@ -6,6 +6,7 @@
     <title>Dice of Dionysus</title>
     <link rel="stylesheet" href="css/styles.css">
     <link rel="stylesheet" href="css/balatro-effects.css">
+    <link rel="stylesheet" href="css/juice-effects.css">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=IM+Fell+English+SC&family=VT323&display=swap" rel="stylesheet">
@@ -17,7 +18,7 @@
         <div class="modal-content" style="text-align: center; border-color: var(--accent-green);">
             <div class="start-options">
                 <button class="divine-button" id="playButton">Play</button>
-                <button class="divine-button" id="collectionButton" style="background: var(--bg-light-green);">Collection</button>
+                <button class="divine-button" id="collectionButton" style="background: var(--bg-light-green);">Anthology</button>
                 <input type="text" id="seedInput" placeholder="Enter Seed (optional)" style="padding: 12px 20px; border-radius: 8px; border: 2px solid var(--stone-terracotta); background: rgba(0,0,0,0.3); color: var(--text-light); font-family: 'DisneyHeroic', sans-serif; font-size: 1rem; min-width: 200px;">
             </div>
         </div>
@@ -91,6 +92,13 @@
                 <div class="artifactSection">
                     <div class="artifact-slots" id="artifactSlots">
                         <h3>Divine Artifacts</h3>
+                    </div>
+                </div>
+                
+                <!-- Packs section -->
+                <div class="packsSection">
+                    <div class="pack-slots" id="packSlots">
+                        <h3>Opened Packs</h3>
                     </div>
                 </div>
             </div>
@@ -204,8 +212,8 @@
                                 <span class="potential-score">-</span>
                             </div>
                         </div>
-                        <div class="score-row" data-category="Four of a Kind">
-                            <span>Four of a Kind (Ares)</span>
+                        <div class="score-row" data-category="Small Straight">
+                            <span>Small Straight (Hermes)</span>
                             <div class="score-details">
                                 <span class="potential-score">-</span>
                             </div>
@@ -216,8 +224,8 @@
                                 <span class="potential-score">-</span>
                             </div>
                         </div>
-                        <div class="score-row" data-category="Small Straight">
-                            <span>Small Straight (Hermes)</span>
+                        <div class="score-row" data-category="Four of a Kind">
+                            <span>Four of a Kind (Ares)</span>
                             <div class="score-details">
                                 <span class="potential-score">-</span>
                             </div>
@@ -406,8 +414,8 @@
                                     <span class="potential-score">-</span>
                                 </div>
                             </div>
-                            <div class="score-row" data-category="Four of a Kind">
-                                <span>Four of a Kind (Ares)</span>
+                            <div class="score-row" data-category="Small Straight">
+                                <span>Small Straight (Hermes)</span>
                                 <div class="score-details">
                                     <span class="potential-score">-</span>
                                 </div>
@@ -418,8 +426,8 @@
                                     <span class="potential-score">-</span>
                                 </div>
                             </div>
-                            <div class="score-row" data-category="Small Straight">
-                                <span>Small Straight (Hermes)</span>
+                            <div class="score-row" data-category="Four of a Kind">
+                                <span>Four of a Kind (Ares)</span>
                                 <div class="score-details">
                                     <span class="potential-score">-</span>
                                 </div>
@@ -527,6 +535,9 @@
     <script src="js/utils/seededRNG.js"></script>
     <script src="js/utils/Logger.js"></script>
     <script src="js/utils/dataManager.js"></script>
+    <script src="js/utils/JuiceManager.js"></script>
+    <script src="js/utils/SequentialAnimator.js"></script>
+    <script src="js/utils/ParticleSystem.js"></script>
     <script src="js/config/GameConstants.js"></script>
     <script src="js/config/ScoringConstants.js"></script>
     <script src="js/config/UIConstants.js"></script>
@@ -544,6 +555,7 @@
     <script src="js/ui/UIManager.js"></script>
     <script src="js/ui/BalatroEffects.js"></script>
     <script src="js/ui/MusicManager.js"></script>
+    <script src="js/ui/JuiceIntegration.js"></script>
     <script src="js/Main.js"></script>
 
     <!-- Cash out feature removed as requested -->

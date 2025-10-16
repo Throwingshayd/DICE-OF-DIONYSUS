@@ -432,11 +432,12 @@ class Joker extends Card {
             
             case 'hestias_hearth':
                 // +3 Favour if all dice are odd OR all dice are even
-                const allOdd = gameState.dice.every(die => die.face % 2 === 1);
-                const allEven = gameState.dice.every(die => die.face % 2 === 0);
+                const allOdd = gameState.dice.every(die => die.getEffectiveFace() % 2 === 1);
+                const allEven = gameState.dice.every(die => die.getEffectiveFace() % 2 === 0);
                 
                 if (allOdd || allEven) {
                     result.favour += 3;
+                    this.dynamicStats.favour = 3;
                     window.game?.showMessage?.(`Hestia's Hearth: +3 Favour (all ${allOdd ? 'odd' : 'even'})!`);
                 }
                 break;

@@ -47,6 +47,7 @@ class UIManager {
             jokerSlots: document.getElementById('jokerSlots'),
             consumableSlots: document.getElementById('consumableSlots'),
             artifactSlots: document.getElementById('artifactSlots'),
+            // packSlots will be found dynamically due to timing issues
             
             // Shop elements
             shopOverlay: document.getElementById('shopOverlay'),
@@ -675,8 +676,9 @@ class UIManager {
             
             // Upper/Lower bonus rows are informational only
             if (category === 'Upper Bonus') {
-                const v = (['Ones','Twos','Threes','Fours','Fives','Sixes']
-                    .reduce((sum, c) => sum + (gameState.scorecard[c] || 0), 0) >= 63) ? 35 : 0;
+                const upperSum = ['Ones','Twos','Threes','Fours','Fives','Sixes']
+                    .reduce((sum, c) => sum + (gameState.scorecard[c] || 0), 0);
+                const v = (Math.round(upperSum) >= 63) ? 35 : 0;
                 row.classList.remove('used');
                 row.querySelector('.potential-score').textContent = v > 0 ? v : '-';
                 row.style.cursor = 'default';
@@ -684,7 +686,7 @@ class UIManager {
             }
             if (category === 'Lower Bonus') {
                 const lowerCats = [
-                    'Three of a Kind','Four of a Kind','Full House','Small Straight','Large Straight','Yahtzee','Chance'
+                    'Three of a Kind','Small Straight','Full House','Four of a Kind','Large Straight','Yahtzee','Chance'
                 ];
                 const complete = lowerCats.every(c => gameState.scorecard[c] !== undefined);
                 row.classList.remove('used');
@@ -730,10 +732,10 @@ class UIManager {
             const scoreDisplay = row.querySelector('.potential-score');
             
             if (gameState.scorecard[category] !== undefined) {
-                // Category already scored - show final score
+                // Category already scored - show final score (rounded)
                 row.classList.add('used');
                 row.classList.remove('available-category');
-                scoreDisplay.textContent = gameState.scorecard[category];
+                scoreDisplay.textContent = Math.round(gameState.scorecard[category]);
             } else {
                 // Category not scored - don't show preview (that's what Gnosis is for!)
                 row.classList.remove('used');
@@ -798,6 +800,7 @@ class UIManager {
         this.updateJokerUI(gameState, gameEngine);
         this.updateConsumableUI(gameState, gameEngine);
         this.updateArtifactUI(gameState);
+        this.updatePacksUI(gameState);
     }
 
     updateJokerUI(gameState, gameEngine) {
@@ -906,6 +909,54 @@ class UIManager {
         });
     }
 
+    updatePacksUI(gameState) {
+        let container = this.dom.packSlots;
+        
+        // Fallback: try to find the element dynamically
+        if (!container) {
+            container = document.getElementById('packSlots');
+            if (container) {
+                this.dom.packSlots = container; // Cache it for next time
+            }
+        }
+        
+        // Add error handling for missing element
+        if (!container) {
+            Logger.warn('packSlots element not found');
+            return;
+        }
+        
+        container.innerHTML = '';
+        
+        if (gameState.packs.length === 0) {
+            container.innerHTML = '<div style="text-align: center; opacity: 0.6; width: 100%;">No packs opened yet</div>';
+            return;
+        }
+        
+        gameState.packs.forEach(pack => {
+            const packEl = document.createElement('div');
+            packEl.className = 'card pack-card';
+            packEl.dataset.packType = pack.type;
+            
+            // Get pack asset
+            const packAsset = AssetMapping.getPackAsset(pack.type);
+            if (packAsset) {
+                const assetPath = AssetMapping.getAssetPath(packAsset);
+                if (assetPath) {
+                    packEl.style.backgroundImage = `url('${assetPath}')`;
+                    packEl.classList.add('has-asset');
+                }
+            }
+            
+            packEl.innerHTML = `
+                <div class="pack-title">${pack.name}</div>
+                <div class="pack-description">Opened: ${new Date(pack.openedAt).toLocaleDateString()}</div>
+            `;
+            
+            container.appendChild(packEl);
+        });
+    }
+
 
 
     // Ensure shop DOM elements are properly bound
@@ -952,7 +1003,7 @@ class UIManager {
         
         if (this.dom.shopGold) this.dom.shopGold.textContent = gameState.gold;
         if (this.dom.shopAnte) this.dom.shopAnte.textContent = gameState.ante;
-        if (this.dom.interestDisplay) this.dom.interestDisplay.textContent = `+${interest}`;
+        // Interest display removed - handled by GameEngine
         
         if (this.dom.packOpeningView) this.dom.packOpeningView.classList.add('hidden');
         if (this.dom.shopDefaultView) this.dom.shopDefaultView.classList.remove('hidden');
@@ -1083,34 +1134,34 @@ class UIManager {
             let cardType;
             
             if (rand < 0.4) {
-                // 40% chance for joker
-                cardData = this.selectCardByRarity(CardData.jokers, gameEngine.prng);
-                cardType = 'joker';
+                // 40% chance for joker - use simple random selection
+                const availableJokers = CardData.jokers.filter(card => !card.shopExclude);
+                if (availableJokers.length > 0) {
+                    cardData = availableJokers[Math.floor(gameEngine.prng.random() * availableJokers.length)];
+                    cardType = 'joker';
+                }
             } else if (rand < 0.7) {
-                // 30% chance for worship
-                cardData = this.selectCardByRarity(CardData.worship, gameEngine.prng);
-                cardType = 'worship';
+                // 30% chance for worship - use simple random selection
+                const availableWorship = CardData.worship.filter(card => !card.shopExclude);
+                if (availableWorship.length > 0) {
+                    cardData = availableWorship[Math.floor(gameEngine.prng.random() * availableWorship.length)];
+                    cardType = 'worship';
+                }
             } else {
-                // 30% chance for libation
-                cardData = this.selectCardByRarity(CardData.libations, gameEngine.prng);
-                cardType = 'libation';
+                // 30% chance for libation - use simple random selection
+                const availableLibations = CardData.libations.filter(card => !card.shopExclude);
+                if (availableLibations.length > 0) {
+                    cardData = availableLibations[Math.floor(gameEngine.prng.random() * availableLibations.length)];
+                    cardType = 'libation';
+                }
             }
             
             if (cardData) {
-                // Create proper card instance based on type
-                let card;
-                if (cardType === 'joker') {
-                    card = new Joker(cardData);
-                } else if (cardType === 'worship') {
-                    card = new WorshipCard(cardData);
-                } else if (cardType === 'libation') {
-                    card = new LibationCard(cardData);
-                }
+                // Use createCardElement to ensure proper click handlers
+                const cardElement = this.createCardElement(cardData, 'direct', gameState, gameEngine);
                 
-                if (card) {
-                    const cardElement = card.render(true, true); // isShopItem, isDirectSale
-                    
-                    // Add Balatro-style slide-in animation
+                if (cardElement) {
+                    // Add slide-in animation
                     cardElement.classList.add('shop-item-slide-in');
                     cardElement.style.animationDelay = `${this.shopItemIndex * 0.08}s`;
                     this.shopItemIndex++;
@@ -1139,7 +1190,7 @@ class UIManager {
             
             const packElement = this.createPackElement(packData, gameState, gameEngine);
             
-            // Add Balatro-style slide-in animation
+            // Add slide-in animation
             packElement.classList.add('shop-item-slide-in');
             packElement.style.animationDelay = `${this.shopItemIndex * 0.08}s`;
             this.shopItemIndex++;
@@ -1148,16 +1199,6 @@ class UIManager {
         }
     }
 
-    selectCardByRarity(cardArray, prng) {
-        if (!cardArray || cardArray.length === 0) return null;
-        
-        // Filter out shop-excluded cards (like legendary boons)
-        const availableCards = cardArray.filter(card => !card.shopExclude);
-        if (availableCards.length === 0) return null;
-        
-        // Simple random selection for now
-        return availableCards[Math.floor(prng.random() * availableCards.length)];
-    }
 
     createCardElement(cardData, type, gameState, gameEngine) {
         let cardInstance;
@@ -1170,6 +1211,12 @@ class UIManager {
             cardEl = cardInstance.render(true, true); // isShopItem, isDirectSale
         } else {
             // For other types, create appropriate instances
+            Logger.debug('Creating card element:', { 
+                cardId: cardData.id, 
+                rarity: cardData.rarity, 
+                type: type 
+            });
+            
             if (cardData.rarity === 'worship') {
                 cardInstance = new WorshipCard(cardData);
             } else if (cardData.rarity === 'libation') {
@@ -1182,28 +1229,72 @@ class UIManager {
         
         // Add click handler to buy label
         const buyLabel = cardEl.querySelector('.buy-sell-label.buy');
+        Logger.debug('Setting up buy button click handler:', { 
+            cardId: cardData.id, 
+            hasBuyLabel: !!buyLabel,
+            type: type,
+            cardInstanceType: cardInstance ? cardInstance.constructor.name : 'N/A' 
+        });
+        
         if (buyLabel) {
             buyLabel.addEventListener('click', (e) => {
                 e.stopPropagation();
-                this.createRippleEffect(buyLabel, e);
+                Logger.debug('Buy button clicked:', { 
+                    cardId: cardData.id, 
+                    type: type,
+                    cost: cardData.cost 
+                });
                 
-                if (type === 'artifact') {
-                    this.buyArtifact(cardData, gameState, gameEngine, cardEl);
-                } else {
-                    this.buyCard(cardInstance, gameState, gameEngine, cardEl);
+                try {
+                    Logger.debug('About to call createRippleEffect...');
+                    this.createRippleEffect(buyLabel, e);
+                    
+                    if (type === 'artifact') {
+                        Logger.debug('About to call buyArtifact...');
+                        this.buyArtifact(cardData, gameState, gameEngine, cardEl);
+                        Logger.debug('buyArtifact completed');
+                    } else {
+                        Logger.debug('About to call buyCard...');
+                        this.buyCard(cardInstance, gameState, gameEngine, cardEl);
+                        Logger.debug('buyCard completed');
+                    }
+                } catch (error) {
+                    Logger.error('Error in Buy button click handler:', error);
                 }
             });
+        } else {
+            Logger.warn('Buy label not found for shop card:', cardData.id);
         }
         
         // For pack cards, add "Take" functionality
         if (type === 'pack') {
             const takeLabel = cardEl.querySelector('.buy-sell-label.take');
+            Logger.debug('Setting up pack card click handler:', { 
+                cardId: cardData.id, 
+                hasTakeLabel: !!takeLabel,
+                cardInstanceType: cardInstance.constructor.name 
+            });
+            
             if (takeLabel) {
                 takeLabel.addEventListener('click', (e) => {
                     e.stopPropagation();
-                    this.createRippleEffect(takeLabel, e);
-                    this.claimCard(cardInstance, gameState, gameEngine, cardEl);
+                    Logger.debug('Take button clicked for card:', { 
+                        cardId: cardData.id, 
+                        cardInstanceType: cardInstance.constructor.name 
+                    });
+                    
+                    try {
+                        Logger.debug('About to call createRippleEffect...');
+                        this.createRippleEffect(takeLabel, e);
+                        Logger.debug('About to call claimCard...');
+                        this.claimCard(cardInstance, gameState, gameEngine, cardEl);
+                        Logger.debug('claimCard completed');
+                    } catch (error) {
+                        Logger.error('Error in Take button click handler:', error);
+                    }
                 });
+            } else {
+                Logger.warn('Take label not found for pack card:', cardData.id);
             }
         }
         
@@ -1212,24 +1303,38 @@ class UIManager {
 
     createPackElement(packData, gameState, gameEngine) {
         const pack = document.createElement('div');
-        pack.className = 'pack-card';
+        pack.className = `card pack-card pack-${packData.type}`;
         pack.dataset.packType = packData.type;
+        
+        // CSS will handle the background images with the pack-{type} classes
         
         pack.innerHTML = `
             <div class="pack-title">${packData.name}</div>
             <div class="pack-description">${packData.description}</div>
             <div class="pack-cost">${packData.cost}g</div>
-            <button class="pack-button buy-button" data-pack-type="${packData.type}">Buy</button>
+            <div class="buy-sell-label buy" data-pack-type="${packData.type}">Buy</div>
         `;
         
         // Add click handler
-        const buyButton = pack.querySelector('.buy-button');
-        buyButton.addEventListener('click', (e) => {
-            e.stopPropagation();
-            this.purchasePack(packData, gameState, gameEngine);
-        });
+        const buyLabel = pack.querySelector('.buy-sell-label.buy');
+        if (buyLabel) {
+            buyLabel.addEventListener('click', (e) => {
+                e.stopPropagation();
+                this.purchasePack(packData, gameState, gameEngine);
+            });
+        }
         
         return pack;
+    }
+
+    getPackName(packType) {
+        const packNames = {
+            'joker': 'Boon Pack',
+            'worship': 'Worship Pack', 
+            'libation': 'Libation Pack',
+            'chaos': 'Chaos Pack'
+        };
+        return packNames[packType] || 'Unknown Pack';
     }
 
     purchaseCard(cardData, type, gameState, gameEngine) {
@@ -1294,10 +1399,18 @@ class UIManager {
         // Generate pack contents
         const packContents = this.generatePackContents(packData, gameState, gameEngine);
         
+        // Safety check for pack contents
+        if (!packContents || !Array.isArray(packContents) || packContents.length === 0) {
+            Logger.error('Failed to generate pack contents:', { packData, packContents });
+            gameEngine.showMessage('Failed to open pack - no contents generated');
+            return;
+        }
+        
         // Display pack contents
         const packRevealedCards = document.getElementById('packRevealedCards');
         if (packRevealedCards) {
             packRevealedCards.innerHTML = '<h4>Pack Contents</h4>';
+            packRevealedCards.dataset.packType = packData.type; // Store pack type for collection tracking
             packContents.forEach(cardData => {
                 const cardElement = this.createCardElement(cardData, 'pack', gameState, gameEngine);
                 packRevealedCards.appendChild(cardElement);
@@ -1313,11 +1426,11 @@ class UIManager {
             let cardData;
             
             if (packData.type === 'joker') {
-                cardData = this.selectCardByRarity(CardData.jokers, gameEngine.prng);
+                cardData = this.selectCardByRarity(CardData.jokers, gameEngine, gameState);
             } else if (packData.type === 'worship') {
-                cardData = this.selectCardByRarity(CardData.worship, gameEngine.prng);
+                cardData = this.selectCardByRarity(CardData.worship, gameEngine, gameState);
             } else if (packData.type === 'libation') {
-                cardData = this.selectCardByRarity(CardData.libations, gameEngine.prng);
+                cardData = this.selectCardByRarity(CardData.libations, gameEngine, gameState);
             }
             
             if (cardData) {
@@ -1416,6 +1529,11 @@ class UIManager {
     // This ensures that cards associated with 7's, 8's, and 9's categories
     // only appear in the shop after the required bonus Yahtzees have been scored
     filterCardsByUnlockedCategories(cardPool, gameState) {
+        if (!cardPool || !Array.isArray(cardPool)) {
+            Logger.warn('filterCardsByUnlockedCategories: cardPool is not a valid array:', cardPool);
+            return [];
+        }
+        
         const filteredCards = cardPool.filter(card => {
             // Check if this card is associated with a locked category
             const lockedCards = {
@@ -1464,16 +1582,22 @@ class UIManager {
     selectCardByRarity(cardPool, gameEngine, gameState = null) {
         if (cardPool.length === 0) return null;
         
-        // Filter out shop-excluded cards (like legendary boons)
-        const availableCards = cardPool.filter(card => !card.shopExclude);
-        if (availableCards.length === 0) return null;
+        // For testing: allow all cards (bypass shopExclude and locked categories)
+        const availableCards = cardPool; // Use all cards for testing
+        Logger.debug(`Card pool size: ${cardPool.length}, Available after filtering: ${availableCards.length}`);
+        if (availableCards.length === 0) {
+            Logger.warn(`No available cards after filtering. Card pool:`, cardPool.map(c => ({ id: c.id, name: c.name, shopExclude: c.shopExclude })));
+            return null;
+        }
+        
+        Logger.debug(`Selecting card from ${availableCards.length} available cards`);
         
         // Use global rarity weights from constants
         const rarityWeights = {
             'rustic': RARITY_WEIGHTS.RUSTIC,
             'vibrant': RARITY_WEIGHTS.VIBRANT,
             'epic': RARITY_WEIGHTS.EPIC,
-            'legendary': 0,  // Legendary never appears in shop (weight 0)
+            'legendary': 10,  // For testing: allow legendary cards
             'worship': RARITY_WEIGHTS.WORSHIP,
             'libation': RARITY_WEIGHTS.LIBATION,
             'artifact': RARITY_WEIGHTS.ARTIFACT
@@ -1507,9 +1631,22 @@ class UIManager {
             return Math.max(1, baseWeight); // Ensure minimum weight of 1
         });
         
+        Logger.debug(`Weights array:`, weights);
+        Logger.debug(`Total weight:`, weights.reduce((sum, w) => sum + w, 0));
+        
         // Use the game engine's weighted choice method
-        const selectedIndex = gameEngine.prng.weightedChoice(cardPool, weights);
-        return cardPool[selectedIndex];
+        let selectedCard = gameEngine.prng.weightedChoice(availableCards, weights);
+        
+        // Fallback: if weighted choice fails, use simple random selection
+        if (!selectedCard) {
+            const randomIndex = Math.floor(gameEngine.prng.random() * availableCards.length);
+            selectedCard = availableCards[randomIndex];
+            Logger.debug(`Weighted choice failed, using random selection:`, selectedCard ? { id: selectedCard.id, name: selectedCard.name } : 'null');
+        } else {
+            Logger.debug(`Selected card:`, selectedCard ? { id: selectedCard.id, name: selectedCard.name } : 'null');
+        }
+        
+        return selectedCard;
     }
 
     // Get rarity distribution for debugging
@@ -1610,190 +1747,97 @@ class UIManager {
         cardEl.appendChild(rarityIndicator);
     }
 
-    generateDirectSales(container, gameState, gameEngine) {
 
-        const allCards = CardData.getAllCards();
-
-        
-        // Filter cards based on unlocked categories
-        const filteredCards = this.filterCardsByUnlockedCategories(allCards, gameState);
-
-        
-        // Check if we have enough cards after filtering
-        if (filteredCards.length === 0) {
-            container.innerHTML += '<p style="opacity: 0.7; text-align: center;">No cards available.</p>';
-            return;
-        }
-        
-        // Check if we have enough unique cards for direct sales
-        if (filteredCards.length < 2) {
-            container.innerHTML += `<p style="opacity: 0.7; text-align: center;">Not enough unique cards available (${filteredCards.length}/2 needed).</p>`;
-            return;
-        }
-        
-        // Create a copy of the filtered cards to avoid duplicates
-        const availableCards = [...filteredCards];
-        
-        // Temporarily disable rarity distribution logging
-        // console.log('Direct Sales Rarity Distribution:', this.getRarityDistribution(availableCards));
-        
-        for (let i = 0; i < 2; i++) {
-            // Temporarily use simple random selection to fix shop
-            if (availableCards.length === 0) break;
-            const randomIndex = Math.floor(gameEngine.prng.random() * availableCards.length);
-            const cardData = availableCards.splice(randomIndex, 1)[0];
-            let card;
-            
-            switch (cardData.class) {
-                case 'Joker':
-                    card = new Joker(cardData);
-                    break;
-                case 'WorshipCard':
-                    card = new WorshipCard(cardData);
-                    break;
-                case 'LibationCard':
-                    card = new LibationCard(cardData);
-                    break;
-                default:
-                    card = new Card(cardData);
-            }
-            
-    
-            const cardEl = card.render(true, true);
-            
-            // Temporarily disable rarity indicators to fix shop
-            // this.addRarityIndicator(cardEl, cardData.rarity);
-            
-            // Add click listener for buy labels with Balatro-style ripple effect
-            const buyLabel = cardEl.querySelector('.buy-sell-label.buy');
-            if (buyLabel) {
-                buyLabel.addEventListener('click', (e) => {
-                    e.stopPropagation();
-                    this.createRippleEffect(buyLabel, e);
-                    this.buyCard(card, gameState, gameEngine, cardEl);
-                });
-            }
-            container.appendChild(cardEl);
-        }
-    }
-
-    generatePackStock(container, gameState, gameEngine) {
-        let packPool = [...CardData.packs];
-        
-        if (gameState.activeBlind === 'no_worship') {
-            packPool = packPool.filter(p => p.type !== 'worship');
-        }
-        
-        // Check available cards for each type
-        const jokersAvailable = this.filterCardsByUnlockedCategories(CardData.jokers, gameState).length;
-        const worshipAvailable = this.filterCardsByUnlockedCategories(CardData.worship, gameState).length;
-        const libationsAvailable = this.filterCardsByUnlockedCategories(CardData.libations, gameState).length;
-        
-        console.log(`Available cards - Jokers: ${jokersAvailable}, Worship: ${worshipAvailable}, Libations: ${libationsAvailable}`);
-        
-        // Filter out pack types that would have no available cards
-        packPool = packPool.filter(pack => {
-            switch (pack.type) {
-                case 'joker':
-                    return jokersAvailable >= 3; // Need at least 3 unique cards for a pack
-                case 'worship':
-                    return worshipAvailable >= 3;
-                case 'libation':
-                    return libationsAvailable >= 3;
-                case 'chaos':
-                    return jokersAvailable > 0 || worshipAvailable > 0 || libationsAvailable > 0;
-                default:
-                    return true;
-            }
-        });
-        
-        console.log(`Pack pool size after filtering: ${packPool.length}`);
-        
-        // Check if we have enough unique packs
-        if (packPool.length < 2) {
-            container.innerHTML += `<p style="opacity: 0.7; text-align: center;">Not enough unique packs available (${packPool.length}/2 needed).</p>`;
-            return;
-        }
-        
-        for (let i = 0; i < 2; i++) {
-            if (packPool.length === 0) break;
-            
-            const packIndex = Math.floor(gameEngine.prng.random() * packPool.length);
-            const packData = packPool.splice(packIndex, 1)[0];
-            
-            const packEl = document.createElement('div');
-            packEl.className = `pack-card pack-${packData.type}`;
-            packEl.setAttribute('data-tooltip', JSON.stringify({
-                title: packData.name,
-                description: packData.description,
-                cost: `${packData.cost} Gold`
-            }));
-            packEl.innerHTML = '';
-            packEl.addEventListener('click', () => {
-                this.buyPack(packData.type, gameState, gameEngine);
-            });
-            container.appendChild(packEl);
-            console.log(`Added pack: ${packData.name}`);
-        }
-    }
 
     // Shop transaction methods
     buyArtifact(artifactData, gameState, gameEngine, element) {
+        Logger.debug('buyArtifact called:', { 
+            artifactId: artifactData?.id, 
+            artifactName: artifactData?.name,
+            cost: artifactData?.cost,
+            currentGold: gameState?.gold
+        });
+        
         // Tantalus' Curse: Cannot spend gold while active
         const hasTantalusCurse = gameState.jokers?.some(j => j.id === 'tantalus_curse');
         if (hasTantalusCurse) {
             gameEngine.showMessage("💰 Tantalus' Curse: Cannot spend gold!");
+            Logger.debug('Artifact purchase blocked by Tantalus Curse');
             return;
         }
         
         if (gameState.gold < artifactData.cost) {
             gameEngine.showMessage("Not enough gold for this artifact!");
+            Logger.debug('Artifact purchase blocked: insufficient gold');
             return;
         }
         
+        Logger.debug('Unlocking artifact...');
         if (window.dataManager) {
             window.dataManager.unlockItem('artifacts', artifactData.id);
         }
         
+        Logger.debug('Deducting gold and adding artifact to state...');
         gameEngine.updateGoldAnimated(-artifactData.cost, "artifact purchase");
         gameState.artifacts.push(artifactData);
         gameEngine.showMessage(`Acquired: ${artifactData.name}!`);
         
+        Logger.debug('Removing element and updating UI...');
         element.remove();
         if (this.dom.shopGold) {
-        this.dom.shopGold.textContent = gameState.gold;
+            this.dom.shopGold.textContent = gameState.gold;
         }
         
+        Logger.debug('Applying artifact effects...');
         gameEngine.applyArtifactEffects();
         gameEngine.updateAllUI();
+        Logger.debug('buyArtifact completed');
     }
 
     buyCard(card, gameState, gameEngine, element) {
+        Logger.debug('buyCard called:', { 
+            cardId: card?.id, 
+            cardName: card?.name,
+            cardType: card?.constructor?.name,
+            cost: card?.cost,
+            currentGold: gameState?.gold
+        });
+        
         // Tantalus' Curse: Cannot spend gold while active
         const hasTantalusCurse = gameState.jokers?.some(j => j.id === 'tantalus_curse');
         if (hasTantalusCurse) {
             gameEngine.showMessage("💰 Tantalus' Curse: Cannot spend gold!");
+            Logger.debug('Purchase blocked by Tantalus Curse');
             return;
         }
         
         if (gameState.gold < card.cost) {
             gameEngine.showMessage("Not enough gold!");
+            Logger.debug('Purchase blocked: insufficient gold');
             return;
         }
         
-
+        Logger.debug('Deducting gold...');
         gameEngine.updateGoldAnimated(-card.cost, "card purchase");
 
         // Add Balatro-style purchase effect
         if (window.balatroEffects && element) {
+            Logger.debug('Adding purchase effect...');
             window.balatroEffects.addCardPurchaseEffect(element);
         }
 
+        Logger.debug('Calling claimCard from buyCard...');
         this.claimCard(card, gameState, gameEngine, element);
     }
 
     claimCard(card, gameState, gameEngine, element) {
-
+        Logger.debug('claimCard called:', { 
+            cardId: card?.id, 
+            cardName: card?.name,
+            cardType: card?.constructor?.name,
+            elementId: element?.id,
+            parentId: element?.parentNode?.id
+        });
         
         // Check if this was claimed from a pack opening view and if pack is already claimed
         if (element?.parentNode?.id === 'packRevealedCards') {
@@ -1804,6 +1848,18 @@ class UIManager {
             }
             // Mark pack as claimed
             container.dataset.packClaimed = 'true';
+            
+            // Add pack to collection
+            const packType = container.dataset.packType;
+            if (packType) {
+                const packData = {
+                    type: packType,
+                    name: this.getPackName(packType),
+                    openedAt: Date.now()
+                };
+                gameState.packs.push(packData);
+                Logger.debug('Pack added to collection:', packData);
+            }
     
         }
         
@@ -1828,9 +1884,17 @@ class UIManager {
             card.applyWorship(gameState);
             
         } else if (card instanceof LibationCard) {
-    
+            Logger.debug('Claiming libation card:', { 
+                cardId: card.id, 
+                currentConsumables: gameState.consumables.length, 
+                maxSlots: gameState.consumableSlots 
+            });
+            
             if (gameState.consumables.length >= gameState.consumableSlots) {
-        
+                Logger.warn('Libation slots are full!', { 
+                    current: gameState.consumables.length, 
+                    max: gameState.consumableSlots 
+                });
                 gameEngine.showMessage("Libation slots are full!");
                 if (element?.parentNode?.id === 'shopDirectSales') {
                     gameEngine.updateGoldAnimated(card.cost, "refund");
@@ -1838,6 +1902,10 @@ class UIManager {
                 return;
             }
             gameState.consumables.push(card);
+            Logger.debug('Libation card added to consumables:', { 
+                newLength: gameState.consumables.length,
+                cardId: card.id 
+            });
         }
         
         if (element) {
@@ -1904,19 +1972,28 @@ class UIManager {
             return;
         }
         
-        // Balatro-style reroll: flip cards before regenerating
-        const allShopItems = document.querySelectorAll('.shop-section .card, .shop-section .pack-card');
-        allShopItems.forEach((item, index) => {
+        // Balatro-style reroll: flip cards before regenerating (ONLY direct sales, NOT packs or artifacts)
+        const directSalesContainer = document.getElementById('shopDirectSales');
+        const directSalesItems = directSalesContainer?.querySelectorAll('.card') || [];
+        
+        directSalesItems.forEach((item, index) => {
             item.classList.add('shop-item-flip-out');
             item.style.animationDelay = `${index * 0.05}s`;
         });
         
-        // Wait for flip animation before regenerating
+        // Wait for flip animation before regenerating (ONLY direct sales)
         setTimeout(() => {
             gameEngine.updateGoldAnimated(-GAME_BALANCE.SHOP_REROLL_COST, "reroll");
-        this.generateShopStock(gameState, gameEngine);
+            
+            // Only regenerate direct sales, leave packs and artifacts untouched
+            if (directSalesContainer) {
+                directSalesContainer.innerHTML = '<h4>Wares</h4>';
+                this.shopItemIndex = 0;
+                this.generateDirectSales(directSalesContainer, gameState, gameEngine);
+            }
+            
             if (this.dom.shopGold) {
-        this.dom.shopGold.textContent = gameState.gold;
+                this.dom.shopGold.textContent = gameState.gold;
             }
         }, 400);
     }
@@ -1971,6 +2048,12 @@ class UIManager {
         }
         
         gameState.gold -= packData.cost;
+        
+        // Mark pack as opened so it doesn't reappear in shop
+        if (!this.shopState.openedPacks) {
+            this.shopState.openedPacks = new Set();
+        }
+        this.shopState.openedPacks.add(packType);
         
         // Update gold display with animation
         if (this.dom.shopGold) {
@@ -2162,8 +2245,8 @@ class UIManager {
                 return this.generateChaosPackCardData(cardCount, gameState, gameEngine);
         }
         
-        // Filter cards based on unlocked categories
-        const filteredPool = this.filterCardsByUnlockedCategories(cardPool, gameState);
+        // For testing: use all cards (bypass locked categories filter)
+        const filteredPool = cardPool;
         
         if (filteredPool.length === 0) {
             return [];
@@ -2225,7 +2308,7 @@ class UIManager {
         
         for (let i = 0; i < cardCount; i++) {
             const randomType = cardTypes[Math.floor(gameEngine.prng.random() * cardTypes.length)];
-            const filteredPool = this.filterCardsByUnlockedCategories(randomType.pool, gameState);
+            const filteredPool = randomType.pool; // For testing: use all cards
             
             if (filteredPool.length > 0) {
                 const randomIndex = Math.floor(gameEngine.prng.random() * filteredPool.length);
@@ -2238,31 +2321,34 @@ class UIManager {
         return result;
     }
 
-    generatePackContents(packType, container, gameState, gameEngine) {
+    generatePackContentsForDisplay(packType, container, gameState, gameEngine) {
         let cardCount = 3;
-        let cardPool, CardClass;
+        let cardPool = [], CardClass;
         
         switch (packType) {
             case 'joker':
-                cardPool = CardData.jokers;
+                cardPool = CardData.jokers || [];
                 CardClass = Joker;
                 break;
             case 'worship':
-                cardPool = CardData.worship;
+                cardPool = CardData.worship || [];
                 CardClass = WorshipCard;
                 break;
             case 'libation':
-                cardPool = CardData.libations;
+                cardPool = CardData.libations || [];
                 CardClass = LibationCard;
                 break;
             case 'chaos':
                 // Special handling for chaos pack
                 this.generateChaosPackContents(container, gameState, gameEngine);
                 return;
+            default:
+                Logger.error(`Unknown pack type: ${packType}`);
+                return;
         }
         
-        // Filter cards based on unlocked categories
-        const filteredPool = this.filterCardsByUnlockedCategories(cardPool, gameState);
+        // For testing: use all cards (bypass locked categories filter)
+        const filteredPool = cardPool;
         
         console.log(`Pack type: ${packType}, Original pool size: ${cardPool.length}, Filtered pool size: ${filteredPool.length}`);
         
@@ -2314,35 +2400,25 @@ class UIManager {
                 cardEl.classList.add('selected');
             });
             
-            // Add Balatro-style take label for pack cards
-            const takeLabel = cardEl.querySelector('.buy-sell-label.buy');
-            if (takeLabel) {
-                takeLabel.textContent = 'Take';
-                takeLabel.classList.remove('buy');
-                takeLabel.classList.add('take');
-                Logger.debug(`Added Take button to card: ${card.name}`);
-                takeLabel.addEventListener('click', (e) => {
-                    e.stopPropagation(); // Prevent card click event
-                    this.createRippleEffect(takeLabel, e);
-                    Logger.debug(`Take button clicked for card: ${card.name}`);
-            
-                    // Disable all card interactions
-                    packCards.forEach(p => {
-                        p.element.style.pointerEvents = 'none';
-                        p.element.style.opacity = '0.5';
-                    });
-                    
-                    // Claim the selected card
-                    this.claimCard(card, gameState, gameEngine, cardEl);
-                    
-                    // Force close the pack opening view
-                    setTimeout(() => {
-                        this.closePackOpeningView();
-                    }, 100);
+            // Add double-click functionality for pack cards
+            cardEl.addEventListener('dblclick', (e) => {
+                e.stopPropagation();
+                Logger.debug(`Double-clicked pack card: ${card.name}`);
+        
+                // Disable all card interactions
+                packCards.forEach(p => {
+                    p.element.style.pointerEvents = 'none';
+                    p.element.style.opacity = '0.5';
                 });
-            } else {
-                Logger.debug(`No Take button found for card: ${card.name}`);
-            }
+                
+                // Claim the selected card
+                this.claimCard(card, gameState, gameEngine, cardEl);
+                
+                // Force close the pack opening view
+                setTimeout(() => {
+                    this.closePackOpeningView();
+                }, 100);
+            });
             
             container.appendChild(cardEl);
             packCards.push({ card, element: cardEl });
@@ -2358,10 +2434,10 @@ class UIManager {
             { pool: CardData.libations, class: LibationCard, name: 'Libation' }
         ];
         
-        // Filter all pools first to ensure we have available cards
+        // For testing: use all cards (bypass locked categories filter)
         const availablePools = allCardPools.map(pool => ({
             ...pool,
-            filteredPool: this.filterCardsByUnlockedCategories(pool.pool, gameState)
+            filteredPool: pool.pool // Use all cards for testing
         })).filter(pool => pool.filteredPool.length > 0);
         
         if (availablePools.length === 0) {
@@ -2430,35 +2506,25 @@ class UIManager {
                 cardEl.classList.add('selected');
             });
             
-            // Add Balatro-style take label for chaos pack cards
-            const takeLabel = cardEl.querySelector('.buy-sell-label.buy');
-            if (takeLabel) {
-                takeLabel.textContent = 'Take';
-                takeLabel.classList.remove('buy');
-                takeLabel.classList.add('take');
-                Logger.debug(`Added Take button to chaos card: ${card.name}`);
-                takeLabel.addEventListener('click', (e) => {
-                    e.stopPropagation(); // Prevent card click event
-                    this.createRippleEffect(takeLabel, e);
-                    Logger.debug(`Take button clicked for chaos card: ${card.name}`);
-            
-                    // Disable all card interactions
-                    packCards.forEach(p => {
-                        p.element.style.pointerEvents = 'none';
-                        p.element.style.opacity = '0.5';
-                    });
-                    
-                    // Claim the selected card
-                    this.claimCard(card, gameState, gameEngine, cardEl);
-                    
-                    // Force close the pack opening view
-                    setTimeout(() => {
-                        this.closePackOpeningView();
-                    }, 100);
+            // Add double-click functionality for chaos pack cards
+            cardEl.addEventListener('dblclick', (e) => {
+                e.stopPropagation();
+                Logger.debug(`Double-clicked chaos pack card: ${card.name}`);
+        
+                // Disable all card interactions
+                packCards.forEach(p => {
+                    p.element.style.pointerEvents = 'none';
+                    p.element.style.opacity = '0.5';
                 });
-            } else {
-                Logger.debug(`No Take button found for chaos card: ${card.name}`);
-            }
+                
+                // Claim the selected card
+                this.claimCard(card, gameState, gameEngine, cardEl);
+                
+                // Force close the pack opening view
+                setTimeout(() => {
+                    this.closePackOpeningView();
+                }, 100);
+            });
             
             container.appendChild(cardEl);
             packCards.push({ card, element: cardEl });
@@ -2514,7 +2580,7 @@ class UIManager {
         // Clear the revealed cards container
         const revealedContainer = document.getElementById('packRevealedCards');
         if (revealedContainer) {
-            revealedContainer.innerHTML = '<h4>Hover to see Take labels</h4>';
+            revealedContainer.innerHTML = '<h4>Double-click to claim a card</h4>';
             // Reset pack claimed state
             revealedContainer.dataset.packClaimed = 'false';
         } else {

@@ -189,6 +189,11 @@ const AssetMapping = {
         return null; // All boons use white fallback design
     },
 
+    // Helper function to get pack asset
+    getPackAsset(packType) {
+        return this.packs[packType] || null;
+    },
+
     // Helper function to get full asset path
     getAssetPath(assetName) {
         if (!assetName) return null;
