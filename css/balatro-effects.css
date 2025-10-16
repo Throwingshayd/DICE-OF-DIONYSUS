@@ -173,6 +173,120 @@
     75% { transform: translateX(-1px) rotate(-0.5deg); }
 }
 
+/* Balatro-style Scoring Animations */
+@keyframes dieScoringJiggle {
+    0%, 100% { transform: scale(1) rotate(0deg); }
+    15% { transform: scale(1.15) rotate(-3deg); }
+    30% { transform: scale(1.15) rotate(3deg); }
+    45% { transform: scale(1.15) rotate(-2deg); }
+    60% { transform: scale(1.15) rotate(2deg); }
+    75% { transform: scale(1.1) rotate(-1deg); }
+}
+
+@keyframes boonTriggerJiggle {
+    0%, 100% { transform: scale(1) translateY(0); }
+    10% { transform: scale(1.08) translateY(-5px); }
+    20% { transform: scale(1.12) translateY(-8px); }
+    35% { transform: scale(1.12) translateY(-8px); }
+    50% { transform: scale(1.08) translateY(-4px); }
+    65% { transform: scale(1.05) translateY(-2px); }
+    80% { transform: scale(1.02) translateY(-1px); }
+}
+
+.die-scoring-jiggle {
+    animation: dieScoringJiggle 0.4s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+    z-index: 10;
+}
+
+.boon-trigger-jiggle {
+    animation: boonTriggerJiggle 0.6s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+    z-index: 100 !important;
+}
+
+@keyframes floatUp {
+    0% {
+        opacity: 1;
+        transform: translateY(0) scale(1);
+    }
+    70% {
+        opacity: 1;
+        transform: translateY(-40px) scale(1.1);
+    }
+    100% {
+        opacity: 0;
+        transform: translateY(-60px) scale(0.8);
+    }
+}
+
+.floating-score-text {
+    text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.8);
+}
+
+/* Pulsing effects for live score */
+@keyframes pipsPulse {
+    0%, 100% { transform: scale(1); color: #ffffff; }
+    50% { transform: scale(1.2); color: #ffd700; }
+}
+
+@keyframes favourPulse {
+    0%, 100% { transform: scale(1); color: var(--accent-red-desat); }
+    50% { transform: scale(1.2); color: #ff6b6b; }
+}
+
+.pips-pulse {
+    animation: pipsPulse 0.3s ease-in-out;
+}
+
+.favour-pulse {
+    animation: favourPulse 0.3s ease-in-out;
+}
+
+/* Balatro-style sequential scoring display */
+.pips-adding,
+.favour-adding {
+    opacity: 0.5;
+    font-size: 0.85em;
+}
+
+/* All pip contributions use the purple color (same as pips) */
+.pip-contribution,
+.pip-contribution.boon-bonus {
+    color: #9370DB !important; /* Purple like main pips */
+    font-weight: 900;
+    text-shadow: 
+        0 0 15px rgba(147, 112, 219, 0.8),
+        0 0 30px rgba(147, 112, 219, 0.4),
+        2px 2px 4px rgba(0, 0, 0, 0.9);
+}
+
+/* Category bonuses (Full House +25, etc.) - extra bright */
+.pip-contribution.category-bonus {
+    color: #B19CD9 !important; /* Lighter purple for category bonus */
+    font-size: 1.15em;
+    text-shadow: 
+        0 0 20px rgba(177, 156, 217, 1),
+        0 0 40px rgba(177, 156, 217, 0.6),
+        2px 2px 4px rgba(0, 0, 0, 0.9);
+}
+
+/* Favour contributions use the red wine color */
+.favour-contribution {
+    color: #DC143C !important; /* Red wine like favour */
+    font-weight: 900;
+    text-shadow: 
+        0 0 15px rgba(220, 20, 60, 0.8),
+        0 0 30px rgba(220, 20, 60, 0.4),
+        2px 2px 4px rgba(0, 0, 0, 0.9);
+}
+
+.plus-symbol,
+.equals-symbol {
+    color: #CCCCCC;
+    margin: 0 6px;
+    opacity: 0.7;
+    font-size: 1.1em;
+}
+
 .die.bounce {
     animation: diceBounce 0.5s ease-out;
 }

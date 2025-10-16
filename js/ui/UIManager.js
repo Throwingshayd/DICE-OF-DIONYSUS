@@ -278,14 +278,14 @@ class UIManager {
             return;
         }
         
-        this.updateInfoUI(gameState);
+        this.updateInfoUI(gameState, gameEngine);
         this.updateDiceUI(gameState);
         this.updateScorecardUI(gameState);
         this.updateCollectionUI(gameState, gameEngine);
         this.updateBlindUI(gameState);
     }
 
-    updateInfoUI(gameState) {
+    updateInfoUI(gameState, gameEngine) {
         const anteIndex = gameState.ante - 1;
         let anteName;
         
@@ -297,7 +297,19 @@ class UIManager {
         }
         
         this.dom.anteDisplay.textContent = anteName.replace(': ', ' – ');
-        this.dom.turnDisplay.textContent = `${gameState.turn}/${gameState.maxTurns}`;
+        
+        // Check if all categories are filled
+        const allCategoriesFilled = gameEngine.areAllCategoriesFilled();
+        if (allCategoriesFilled) {
+            this.dom.turnDisplay.textContent = `All Categories Filled!`;
+            this.dom.turnDisplay.style.color = '#FFD700'; // Golden color
+            this.dom.turnDisplay.style.fontWeight = 'bold';
+        } else {
+            this.dom.turnDisplay.textContent = `${gameState.turn}/${gameState.maxTurns}`;
+            this.dom.turnDisplay.style.color = ''; // Reset color
+            this.dom.turnDisplay.style.fontWeight = ''; // Reset weight
+        }
+        
         this.dom.rollsLeft.textContent = `Rolls Left: ${gameState.rollsLeft}`;
         this.dom.goldDisplay.textContent = gameState.gold;
         this.dom.totalScore.textContent = `${gameState.totalScore} / ${gameState.scoreThreshold}`;
@@ -348,10 +360,40 @@ class UIManager {
             // Add enhancement glow if die has enhancements on the current face
             const currentFace = die.currentFace;
             const hasEnhancementsOnCurrentFace = currentFace > 0 && die.faces[currentFace] && die.faces[currentFace].enhancements.size > 0;
+            const hasModifiedValue = currentFace > 0 && die.faces[currentFace] && die.faces[currentFace].modifiedValue && die.faces[currentFace].modifiedValue !== die.faces[currentFace].value;
+            
             if (hasEnhancementsOnCurrentFace) {
                 dieEl.style.boxShadow = '0 0 10px rgba(255, 215, 0, 0.6)';
                 dieEl.style.border = '2px solid rgba(255, 215, 0, 0.8)';
                 dieEl.setAttribute('data-enhanced', 'true');
+            }
+            
+            // Add special indicator for permanently modified faces (Chalice/Elixir)
+            if (hasModifiedValue) {
+                dieEl.style.boxShadow = '0 0 15px rgba(138, 43, 226, 0.8)';
+                dieEl.style.border = '3px solid rgba(138, 43, 226, 1)';
+                dieEl.setAttribute('data-modified', 'true');
+                
+                // Add a small badge showing the modification
+                const modBadge = document.createElement('div');
+                modBadge.className = 'modification-badge';
+                modBadge.textContent = `${die.faces[currentFace].value}→${die.faces[currentFace].modifiedValue}`;
+                modBadge.style.cssText = `
+                    position: absolute;
+                    bottom: -8px;
+                    left: 50%;
+                    transform: translateX(-50%);
+                    background: rgba(138, 43, 226, 0.9);
+                    color: white;
+                    padding: 2px 6px;
+                    border-radius: 8px;
+                    font-size: 10px;
+                    font-weight: bold;
+                    white-space: nowrap;
+                    z-index: 10;
+                    border: 1px solid white;
+                `;
+                dieEl.appendChild(modBadge);
             }
             
             // Add die ID badge (small indicator showing which die this is)
@@ -417,7 +459,13 @@ class UIManager {
             
             // Add current face value
             if (currentFace > 0) {
-                tooltipText += `\nCurrent Value: ${die.getEffectiveFace()}`;
+                const effectiveFace = die.getEffectiveFace();
+                tooltipText += `\nCurrent Value: ${effectiveFace}`;
+                
+                // Show if face has been permanently modified
+                if (hasModifiedValue) {
+                    tooltipText += ` (Modified: ${die.faces[currentFace].value}→${die.faces[currentFace].modifiedValue})`;
+                }
             }
             
             // Add current face enhancements
@@ -1032,27 +1080,43 @@ class UIManager {
         for (let i = 0; i < numItems; i++) {
             const rand = gameEngine.prng.random();
             let cardData;
+            let cardType;
             
             if (rand < 0.4) {
                 // 40% chance for joker
                 cardData = this.selectCardByRarity(CardData.jokers, gameEngine.prng);
+                cardType = 'joker';
             } else if (rand < 0.7) {
                 // 30% chance for worship
                 cardData = this.selectCardByRarity(CardData.worship, gameEngine.prng);
+                cardType = 'worship';
             } else {
                 // 30% chance for libation
                 cardData = this.selectCardByRarity(CardData.libations, gameEngine.prng);
+                cardType = 'libation';
             }
             
             if (cardData) {
-                const cardElement = this.createCardElement(cardData, 'direct', gameState, gameEngine);
+                // Create proper card instance based on type
+                let card;
+                if (cardType === 'joker') {
+                    card = new Joker(cardData);
+                } else if (cardType === 'worship') {
+                    card = new WorshipCard(cardData);
+                } else if (cardType === 'libation') {
+                    card = new LibationCard(cardData);
+                }
                 
-                // Add Balatro-style slide-in animation
-                cardElement.classList.add('shop-item-slide-in');
-                cardElement.style.animationDelay = `${this.shopItemIndex * 0.08}s`;
-                this.shopItemIndex++;
-                
-                container.appendChild(cardElement);
+                if (card) {
+                    const cardElement = card.render(true, true); // isShopItem, isDirectSale
+                    
+                    // Add Balatro-style slide-in animation
+                    cardElement.classList.add('shop-item-slide-in');
+                    cardElement.style.animationDelay = `${this.shopItemIndex * 0.08}s`;
+                    this.shopItemIndex++;
+                    
+                    container.appendChild(cardElement);
+                }
             }
         }
     }
@@ -1087,8 +1151,12 @@ class UIManager {
     selectCardByRarity(cardArray, prng) {
         if (!cardArray || cardArray.length === 0) return null;
         
+        // Filter out shop-excluded cards (like legendary boons)
+        const availableCards = cardArray.filter(card => !card.shopExclude);
+        if (availableCards.length === 0) return null;
+        
         // Simple random selection for now
-        return cardArray[Math.floor(prng.random() * cardArray.length)];
+        return availableCards[Math.floor(prng.random() * availableCards.length)];
     }
 
     createCardElement(cardData, type, gameState, gameEngine) {
@@ -1165,6 +1233,13 @@ class UIManager {
     }
 
     purchaseCard(cardData, type, gameState, gameEngine) {
+        // Tantalus' Curse: Cannot spend gold while active
+        const hasTantalusCurse = gameState.jokers?.some(j => j.id === 'tantalus_curse');
+        if (hasTantalusCurse) {
+            gameEngine.showMessage("💰 Tantalus' Curse: Cannot spend gold!");
+            return;
+        }
+        
         if (gameState.gold < cardData.cost) {
             gameEngine.showMessage("Not enough gold!");
             return;
@@ -1389,18 +1464,23 @@ class UIManager {
     selectCardByRarity(cardPool, gameEngine, gameState = null) {
         if (cardPool.length === 0) return null;
         
+        // Filter out shop-excluded cards (like legendary boons)
+        const availableCards = cardPool.filter(card => !card.shopExclude);
+        if (availableCards.length === 0) return null;
+        
         // Use global rarity weights from constants
         const rarityWeights = {
             'rustic': RARITY_WEIGHTS.RUSTIC,
             'vibrant': RARITY_WEIGHTS.VIBRANT,
             'epic': RARITY_WEIGHTS.EPIC,
+            'legendary': 0,  // Legendary never appears in shop (weight 0)
             'worship': RARITY_WEIGHTS.WORSHIP,
             'libation': RARITY_WEIGHTS.LIBATION,
             'artifact': RARITY_WEIGHTS.ARTIFACT
         };
         
         // Calculate weights for each card based on rarity
-        const weights = cardPool.map(card => {
+        const weights = availableCards.map(card => {
             const rarity = card.rarity || 'rustic';
             let baseWeight = rarityWeights[rarity] || 50; // Default weight if rarity not found
             
@@ -1659,6 +1739,13 @@ class UIManager {
 
     // Shop transaction methods
     buyArtifact(artifactData, gameState, gameEngine, element) {
+        // Tantalus' Curse: Cannot spend gold while active
+        const hasTantalusCurse = gameState.jokers?.some(j => j.id === 'tantalus_curse');
+        if (hasTantalusCurse) {
+            gameEngine.showMessage("💰 Tantalus' Curse: Cannot spend gold!");
+            return;
+        }
+        
         if (gameState.gold < artifactData.cost) {
             gameEngine.showMessage("Not enough gold for this artifact!");
             return;
@@ -1682,10 +1769,14 @@ class UIManager {
     }
 
     buyCard(card, gameState, gameEngine, element) {
-
+        // Tantalus' Curse: Cannot spend gold while active
+        const hasTantalusCurse = gameState.jokers?.some(j => j.id === 'tantalus_curse');
+        if (hasTantalusCurse) {
+            gameEngine.showMessage("💰 Tantalus' Curse: Cannot spend gold!");
+            return;
+        }
         
         if (gameState.gold < card.cost) {
-    
             gameEngine.showMessage("Not enough gold!");
             return;
         }
@@ -1866,6 +1957,14 @@ class UIManager {
      */
     buyPack(packType, gameState, gameEngine) {
         const packData = CardData.packs.find(p => p.type === packType);
+        
+        // Tantalus' Curse: Cannot spend gold while active
+        const hasTantalusCurse = gameState.jokers?.some(j => j.id === 'tantalus_curse');
+        if (hasTantalusCurse) {
+            gameEngine.showMessage("💰 Tantalus' Curse: Cannot spend gold!");
+            return;
+        }
+        
         if (gameState.gold < packData.cost) {
             gameEngine.showMessage("Not enough gold!");
             return;

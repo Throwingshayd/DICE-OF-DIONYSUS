@@ -52,6 +52,7 @@ class Card {
     render(isShopItem = false, isDirectSale = false) {
         const el = document.createElement('div');
         el.className = `card ${this.type}-card ${this.rarity}`;
+        el.dataset.id = this.id; // Add data-id for animations and targeting
         
         // Get asset for this card
         const cardAsset = AssetMapping.getCardAsset(this.id, this.type);

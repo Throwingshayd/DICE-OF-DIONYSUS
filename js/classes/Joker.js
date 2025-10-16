@@ -152,13 +152,19 @@ class Joker extends Card {
         if (multiplier !== 1 && processedResult) {
             if (processedResult.pips !== undefined) {
                 processedResult.pips = Math.floor(processedResult.pips * multiplier);
+                // EDGE CASE: Ensure pips never negative
+                processedResult.pips = Math.max(0, processedResult.pips);
             }
             if (processedResult.favour !== undefined) {
                 processedResult.favour = processedResult.favour * multiplier;
+                // EDGE CASE: Ensure favour never negative
+                processedResult.favour = Math.max(0, processedResult.favour);
             }
             if (processedResult.favourMult !== undefined && processedResult.favourMult > 1) {
                 // Apply multiplier to multiplicative favour as well
                 processedResult.favourMult = processedResult.favourMult * multiplier;
+                // EDGE CASE: Ensure favourMult never below 1
+                processedResult.favourMult = Math.max(1, processedResult.favourMult);
             }
             if (processedResult.gold !== undefined) {
                 processedResult.gold = Math.floor(processedResult.gold * multiplier);
@@ -216,17 +222,6 @@ class Joker extends Card {
                 window.game?.showMessage?.("Prometheus' Gift: -1 re-roll!");
                 break;
             
-            case 'apollos_oracle':
-                // Preview the next roll - show what the dice will be
-                // Store prediction in gameState for UI to display
-                gameState.oraclePrediction = {
-                    active: true,
-                    faces: gameState.dice.map(() => Math.floor(Math.random() * 6) + 1)
-                };
-                window.game?.showMessage?.("🔮 Apollo's Oracle: The future is revealed... (Click to skip this roll)", 4000);
-                Logger.info("Apollo's Oracle activated - prediction available");
-                // Note: UI must handle showing prediction and allowing skip
-                break;
         }
         return result;
     }
@@ -380,18 +375,23 @@ class Joker extends Card {
                 }
                 break;
             
-            case 'kronos_hourglass':
-                // Reduce score by 20%
-                result.pips = Math.floor(result.pips * BOON_EFFECTS.KRONOS_HOURGLASS.SCORE_PENALTY);
-                window.game?.showMessage?.("Kronos' Hourglass: Score reduced by 20%!");
-                break;
             
             case 'pandoras_jar':
-                // Every 3rd turn, randomly destroy a Boon and gain ×2 Favour (MULTIPLICATIVE!)
+                // Every 3rd turn, randomly destroy a Boon and gain +2 Favour (stacking)
                 if (gameState.turn % 3 === 0 && gameState.jokers && gameState.jokers.length > 1) {
-                    result.favourMult *= 2;  // ×2 MULTIPLICATIVE (like Balatro's ×mult)
-                    window.game?.showMessage?.("Pandora's Jar: ×2 Favour! (Boon destroyed)");
+                    // Stack favour on the boon itself
+                    if (!this.pandoraFavourStacks) {
+                        this.pandoraFavourStacks = 0;
+                    }
+                    this.pandoraFavourStacks += 2;
+                    window.game?.showMessage?.("Pandora's Jar: +2 Favour (stacking)! Boon will be destroyed.");
                     // Destruction handled in turn_start
+                }
+                
+                // Apply accumulated stacks
+                if (this.pandoraFavourStacks > 0) {
+                    result.favour += this.pandoraFavourStacks;
+                    this.dynamicStats.favour = this.pandoraFavourStacks;
                 }
                 break;
             
@@ -403,13 +403,13 @@ class Joker extends Card {
                 break;
             
             case 'midas_touch':
-                // +5 pips for every 10 Gold
-                const midasGold = Math.floor(gameState.gold / 10);
-                const midasBonus = midasGold * 5;
+                // +1 pip per 5 Gold
+                const midasGold = Math.floor(gameState.gold / 5);
+                const midasBonus = midasGold * 1;
                 if (midasBonus > 0) {
                     result.pips += midasBonus;
                     this.dynamicStats.pips = midasBonus;
-                    window.game?.showMessage?.(`Midas Touch: +${midasBonus} Pips from ${midasGold * 10} gold!`);
+                    window.game?.showMessage?.(`Midas Touch: +${midasBonus} Pips from ${midasGold * 5} gold!`);
                 }
                 break;
             
@@ -420,9 +420,9 @@ class Joker extends Card {
                 break;
             
             case 'icarus_wings':
-                // +15 Pips per unused roll (in addition to break chance in turn_end)
+                // +10 Pips per unused roll (in addition to break chance in turn_end)
                 const unusedRolls = gameState.rollsLeft;
-                const icarusBonus = unusedRolls * 15;
+                const icarusBonus = unusedRolls * 10;
                 if (icarusBonus > 0) {
                     result.pips += icarusBonus;
                     this.dynamicStats.pips = icarusBonus;
@@ -502,8 +502,8 @@ class Joker extends Card {
                 break;
             
             case 'tantalus_curse':
-                // +0.5 Favour for each gold, but cannot spend gold
-                const tantalusFavour = gameState.gold * 0.5;
+                // +0.1 Favour for each gold, but cannot spend gold
+                const tantalusFavour = gameState.gold * 0.1;
                 result.favour += tantalusFavour;
                 this.dynamicStats.favour = tantalusFavour;
                 if (tantalusFavour > 0) {
@@ -529,6 +529,12 @@ class Joker extends Card {
                 if (cerberusBonus > 0) {
                     window.game?.showMessage?.(`Cerberus' Watch: +${cerberusBonus} Pips for held dice!`);
                 }
+                break;
+            
+            case 'apollos_oracle':
+                // Apollo's Oracle: reduce score by 20%
+                result.pips = Math.floor(result.pips * 0.8);
+                window.game?.showMessage?.("Apollo's Oracle: -20% score penalty!");
                 break;
             
             case 'trojan_horse':
@@ -566,9 +572,9 @@ class Joker extends Card {
             
             // === NEW BOONS - Wave 2 ===
             case 'mathematicians_compass':
-                // +10 Pips if dice sum to even number
+                // +10 Pips if dice sum is divisible by 10
                 const diceSum = gameState.dice.reduce((sum, die) => sum + die.face, 0);
-                if (diceSum % 2 === 0) {
+                if (diceSum % 10 === 0) {
                     result.pips += 10;
                     window.game?.showMessage?.(`Mathematician's Compass: +10 Pips (sum: ${diceSum})!`);
                 }
@@ -657,7 +663,7 @@ class Joker extends Card {
                 break;
             
             case 'the_symposium':
-                // Each 4 of a kind or greater gives +×1 Favour
+                // Each 4 of a kind or greater gives +0.05 Favour (stacking)
                 const symposiumFaceCounts = {};
                 gameState.dice.forEach(die => {
                     symposiumFaceCounts[die.face] = (symposiumFaceCounts[die.face] || 0) + 1;
@@ -666,8 +672,18 @@ class Joker extends Card {
                 const hasFourOfKind = Object.values(symposiumFaceCounts).some(count => count >= 4);
                 
                 if (hasFourOfKind) {
-                    result.favour += 1;
-                    window.game?.showMessage?.("The Symposium: +×1 Favour!");
+                    // Stack favour on the boon itself
+                    if (!this.symposiumFavourStacks) {
+                        this.symposiumFavourStacks = 0;
+                    }
+                    this.symposiumFavourStacks += 0.05;
+                    result.favour += this.symposiumFavourStacks;
+                    this.dynamicStats.favour = this.symposiumFavourStacks;
+                    window.game?.showMessage?.(`The Symposium: +${this.symposiumFavourStacks.toFixed(2)} Favour!`);
+                } else if (this.symposiumFavourStacks > 0) {
+                    // Still apply accumulated stacks even if not triggering this turn
+                    result.favour += this.symposiumFavourStacks;
+                    this.dynamicStats.favour = this.symposiumFavourStacks;
                 }
                 break;
             
@@ -976,15 +992,8 @@ class Joker extends Card {
             
             // === NEW BOONS - After Score ===
             case 'dionysus_revelry':
-                // After scoring, randomly set ALL faces on one die to random values 1-6
-                const revelryDie = gameState.dice[Math.floor(Math.random() * gameState.dice.length)];
-                
-                Object.keys(revelryDie.faces).forEach(faceKey => {
-                    const randomValue = Math.floor(Math.random() * 6) + 1;
-                    revelryDie.faces[faceKey].modifiedValue = randomValue;
-                });
-                
-                window.game?.showMessage?.(`Dionysus' Revelry: One die's ALL faces randomized!`, 3000);
+                // Dionysus' Revelry handled in scoring logic - allows 2 pairs to score as Full House
+                // No after_score effect needed
                 break;
             
             case 'gamblers_charm':
@@ -1084,22 +1093,31 @@ class Joker extends Card {
                 window.game?.showMessage?.("Chaos Primordial: -1 re-roll!");
                 break;
             
-            case 'dionysus_revelry':
-                // Reset any previously modified faces from last turn
-                gameState.dice.forEach(die => {
-                    Object.keys(die.faces).forEach(faceKey => {
-                        if (die.faces[faceKey].modifiedValue !== undefined) {
-                            delete die.faces[faceKey].modifiedValue;
-                        }
-                    });
-                });
+            case 'apollos_oracle':
+                // Apollo's Oracle: +1 reroll per turn
+                gameState.rollsLeft += 1;
+                window.game?.showMessage?.("Apollo's Oracle: +1 reroll!");
                 break;
             
             // === NEW BOONS - Turn Start ===
             case 'kronos_hourglass':
-                // +2 Rolls permanently
-                gameState.rollsLeft = (GAME_BALANCE.STARTING_ROLLS + 2);
-                window.game?.showMessage?.("Kronos' Hourglass: +2 rolls!");
+                // At start of turn, set a random number of rerolls for this turn (1-5)
+                // Use seeded RNG if available on gameEngine; fall back to Math.random()
+                try {
+                    const engine = window.game || null;
+                    const rand = (engine && engine.prng && typeof engine.prng.random === 'function')
+                        ? engine.prng.random()
+                        : Math.random();
+                    // Rolls per turn = random integer in [1, 5]
+                    const rollsThisTurn = Math.floor(rand * 5) + 1;
+                    gameState.rollsLeft = rollsThisTurn;
+                    window.game?.showMessage?.(`Kronos' Hourglass: ${rollsThisTurn} rerolls this turn!`);
+                } catch (e) {
+                    // Safe fallback
+                    const rollsThisTurn = Math.floor(Math.random() * 5) + 1;
+                    gameState.rollsLeft = rollsThisTurn;
+                    window.game?.showMessage?.(`Kronos' Hourglass: ${rollsThisTurn} rerolls this turn!`);
+                }
                 break;
             
             case 'pandoras_jar':
@@ -1164,17 +1182,25 @@ class Joker extends Card {
             case 'parmenides_die':
                 // Clear previous parmenides marks
                 gameState.dice.forEach(d => {
-                    d.isParmenidesDie = false;
-                    d.oppositeValue = null;
+                    d.parmenideEnhanced = false;
                 });
                 
-                // Mark one random die as dual-value
+                // Pick one random die and randomly enhance one of its faces for this turn
                 const parmenidesDie = gameState.dice[Math.floor(Math.random() * gameState.dice.length)];
-                parmenidesDie.isParmenidesDie = true;
-                parmenidesDie.oppositeValue = 7 - parmenidesDie.face;
+                const parmenidesFaceKey = Math.floor(Math.random() * 6) + 1;
                 
-                window.game?.showMessage?.(`Parmenides: Die showing ${parmenidesDie.face} is now dual-value (${parmenidesDie.face}↔${parmenidesDie.oppositeValue})!`, 4000);
-                Logger.info(`Parmenides activated: Die value ${parmenidesDie.face} also counts as ${parmenidesDie.oppositeValue}`);
+                // Mark which die and face is enhanced
+                parmenidesDie.parmenideEnhanced = true;
+                parmenidesDie.parmenideEnhancedFace = parmenidesFaceKey;
+                
+                // Add a random enhancement type (parchment, iron, gold, mother_of_pearl, wild)
+                const enhancementTypes = ['parchment', 'iron', 'gold', 'mother_of_pearl', 'wild'];
+                const randomEnhancement = enhancementTypes[Math.floor(Math.random() * enhancementTypes.length)];
+                
+                parmenidesDie.faces[parmenidesFaceKey].enhancements.add(randomEnhancement);
+                
+                window.game?.showMessage?.(`Parmenides Die: Face ${parmenidesFaceKey} enhanced with ${randomEnhancement} for this turn!`, 4000);
+                Logger.info(`Parmenides activated: Enhanced face ${parmenidesFaceKey} with ${randomEnhancement}`);
                 break;
             
             case 'proteus_disguise':

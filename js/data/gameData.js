@@ -56,7 +56,7 @@ const CardData = {
             rarity: "rustic", 
             cost: 4, 
             sellValue: 2, 
-            effect: "Gain +5 pips for every 10 Gold you have when scoring.",
+            effect: "Gain +1 pip for every 5 Gold you have when scoring.",
             timing: { before_score: true }
         },
         { 
@@ -65,7 +65,7 @@ const CardData = {
             rarity: "vibrant", 
             cost: 5, 
             sellValue: 1, 
-            effect: "Each unused re-roll at the end of a turn gives +15 Pips to the score. Chance to break after turn 1 in 8.",
+            effect: "Each unused re-roll at the end of a turn gives +10 Pips to the score. Chance to break after turn 1 in 8.",
             timing: { before_score: true, turn_end: true }
         },
         { 
@@ -98,11 +98,12 @@ const CardData = {
         { 
             id: "chaos_primordial", 
             name: "Chaos Primordial", 
-            rarity: "epic", 
+            rarity: "legendary", 
             cost: 8, 
             sellValue: 2, 
             effect: "Doubles all Favour gains but you have one less re-roll each turn.",
-            timing: { before_score: true, turn_start: true }
+            timing: { before_score: true, turn_start: true },
+            shopExclude: true  // Legendary - not available in shop
         },
         { 
             id: "mt_olympus", 
@@ -131,9 +132,9 @@ const CardData = {
             rarity: "epic", 
             cost: 9, 
             sellValue: 2, 
-            effect: "Gain +2 Rolls permanently, but score reduced by 20%.",
+            effect: "Each turn, gain a random number of rolls (1-5). Time is unpredictable.",
             god: "Kronos",
-            timing: { turn_start: true, before_score: true }
+            timing: { turn_start: true }
         },
         { 
             id: "pandoras_jar", 
@@ -141,10 +142,9 @@ const CardData = {
             rarity: "epic", 
             cost: 8, 
             sellValue: 2, 
-            effect: "Every 3rd turn, randomly destroy a Boon and gain ×2 Favour (MULTIPLICATIVE!) for that turn.",
+            effect: "Every 3rd turn, randomly destroy a Boon and gain +2 Favour (stacks permanently).",
             god: "Pandora",
-            timing: { before_score: true, turn_start: true },
-            favourType: "multiplicative"  // Like Balatro's ×mult
+            timing: { before_score: true, turn_start: true }
         },
         
         // === VIBRANT TIER - Interesting Mechanics ===
@@ -174,9 +174,10 @@ const CardData = {
             rarity: "vibrant", 
             cost: 5, 
             sellValue: 1, 
-            effect: "After scoring, randomly set all die faces on one die to random values 1-6 for next turn.",
+            effect: "Dice showing 2 pairs can be scored as Full House.",
             god: "Dionysus",
-            timing: { after_score: true }
+            description: "The god of revelry bends the rules for celebration.",
+            timing: {}  // Special - modifies scoring logic
         },
         { 
             id: "apollos_oracle", 
@@ -184,10 +185,10 @@ const CardData = {
             rarity: "vibrant", 
             cost: 5, 
             sellValue: 1, 
-            effect: "Before rolling, see what the next roll will be. Can choose to skip it.",
+            effect: "+1 reroll per turn, reduce score input by 20%.",
             god: "Apollo",
-            description: "The god of prophecy grants foresight.",
-            timing: { before_roll: true }
+            description: "More chances but weakened results.",
+            timing: { turn_start: true, before_score: true }
         },
         { 
             id: "hydras_heads", 
@@ -205,7 +206,7 @@ const CardData = {
             rarity: "vibrant", 
             cost: 5, 
             sellValue: 1, 
-            effect: "+0.5 Favour for each gold you have, but cannot spend gold while active.",
+            effect: "+0.1 Favour for each gold you have, but cannot spend gold while active.",
             god: "Tantalus",
             description: "Punishment eternal: wealth you cannot touch.",
             timing: { before_score: true }
@@ -234,12 +235,13 @@ const CardData = {
         { 
             id: "trojan_horse", 
             name: "The Trojan Horse", 
-            rarity: "vibrant", 
-            cost: 5, 
-            sellValue: 1, 
+            rarity: "legendary", 
+            cost: 12, 
+            sellValue: 3, 
             effect: "After Turn 10, all your Boons give ×2 their normal effect.",
             description: "Hidden power revealed when the time is right.",
-            timing: { before_score: true }
+            timing: { before_score: true },
+            shopExclude: true  // Legendary - not available in shop
         },
         
         // === RUSTIC TIER - Simple but Effective ===
@@ -290,8 +292,8 @@ const CardData = {
             rarity: "rustic", 
             cost: 3, 
             sellValue: 1, 
-            effect: "+10 Pips if your dice sum to an even number.",
-            description: "Precision in mathematical patterns.",
+            effect: "+10 Pips if your dice sum is divisible by 10.",
+            description: "Precision in perfect tens.",
             timing: { before_score: true }
         },
         { 
@@ -371,8 +373,8 @@ const CardData = {
             rarity: "vibrant", 
             cost: 5, 
             sellValue: 1, 
-            effect: "Each 4 of a kind or greater of matching dice gives +×1 Favour.",
-            description: "A gathering of equals - celebration of multiples.",
+            effect: "Each time you score 4+ matching dice, gain +0.05 Favour (stacks permanently).",
+            description: "A gathering of equals - celebrations accumulate.",
             timing: { before_score: true }
         },
         { 
@@ -421,8 +423,8 @@ const CardData = {
             rarity: "epic", 
             cost: 8, 
             sellValue: 2, 
-            effect: "One random die each turn counts as both its value AND its opposite value (1↔6, 2↔5, 3↔4).",
-            description: "Quantum superposition - a die in two states at once.",
+            effect: "One random die face becomes randomly enhanced for that turn.",
+            description: "The philosopher of change - fate shifts with each turn.",
             god: "Parmenides",
             timing: { turn_start: true }
         },

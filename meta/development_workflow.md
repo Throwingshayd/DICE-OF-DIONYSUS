@@ -463,5 +463,116 @@ Update `.cursorrules` when:
 
 ---
 
+## 🎮 **GAME MECHANICS REFERENCE**
+
+### **Timing System (Balatro-Inspired)**
+Boons trigger at specific phases:
+1. **turn_start** - Called ONCE in nextTurn() AFTER setting default rolls (so boons can modify)
+2. **before_roll** - Before dice roll animation
+3. **after_roll** - After dice are rolled
+4. **before_score** - Before calculating final score (main phase for bonuses)
+5. **after_score** - After score is added
+6. **turn_end** - End of turn
+7. **ante_end** - End of ante (before shop)
+8. **sell** - When selling cards
+
+**CRITICAL:** turn_start must ONLY be in nextTurn(), never in executeRoll() or rollDice() (causes infinite triggers)
+
+### **Scoring Formula (Balatro-Style)**
+```javascript
+// Sequential calculation:
+basePips = sum of dice faces
++ enhancement bonuses (iron +5, mother of pearl, etc.)
++ category bonuses (Full House +25, Yahtzee +50, etc.)
++ boon pip bonuses (Midas, Icarus, etc.)
+= totalPips
+
+baseFavour = 1.5
++ boon favour bonuses (Hestia +3, Forge +0.5, etc.)
+= additiveFavour
+
+multiplicativeFavour = 1.0
+* boon multipliers (Pandora ×2, Carillon ×2.5, etc.)
+= totalMultiplier
+
+FINAL = (totalPips) × (additiveFavour × totalMultiplier)
+```
+
+### **Edge Case Protections (ALWAYS REQUIRED)**
+```javascript
+// Prevent negative pips
+pips = Math.max(0, pips);
+
+// Prevent zero favour (division by zero)
+favour = Math.max(0.1, favour);
+
+// Prevent negative rolls
+gameState.rollsLeft = Math.max(1, gameState.rollsLeft - penalty);
+
+// Prevent infinite loops (Narcissus)
+if (!gameState.narcissusDoubling) {
+    gameState.narcissusDoubling = true;
+    // Execute doubled effect
+    gameState.narcissusDoubling = false;
+}
+```
+
+### **Enhancement System**
+Each die has 6 faces, each face can have multiple enhancements:
+- **Parchment:** 15% chance +5 gold OR 25% chance +1 favour (mutually exclusive)
+- **Iron:** +5 pips when scored
+- **Gold:** +1 gold when scored
+- **Mother of Pearl:** Randomly selects adjacent die, adds its value
+- **Wild:** Player chooses +1 or -1 from rolled value
+
+Enhancements are face-specific and persist across turns.
+
+### **Legendary Boons (Shop Excluded)**
+Mark with `shopExclude: true` and `rarity: "legendary"`:
+- Trojan Horse (×2 all boons after turn 10)
+- Chaos Primordial (double favour, -1 roll)
+
+Shop filters these out in `selectCardByRarity()`.
+
+### **Boon Mechanic Categories**
+33 types: Conditional Favour, Gold Generation, Pips Bonus, Gold-Scaling, Unused Roll Bonus, Favour Multiplier, Multiplicative Favour, Roll Penalty, Roll Randomizer, Roll Counter, Permanent Modification, Auto-Hold, Auto-Reroll, Dice Transformation, Dice Counter, Hold Tracker, Turn Accumulator, Turn-Based Effects, Matching Counter, Slot Checker, Destruction, Pattern Detector, Dual-Value Modifier, Global Multiplier, Boon Mimic, Trigger Counter, Effect Doubler, Enhancement Counter, Threshold Reduction, Worship Spreader, Shop Block, Completion Bonus, Solo Tracker.
+
+See BOON_SPREADSHEET.csv and BOON_MECHANICS_GUIDE.md for details.
+
+### **Sequential Scoring Animation (Balatro-Style)**
+```
+1. Dice add pips one by one (150ms each, purple)
+2. Category bonus appears (Full House +25, etc.)
+3. Enhancement bonuses (iron, pearl, etc.)
+4. Boon bonuses (200ms each, purple/red)
+5. Final multiplication display
+6. Count-up to final score (1s)
+7. Screen shake + particles (if high)
+8. Place in scorecard with flash
+```
+
+Display shows math: "9 + 10 = 19" (purple for pips, red for favour)
+
+### **Critical Bug Fixes (Oct 16, 2025)**
+1. **Trojan Horse** - Fixed ID check (artifact vs boon)
+2. **Kronos' Hourglass** - Fixed infinite rolls (turn_start moved to nextTurn)
+3. **Tantalus' Curse** - Added gold blocking in all shop purchase methods
+4. **Parmenides Die** - Renamed variable to avoid redeclaration
+5. **Shop Cards** - Fixed instantiation (track cardType explicitly)
+6. **Hover Disruption** - Added isScoring flag to block hover during animations
+
+### **Balance Changes (Oct 16, 2025)**
+- Midas Touch: 5 pips/10g → 1 pip/5g (60% nerf)
+- Icarus' Wings: 15 pips/roll → 10 pips/roll (33% nerf)
+- Tantalus' Curse: 0.5 favour/gold → 0.1 favour/gold (80% nerf)
+- Mathematician's Compass: sum%2==0 → sum%10==0 (harder to trigger)
+- The Symposium: +1 favour → +0.05 stacking favour
+- Pandora's Jar: ×2 multiplicative → +2 additive stacking
+- Dionysus' Revelry: NEW - 2 pairs count as Full House
+- Apollo's Oracle: NEW - +1 roll/turn, -20% score
+- Parmenides Die: NEW - Random face enhancement each turn
+
+---
+
 **Remember**: AI is your pair programmer, not your replacement. Review everything, understand the changes, and maintain ownership of your codebase.
 

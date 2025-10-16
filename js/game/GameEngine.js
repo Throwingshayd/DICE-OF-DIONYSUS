@@ -9,6 +9,10 @@ class GameEngine {
     }
 
     initializeGameState() {
+        // Check for test mode in URL
+        const urlParams = new URLSearchParams(window.location.search);
+        const testMode = urlParams.get('test');
+        
         this.state = {
             // Core game state
             dice: Array(GAME_BALANCE.STARTING_DICE_COUNT).fill(0).map((_, index) => new Die(index + 1)),
@@ -102,6 +106,57 @@ class GameEngine {
                 'Nines': false
             }
         };
+        
+        // Apply test mode if enabled
+        if (testMode === 'highfaces') {
+            this.applyHighFacesTestMode();
+        }
+    }
+    
+    /**
+     * Test mode: Set up dice with 7s, 8s, and 9s for testing
+     */
+    applyHighFacesTestMode() {
+        Logger.info('🧪 TEST MODE: High Faces (7s, 8s, 9s) enabled');
+        
+        // Unlock all high categories
+        this.state.unlockedCategories.Sevens = true;
+        this.state.unlockedCategories.Eights = true;
+        this.state.unlockedCategories.Nines = true;
+        
+        // Modify dice faces to have 7s, 8s, and 9s
+        // Die 1: Face 6 → 7
+        this.state.dice[0].faces[6].modifiedValue = 7;
+        Logger.debug('Die 1: Face 6 → 7');
+        
+        // Die 2: Face 6 → 8
+        this.state.dice[1].faces[6].modifiedValue = 8;
+        Logger.debug('Die 2: Face 6 → 8');
+        
+        // Die 3: Face 6 → 9
+        this.state.dice[2].faces[6].modifiedValue = 9;
+        Logger.debug('Die 3: Face 6 → 9');
+        
+        // Die 4: Face 5 → 7
+        this.state.dice[3].faces[5].modifiedValue = 7;
+        Logger.debug('Die 4: Face 5 → 7');
+        
+        // Die 5: Face 4 → 8
+        this.state.dice[4].faces[4].modifiedValue = 8;
+        Logger.debug('Die 5: Face 4 → 8');
+        
+        // Give extra gold for testing
+        this.state.gold = 50;
+        
+        Logger.info('✅ Test mode applied: Dice now have faces with values 7, 8, and 9');
+        Logger.info('📋 Test Setup:');
+        Logger.info('  - Die 1: Face 6 = 7');
+        Logger.info('  - Die 2: Face 6 = 8');
+        Logger.info('  - Die 3: Face 6 = 9');
+        Logger.info('  - Die 4: Face 5 = 7');
+        Logger.info('  - Die 5: Face 4 = 8');
+        Logger.info('  - Categories Sevens, Eights, Nines unlocked');
+        Logger.info('  - Starting gold: 50');
     }
 
     setupEventListeners() {
@@ -187,8 +242,18 @@ class GameEngine {
                 const category = row.dataset.category;
                 if (category && category !== 'Upper Bonus' && category !== 'Lower Bonus') {
                     row.addEventListener('click', () => this.promptScore(category));
-                    row.addEventListener('mouseenter', () => this.updateLiveScoreDisplay(category));
-                    row.addEventListener('mouseleave', () => this.updateLiveScoreDisplay(null));
+                    row.addEventListener('mouseenter', () => {
+                        // Only update preview if not currently scoring
+                        if (!this.isScoring) {
+                            this.updateLiveScoreDisplay(category);
+                        }
+                    });
+                    row.addEventListener('mouseleave', () => {
+                        // Only clear preview if not currently scoring
+                        if (!this.isScoring) {
+                            this.updateLiveScoreDisplay(null);
+                        }
+                    });
                 }
             });
         }
@@ -380,9 +445,6 @@ class GameEngine {
      * Execute the actual dice roll (called after pre-roll animation)
      */
     executeRoll() {
-        // Apply joker effects that trigger at turn start (Balatro-inspired timing)
-        this.applyJokerTurnStartEffects();
-        
         // Apply joker effects that trigger at roll start (legacy)
         this.applyJokerRollEffects();
         
@@ -674,6 +736,10 @@ class GameEngine {
             // favour = (base favour + all +favour bonuses) × (all ×favour multipliers)
             favour = eventData.favour * (eventData.favourMult || 1);
             
+            // EDGE CASE PROTECTION: Ensure pips never negative, favour never zero
+            pips = Math.max(0, pips);
+            favour = Math.max(0.1, favour);
+            
             // Apply global bonuses
             if (this.state.globalBonuses.fivesToAll) {
                 const fivesCount = this.state.dice.filter(die => die.face === 5).length;
@@ -742,8 +808,8 @@ class GameEngine {
     }
     
     /**
-     * Balatro-style animated score reveal
-     * Shows pips, favour, multiplication, count-up, particles, and screen shake
+     * Balatro-style animated score reveal with sequential dice and boon animations
+     * Shows dice adding pips one by one, boons triggering, then final calculation
      * @param {string} category - Scoring category
      * @param {number} pips - Base pips
      * @param {number} favour - Multiplier
@@ -767,33 +833,169 @@ class GameEngine {
         
         const el = this.dom.liveScoreDisplay;
         
-        // Step 1: Show pips × favour = (500ms)
-        el.innerHTML = `
-            <span class="pips">${pips}</span>
-            <span class="multiply-symbol"> × </span>
-            <span class="favour">${favour}</span>
-            <span class="equals-symbol"> = </span>
-        `;
-        el.classList.add('visible');
+        // BALATRO-STYLE SEQUENTIAL SCORING:
+        // 1. Dice jiggle and add pips one by one
+        // 2. Boons jiggle and add bonuses
+        // 3. Show final multiplication
+        // 4. Count up to final score
         
+        this.animateSequentialScoring(category, pips, favour, finalScore, el, scoreDisplay, callback);
+    }
+    
+    /**
+     * BALATRO-STYLE SEQUENTIAL SCORING ANIMATION
+     * Dice jiggle and add pips one by one, then boons trigger and add bonuses
+     * @param {string} category - Scoring category
+     * @param {number} pips - Final pips after all bonuses
+     * @param {number} favour - Final favour after all bonuses
+     * @param {number} finalScore - Final calculated score
+     * @param {HTMLElement} liveScoreEl - Live score display element
+     * @param {HTMLElement} scorecardEl - Scorecard cell element
+     * @param {Function} callback - Called when complete
+     */
+    animateSequentialScoring(category, pips, favour, finalScore, liveScoreEl, scorecardEl, callback) {
+        // Set scoring flag to prevent hover interference
+        this.isScoring = true;
+        
+        // Calculate base scoring breakdown
+        const basePips = this.calculateBasePips(category);
+        const baseFavour = this.state.baseFavour;
+        
+        // Track contributions from each source
+        const diceContributions = this.getDiceContributions(category);
+        const boonContributions = this.getBoonContributions(category, basePips, baseFavour);
+        
+        let currentPips = 0;
+        let currentFavour = baseFavour;
+        let delay = 0;
+        
+        // Start with empty display
+        liveScoreEl.innerHTML = `<span class="pips">0</span>`;
+        liveScoreEl.classList.add('visible');
+        
+        // Step 1: Animate dice adding pips one by one (150ms each)
+        diceContributions.forEach((contrib, index) => {
+            delay += 150;
+            setTimeout(() => {
+                const prevPips = currentPips;
+                currentPips += contrib.pips;
+                
+                // Jiggle the die
+                this.jiggleDie(contrib.dieIndex);
+                
+                // Update live display with Balatro-style addition
+                liveScoreEl.innerHTML = `
+                    <span class="pips">${prevPips}</span>
+                    <span class="plus-symbol">+</span>
+                    <span class="pips pip-contribution">${contrib.pips}</span>
+                `;
+                
+                // After showing addition, update to new total
+                setTimeout(() => {
+                    liveScoreEl.innerHTML = `<span class="pips pips-pulse">${currentPips}</span>`;
+                }, 150);
+            }, delay);
+        });
+        
+        // Step 1.5: Add category bonus (like Full House +25)
+        const categoryBonus = LOWER_SECTION_BONUSES[category] || 0;
+        if (categoryBonus > 0) {
+            delay += 200; // Pause after dice
+            setTimeout(() => {
+                const prevPips = currentPips;
+                currentPips += categoryBonus;
+                
+                // Show category bonus addition
+                liveScoreEl.innerHTML = `
+                    <span class="pips">${prevPips}</span>
+                    <span class="plus-symbol">+</span>
+                    <span class="pips pip-contribution category-bonus">${categoryBonus}</span>
+                `;
+                
+                // Then update to new total
+                setTimeout(() => {
+                    liveScoreEl.innerHTML = `<span class="pips pips-pulse">${currentPips}</span>`;
+                }, 200);
+            }, delay);
+        }
+        
+        // Step 2: Animate boons adding bonuses (200ms each, after category bonus)
+        delay += 300; // Pause before boons
+        
+        boonContributions.forEach((contrib, index) => {
+            delay += 200;
+            setTimeout(() => {
+                const prevPips = currentPips;
+                const prevFavour = currentFavour;
+                
+                if (contrib.pips > 0) {
+                    currentPips += contrib.pips;
+                }
+                if (contrib.favour > 0) {
+                    currentFavour += contrib.favour;
+                }
+                
+                // Jiggle the boon card
+                this.jiggleBoon(contrib.boonId);
+                
+                // Update live display showing the addition (Balatro-style)
+                if (contrib.pips > 0) {
+                    // Show pip addition
+                    liveScoreEl.innerHTML = `
+                        <span class="pips">${Math.floor(prevPips)}</span>
+                        <span class="plus-symbol">+</span>
+                        <span class="pips pip-contribution">${contrib.pips}</span>
+                    `;
+                    
+                    // Then update to new total
+                    setTimeout(() => {
+                        liveScoreEl.innerHTML = `
+                            <span class="pips pips-pulse">${Math.floor(currentPips)}</span>
+                            ${currentFavour > baseFavour ? `<span class="multiply-symbol"> × </span><span class="favour">${currentFavour.toFixed(1)}</span>` : ''}
+                        `;
+                    }, 150);
+                } else if (contrib.favour > 0) {
+                    // Show favour addition
+                    liveScoreEl.innerHTML = `
+                        <span class="pips">${Math.floor(currentPips)}</span>
+                        <span class="multiply-symbol"> × </span>
+                        <span class="favour">${prevFavour.toFixed(1)}</span>
+                        <span class="plus-symbol">+</span>
+                        <span class="favour favour-contribution">${contrib.favour.toFixed(1)}</span>
+                    `;
+                    
+                    // Then update to new total
+                    setTimeout(() => {
+                        liveScoreEl.innerHTML = `
+                            <span class="pips">${Math.floor(currentPips)}</span>
+                            <span class="multiply-symbol"> × </span>
+                            <span class="favour favour-pulse">${currentFavour.toFixed(1)}</span>
+                        `;
+                    }, 150);
+                }
+            }, delay);
+        });
+        
+        // Step 3: Show final multiplication (500ms after last boon)
+        delay += 500;
         setTimeout(() => {
-            // Step 2: Count up to final score in Gnosis (1000ms)
-            el.innerHTML = `
-                <span class="pips">${pips}</span>
+            liveScoreEl.innerHTML = `
+                <span class="pips">${Math.floor(pips)}</span>
                 <span class="multiply-symbol"> × </span>
-                <span class="favour">${favour}</span>
+                <span class="favour">${favour.toFixed(1)}</span>
                 <span class="equals-symbol"> = </span>
                 <span class="score-preview">0</span>
             `;
             
-            const finalSpan = el.querySelector('.score-preview');
+            const finalSpan = liveScoreEl.querySelector('.score-preview');
             
+            // Step 4: Count up to final score (1000ms)
             this.animateNumberCount(finalSpan, 0, finalScore, 1000, () => {
-                // Step 3: Update game state
+                // Step 5: Update game state
                 this.state.scorecard[category] = finalScore;
                 this.state.totalScore += finalScore;
                 
-                // Step 4: Screen shake and particles
+                // Step 6: Screen shake and particles
                 if (window.balatroEffects) {
                     if (category === 'Yahtzee') {
                         window.balatroEffects.screenShake(20, 800);
@@ -805,26 +1007,29 @@ class GameEngine {
                     }
                 }
                 
-                if (finalScore >= 200 && window.balatroEffects && scoreDisplay) {
-                    this.createScoreParticles(scoreDisplay, finalScore);
+                if (finalScore >= 200 && window.balatroEffects && scorecardEl) {
+                    this.createScoreParticles(scorecardEl, finalScore);
                 }
                 
-                // Step 5: Place final number in pantheon scorecard (after brief pause)
+                // Step 7: Place final number in pantheon scorecard (after brief pause)
                 setTimeout(() => {
-                    if (scoreDisplay) {
-                        scoreDisplay.innerHTML = finalScore;
-                        scoreDisplay.classList.add('score-flash');
+                    if (scorecardEl) {
+                        scorecardEl.innerHTML = finalScore;
+                        scorecardEl.classList.add('score-flash');
                         
                         setTimeout(() => {
-                            scoreDisplay.classList.remove('score-flash');
+                            scorecardEl.classList.remove('score-flash');
                         }, 400);
                     }
+                    
+                    // Clear scoring flag to allow hover previews again
+                    this.isScoring = false;
                     
                     this.updateAllUI();
                     callback();
                 }, 300);
             });
-        }, 500);
+        }, delay);
     }
     
     /**
@@ -872,6 +1077,217 @@ class GameEngine {
         };
         
         step();
+    }
+    
+    /**
+     * Calculate base pips before any bonuses
+     * @param {string} category - Scoring category
+     * @returns {number} Base pips from dice only
+     */
+    calculateBasePips(category) {
+        const faces = this.state.dice.map(die => die.getEffectiveFace());
+        const counts = {};
+        faces.forEach(face => {
+            if (face > 0) counts[face] = (counts[face] || 0) + 1;
+        });
+        
+        // Simple calculation for upper sanctum
+        if (["Ones", "Twos", "Threes", "Fours", "Fives", "Sixes", "Sevens", "Eights", "Nines"].includes(category)) {
+            const num = CATEGORY_TO_NUMBER[category];
+            return (counts[num] || 0) * num;
+        }
+        
+        // Lower sanctum returns sum of all dice
+        return faces.reduce((a, b) => a + b, 0);
+    }
+    
+    /**
+     * Get individual dice contributions to score
+     * Includes base pips AND enhancement bonuses
+     * @param {string} category - Scoring category
+     * @returns {Array} Array of {pips, dieIndex, source} objects
+     */
+    getDiceContributions(category) {
+        const contributions = [];
+        const num = CATEGORY_TO_NUMBER[category];
+        
+        this.state.dice.forEach((die, index) => {
+            const face = die.getEffectiveFace();
+            let basePips = 0;
+            
+            // For upper sanctum, only count matching dice
+            if (num && face === num) {
+                basePips = face;
+            }
+            // For lower sanctum, count all dice
+            else if (!num && face > 0) {
+                basePips = face;
+            }
+            
+            // Add base die contribution
+            if (basePips > 0) {
+                contributions.push({ pips: basePips, dieIndex: index, source: 'die' });
+                
+                // Check for enhancement bonuses (lower sanctum only)
+                if (die.hasEnhancementForCurrentFace && die.hasEnhancementForCurrentFace('iron')) {
+                    contributions.push({ 
+                        pips: ENHANCEMENT_BONUSES.IRON_PIPS, 
+                        dieIndex: index, 
+                        source: 'iron',
+                        label: 'Iron'
+                    });
+                }
+                
+                // Mother of Pearl bonus
+                if (die.hasEnhancementForCurrentFace && die.hasEnhancementForCurrentFace('mother_of_pearl') && die.motherOfPearlBonus) {
+                    contributions.push({ 
+                        pips: die.motherOfPearlBonus, 
+                        dieIndex: index, 
+                        source: 'mother_of_pearl',
+                        label: 'Pearl'
+                    });
+                }
+            }
+        });
+        
+        return contributions;
+    }
+    
+    /**
+     * Get boon contributions to score
+     * Calculates what each boon added, plus enhancement favour bonuses
+     * @param {string} category - Scoring category
+     * @param {number} basePips - Pips before boons
+     * @param {number} baseFavour - Favour before boons
+     * @returns {Array} Array of {boonId, boonName, pips, favour, source} objects
+     */
+    getBoonContributions(category, basePips, baseFavour) {
+        const contributions = [];
+        
+        // Add enhancement favour bonuses first (from parchment)
+        this.state.dice.forEach((die, index) => {
+            if (die.hasEnhancementForCurrentFace && die.hasEnhancementForCurrentFace('parchment')) {
+                const parchmentRoll = this.prng.random();
+                if (parchmentRoll >= ENHANCEMENT_CHANCES.PARCHMENT_GOLD_CHANCE && 
+                    parchmentRoll < ENHANCEMENT_CHANCES.PARCHMENT_GOLD_CHANCE + ENHANCEMENT_CHANCES.PARCHMENT_FAVOUR_CHANCE) {
+                    // 25% chance for +1 favour
+                    contributions.push({
+                        boonId: `parchment_${index}`,
+                        boonName: 'Parchment',
+                        pips: 0,
+                        favour: ENHANCEMENT_BONUSES.PARCHMENT_FAVOUR,
+                        source: 'enhancement',
+                        dieIndex: index
+                    });
+                }
+            }
+        });
+        
+        // Simulate scoring with each boon individually to see contribution
+        this.state.jokers.forEach(joker => {
+            if (!joker.timing.before_score) return;
+            
+            // Test what this boon adds
+            const testData = { category, pips: basePips, favour: baseFavour, favourMult: 1 };
+            const resultData = joker.onTimingEvent('before_score', this.state, testData);
+            
+            const pipsAdded = (resultData.pips || 0) - basePips;
+            const favourAdded = (resultData.favour || 0) - baseFavour;
+            
+            if (pipsAdded !== 0 || favourAdded !== 0) {
+                contributions.push({
+                    boonId: joker.id,
+                    boonName: joker.name,
+                    pips: pipsAdded,
+                    favour: favourAdded,
+                    source: 'boon'
+                });
+            }
+        });
+        
+        return contributions;
+    }
+    
+    /**
+     * Jiggle a die with animation
+     * @param {number} dieIndex - Index of die to jiggle
+     */
+    jiggleDie(dieIndex) {
+        const dieElements = document.querySelectorAll('.die');
+        if (dieElements[dieIndex]) {
+            dieElements[dieIndex].classList.add('die-scoring-jiggle');
+            setTimeout(() => {
+                dieElements[dieIndex].classList.remove('die-scoring-jiggle');
+            }, 400);
+        }
+    }
+    
+    /**
+     * Jiggle a boon card with animation
+     * @param {string} boonId - ID of boon to jiggle
+     */
+    jiggleBoon(boonId) {
+        // Find boon card in the collection area
+        const boonCards = document.querySelectorAll('.card');
+        boonCards.forEach(card => {
+            const cardData = card.dataset;
+            if (cardData.id === boonId || card.querySelector(`[data-id="${boonId}"]`)) {
+                card.classList.add('boon-trigger-jiggle');
+                
+                // Add glow effect
+                card.style.boxShadow = '0 0 20px rgba(255, 215, 0, 0.8)';
+                
+                setTimeout(() => {
+                    card.classList.remove('boon-trigger-jiggle');
+                    card.style.boxShadow = '';
+                }, 600);
+            }
+        });
+    }
+    
+    /**
+     * Show floating text above element
+     * @param {number|string} value - Value to display
+     * @param {number} index - Index for positioning
+     * @param {string} type - 'die' or 'boon'
+     * @param {string} label - Optional label
+     */
+    showFloatingText(value, index, type, label = '') {
+        const container = type === 'die' ? document.getElementById('diceContainer') : document.getElementById('jokersArea');
+        if (!container) return;
+        
+        const text = document.createElement('div');
+        text.className = 'floating-score-text';
+        
+        // Format value (could be number or already formatted string like "+3" or "+1.5×")
+        const valueStr = typeof value === 'string' ? value : `+${value}`;
+        text.textContent = label ? `${label}: ${valueStr}` : valueStr;
+        
+        // Position based on type and index
+        if (type === 'die') {
+            text.style.position = 'absolute';
+            text.style.left = `${(index * 80) + 40}px`;
+            text.style.top = '-20px';
+        } else {
+            // For boons, position relative to card in collection
+            text.style.position = 'absolute';
+            text.style.left = `${(index * 140) + 70}px`;
+            text.style.top = '10px';
+        }
+        
+        text.style.color = '#9370DB'; // Purple for all pips (Balatro-style consistency)
+        text.style.fontWeight = 'bold';
+        text.style.fontSize = type === 'die' ? '18px' : '16px';
+        text.style.zIndex = '1000';
+        text.style.pointerEvents = 'none';
+        text.style.animation = 'floatUp 1s ease-out forwards';
+        text.style.textShadow = '0 0 10px rgba(147, 112, 219, 0.8), 2px 2px 4px rgba(0, 0, 0, 0.9)';
+        
+        container.appendChild(text);
+        
+        setTimeout(() => {
+            text.remove();
+        }, 1000);
     }
     
     /**
@@ -1251,17 +1667,12 @@ class GameEngine {
             }
         });
         
-        // Build counts with safe defaults (handle Parmenides dual-value dice)
+        // Build counts with safe defaults
         const counts = {};
         this.state.dice.forEach((die, index) => {
             const val = faces[index];
             if (val > 0) {  // Only count valid faces
                 counts[val] = (counts[val] || 0) + 1;
-                
-                // Parmenides Die: count as BOTH values
-                if (die.isParmenidesDie && die.oppositeValue) {
-                    counts[die.oppositeValue] = (counts[die.oppositeValue] || 0) + 1;
-                }
             }
         });
         
@@ -1275,6 +1686,7 @@ class GameEngine {
             case "Ones": case "Twos": case "Threes": case "Fours": case "Fives": case "Sixes":
             case "Sevens": case "Eights": case "Nines":
                 const num = CATEGORY_TO_NUMBER[category];
+                Logger.debug(`Scoring ${category}: num=${num}, counts[${num}]=${counts[num] || 0}, pips will be ${(counts[num] || 0) * num}`);
                 pips = (counts[num] || 0) * num;
                 
                 // Apply pips bonuses
@@ -1345,10 +1757,22 @@ class GameEngine {
                 break;
                 
             case "Full House":
-                if (Object.values(counts).includes(SCORING_THRESHOLDS.FULL_HOUSE_THREE) && 
-                    Object.values(counts).includes(SCORING_THRESHOLDS.FULL_HOUSE_TWO)) {
+                // Check for normal Full House (3 of a kind + pair)
+                const hasThreeOfKind = Object.values(counts).includes(SCORING_THRESHOLDS.FULL_HOUSE_THREE);
+                const hasPair = Object.values(counts).includes(SCORING_THRESHOLDS.FULL_HOUSE_TWO);
+                
+                // Check for Dionysus' Revelry: allows 2 pairs to count as Full House
+                const hasDionysusRevelry = this.state.jokers?.some(j => j.id === 'dionysus_revelry');
+                const pairCount = Object.values(counts).filter(c => c === 2).length;
+                const hasTwoPairs = pairCount >= 2;
+                
+                if ((hasThreeOfKind && hasPair) || (hasDionysusRevelry && hasTwoPairs)) {
                     pips = faces.reduce((a, b) => a + b, 0);
                     isValid = true;
+                    
+                    if (hasDionysusRevelry && hasTwoPairs && !(hasThreeOfKind && hasPair)) {
+                        window.game?.showMessage?.("Dionysus' Revelry: 2 pairs counted as Full House!", 3000);
+                    }
                 }
                 break;
                 
@@ -1433,56 +1857,86 @@ class GameEngine {
             }
         });
         
-        // Apply enhancement effects
+        // Apply enhancement effects that should ALWAYS trigger (gold, etc.)
         this.state.dice.forEach((die, index) => {
-            if (!isValid) return; // Only apply effects if the hand is valid
+            // Debug: Log all enhancements on current face
+            const currentFace = die.currentFace;
+            const currentFaceData = die.faces[currentFace];
+            if (currentFaceData && currentFaceData.enhancements && currentFaceData.enhancements.size > 0) {
+                const enhancements = Array.from(currentFaceData.enhancements);
+                Logger.debug(`Die ${index + 1} face ${currentFace} has enhancements:`, enhancements);
+            }
             
             // Gold enhancement provides bonus gold when scored (face-specific only)
             if (die.hasEnhancementForCurrentFace && die.hasEnhancementForCurrentFace('gold')) {
                 Logger.debug(`Die ${index + 1} triggered gold enhancement!`);
                 this.updateGoldAnimated(ENHANCEMENT_BONUSES.GOLD_COINS, "gold enhancement");
                 window.game?.showMessage?.("Gold enhancement: +1 Gold!");
+            } else {
+                // Debug: Check if die has gold enhancement but not on current face
+                const hasGoldEnhancement = die.hasEnhancement && die.hasEnhancement('gold');
+                const currentFace = die.currentFace;
+                const currentFaceData = die.faces[currentFace];
+                const hasGoldOnCurrentFace = currentFaceData && currentFaceData.enhancements && currentFaceData.enhancements.has('gold');
+                
+                if (hasGoldEnhancement && !hasGoldOnCurrentFace) {
+                    Logger.debug(`Die ${index + 1} has gold enhancement but not on current face ${currentFace}. Current face enhancements:`, currentFaceData ? Array.from(currentFaceData.enhancements) : 'none');
+                }
             }
             
-            // Iron enhancement provides +5 pips when scored (face-specific only)
-            if (die.hasEnhancementForCurrentFace && die.hasEnhancementForCurrentFace('iron')) {
-                pips += ENHANCEMENT_BONUSES.IRON_PIPS;
-                window.game?.showMessage?.(`Iron enhancement: +${ENHANCEMENT_BONUSES.IRON_PIPS} Pips!`);
-            }
-            
-            // Parchment enhancement: chance for +1 favour OR chance for gold (face-specific only)
+            // Parchment enhancement: chance for gold (always triggers)
             if (die.hasEnhancementForCurrentFace && die.hasEnhancementForCurrentFace('parchment')) {
-                const parchmentRoll = Math.random();
+                const parchmentRoll = this.prng.random(); // Use seeded RNG for determinism
                 if (parchmentRoll < ENHANCEMENT_CHANCES.PARCHMENT_GOLD_CHANCE) {
+                    // 15% chance for +5 gold
                     this.updateGoldAnimated(ENHANCEMENT_BONUSES.PARCHMENT_GOLD, "parchment");
                     window.game?.showMessage?.(`Parchment fortune: +${ENHANCEMENT_BONUSES.PARCHMENT_GOLD} Gold!`);
-                } else if (parchmentRoll < ENHANCEMENT_CHANCES.PARCHMENT_FAVOUR_CHANCE) {
-                    favour += ENHANCEMENT_BONUSES.PARCHMENT_FAVOUR;
-                    window.game?.showMessage?.("Parchment blessing: +1 Favour!");
-                }
-            }
-            
-            // Mother of Pearl enhancement: randomly selects one adjacent die and adds its value
-            if (die.hasEnhancementForCurrentFace && die.hasEnhancementForCurrentFace('mother_of_pearl')) {
-                // Mother of pearl value is set during the random selection phase after rolling
-                if (die.motherOfPearlBonus !== undefined) {
-                    pips += die.motherOfPearlBonus;
-                    // Silent - no message to player
-                }
-            }
-            
-            // Wild enhancement (face-specific): uses wildValue set by player choice
-            if (die.hasEnhancementForCurrentFace && die.hasEnhancementForCurrentFace('wild')) {
-                // Wild value is set during the arrow selection phase
-                if (die.wildValue !== undefined) {
-                    const wildBonus = die.wildValue - die.currentFace;
-                    pips += wildBonus;
-                    if (wildBonus !== 0) {
-                        window.game?.showMessage?.(`Wild enhancement: ${wildBonus > 0 ? '+' : ''}${wildBonus} Pips!`);
-                    }
                 }
             }
         });
+        
+        // Apply enhancement effects that only trigger on VALID hands (pips, favour)
+        if (isValid) {
+            this.state.dice.forEach((die, index) => {
+                // Iron enhancement provides +5 pips when scored (face-specific only)
+                if (die.hasEnhancementForCurrentFace && die.hasEnhancementForCurrentFace('iron')) {
+                    pips += ENHANCEMENT_BONUSES.IRON_PIPS;
+                    window.game?.showMessage?.(`Iron enhancement: +${ENHANCEMENT_BONUSES.IRON_PIPS} Pips!`);
+                }
+                
+                // Parchment enhancement: chance for +1 favour (only on valid hands)
+                if (die.hasEnhancementForCurrentFace && die.hasEnhancementForCurrentFace('parchment')) {
+                    const parchmentRoll = this.prng.random(); // Use seeded RNG for determinism
+                    if (parchmentRoll >= ENHANCEMENT_CHANCES.PARCHMENT_GOLD_CHANCE && 
+                        parchmentRoll < ENHANCEMENT_CHANCES.PARCHMENT_GOLD_CHANCE + ENHANCEMENT_CHANCES.PARCHMENT_FAVOUR_CHANCE) {
+                        // 25% chance for +1 favour (checks if roll is between 0.15 and 0.40)
+                        favour += ENHANCEMENT_BONUSES.PARCHMENT_FAVOUR;
+                        window.game?.showMessage?.("Parchment blessing: +1 Favour!");
+                    }
+                }
+                
+                // Mother of Pearl enhancement: randomly selects one adjacent die and adds its value
+                if (die.hasEnhancementForCurrentFace && die.hasEnhancementForCurrentFace('mother_of_pearl')) {
+                    // Mother of pearl value is set during the random selection phase after rolling
+                    if (die.motherOfPearlBonus !== undefined) {
+                        pips += die.motherOfPearlBonus;
+                        // Silent - no message to player
+                    }
+                }
+                
+                // Wild enhancement (face-specific): uses wildValue set by player choice
+                if (die.hasEnhancementForCurrentFace && die.hasEnhancementForCurrentFace('wild')) {
+                    // Wild value is set during the arrow selection phase
+                    if (die.wildValue !== undefined) {
+                        const wildBonus = die.wildValue - die.currentFace;
+                        pips += wildBonus;
+                        if (wildBonus !== 0) {
+                            window.game?.showMessage?.(`Wild enhancement: ${wildBonus > 0 ? '+' : ''}${wildBonus} Pips!`);
+                        }
+                    }
+                }
+            });
+        }
         
         return { pips, favour, isValid };
     }
@@ -1522,8 +1976,13 @@ class GameEngine {
         // Apply joker effects that modify abilities (like Strategic Mind)
         this.applyJokerAbilityEffects();
         
-        // FIXED: ALWAYS 3 rolls - no exceptions
-        this.state.rollsLeft = 3;
+        // FIXED: Default 3 rolls (can be modified by turn_start effects)
+        this.state.rollsLeft = GAME_BALANCE.STARTING_ROLLS;
+        
+        // Apply TURN_START effects AFTER setting default rolls (so Kronos can override)
+        this.state.jokers.forEach(joker => {
+            joker.onTimingEvent('turn_start', this.state);
+        });
         
         // Reset turn state
         this.state.hasRolled = false;
@@ -1563,13 +2022,42 @@ class GameEngine {
         });
     }
 
+    /**
+     * Check if all available score categories have been filled
+     * @returns {boolean} True if all categories are scored
+     */
+    areAllCategoriesFilled() {
+        // Get all available categories (including unlocked high categories)
+        const upperCats = ["Ones", "Twos", "Threes", "Fours", "Fives", "Sixes"];
+        const lowerCats = ["Three of a Kind", "Four of a Kind", "Full House", "Small Straight", "Large Straight", "Yahtzee", "Chance"];
+        
+        // Add high categories if unlocked
+        const highCats = [];
+        if (this.state.unlockedCategories.Sevens) highCats.push("Sevens");
+        if (this.state.unlockedCategories.Eights) highCats.push("Eights");
+        if (this.state.unlockedCategories.Nines) highCats.push("Nines");
+        
+        const allCategories = [...upperCats, ...lowerCats, ...highCats];
+        
+        // Check if all categories have been scored (not undefined)
+        return allCategories.every(category => this.state.scorecard[category] !== undefined);
+    }
+
     endAnte() {
-        if (this.state.totalScore >= this.state.scoreThreshold) {
+        // Check if all categories are filled OR score threshold is reached
+        const allCategoriesFilled = this.areAllCategoriesFilled();
+        const scoreThresholdReached = this.state.totalScore >= this.state.scoreThreshold;
+        
+        if (allCategoriesFilled || scoreThresholdReached) {
+            if (allCategoriesFilled) {
+                this.showMessage(`All categories filled! Ante ${this.state.ante} cleared!`);
+            } else {
+                this.showMessage(`Score threshold reached! Ante ${this.state.ante} cleared!`);
+            }
+            
             if (this.state.ante >= 13 && !this.state.endlessMode) {
                 this.state.endlessMode = true;
                 this.showMessage("The Apotheosis is complete! The Odyssey begins...");
-            } else {
-                this.showMessage(`Ante ${this.state.ante} cleared!`);
             }
 
             // Compute tally numbers BEFORE resetting state
@@ -1735,10 +2223,17 @@ class GameEngine {
                 }
             });
             
-            // If no Trojan Horse, ensure multiplier is 1
-            const hasTrojanHorse = this.state.artifacts.some(a => a.id === 'artifact_trojan_horse');
-            if (!hasTrojanHorse) {
-                this.state.boonMultiplier = 1;
+            // Check for Trojan Horse BOON (not artifact) - fixes critical bug
+            const hasTrojanHorseBoon = this.state.jokers?.some(j => j.id === 'trojan_horse');
+            if (hasTrojanHorseBoon && this.state.turn >= 11) {
+                this.state.boonMultiplier = 2;
+                Logger.info(`Trojan Horse BOON activated! All boons ×2 (Turn ${this.state.turn})`);
+            } else if (!hasTrojanHorseBoon) {
+                // If no Trojan Horse boon, check artifacts
+                const hasTrojanHorse = this.state.artifacts.some(a => a.id === 'artifact_trojan_horse');
+                if (!hasTrojanHorse) {
+                    this.state.boonMultiplier = 1;
+                }
             }
             
             // FIXED: Never touch roll mechanics
