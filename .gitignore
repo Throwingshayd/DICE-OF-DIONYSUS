@@ -1,1 +1,39 @@
-node_modules
+# Node modules
+node_modules/
+
+# Build artifacts
+dist/
+.parcel-cache/
+.cache/
+
+# Windows system files
+desktop.ini
+Thumbs.db
+
+# macOS system files
+.DS_Store
+._.DS_Store
+**/.DS_Store
+**/._.DS_Store
+
+# Temporary session files
+SESSION_STATE.json
+SAVE_CONFIRMATION.txt
+
+# Testing and debug files
+test-saves/
+debug-logs/
+*.log
+
+# IDE files
+.vscode/settings.json
+.idea/
+
+# Editor temp files
+*.swp
+*.swo
+*~
+
+# Backup directories (use git for version control instead)
+BACKUP_*/
+MODERNIZED_BACKUP_*/
