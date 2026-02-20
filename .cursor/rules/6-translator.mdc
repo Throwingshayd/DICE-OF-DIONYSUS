@@ -1,0 +1,113 @@
+---
+description: The Translator — Lua→JS mapping, owned exclusion, expulsion, save-state. Balatro CODE/ reference
+globs: game/js/**, .cursor/context/*.md, design/**
+alwaysApply: false
+---
+
+# Balatro Translator (The Translator)
+
+**Identity:** Authority on Balatro porting — core logic mapping, owned/shop exclusion, expulsion, save-state. Preserve feel and math; adapt to project architecture.
+
+**Reference:** `Balatro CODE/` (see `.cursor/context/ai_context.yaml`)  
+**Playtest template:** `.cursor/rules/8-translator-playtest.mdc` — run `npm run playtest:ante1` to generate `tracking/FIRST_ANTE_PLAYTEST_REPORT.md`
+
+---
+
+## 1. Core Logic Mapping (Lua → This Project)
+
+| Balatro | Dice of Dionysus |
+|---------|-------------------|
+| `G.jokers` | `state.jokers` / `jokerSlots` / boon slots |
+| `G.consumeables` | `state.consumables` / `consumableSlots` |
+| `G.hand` | `state.dice` / `diceContainer` |
+| `center` (card template) | `CardData` / `gameData.js` entries |
+| `ability` | `Joker.applyTimingEffect()` / boon effect logic |
+
+---
+
+## 2. CardArea Translation Standards
+
+- **Scaling:** Card x-position = `(areaWidth / cardCount)`. Use `CARD_LAYOUT` from `UIConstants.js`.
+- **Overlap:** When cards exceed slot limit, use "squish" logic — cards overlap but stay centered (see `.card-area-squish` in styles).
+- **Z-Index:** Right-hand cards have higher z-index than left.
+
+---
+
+## 3. Math & Scaling Constants
+
+- **Base Card Size:** 71×95px aspect ratio (see `.cursor/context/BALATRO_DESIGN_PRINCIPLES.md`).
+- **Mult Order:** Process `+Mult` (additive) before `×Mult` (multiplicative). Same as mechanics rule.
+- **Trigger Order:** `Dice → Held Items → Boons (left to right) → Edition Effects`.
+
+---
+
+## 4. Visual & Juice Alignment
+
+- **Shaders / dissolve / juice:** Map to CSS animations or `juice-effects.css` / `balatro-effects.css`.
+- **Outlines:** 2px strong outline for pixel-art style (see visual tokens).
+- **Dithering:** Use finely dithered backgrounds per style guide.
+- **Tooltips (Balatro-style):** Main tooltip shows summary; nested `data-tooltip` on enhancement/tag items shows separate description popup on hover (like Balatro's `detailed_tooltip`). Tooltip must stay visible when hovering into popup content.
+
+---
+
+## 5. Conversion Workflow
+
+1. Read the Lua snippet (from `Balatro CODE/`).
+2. Identify the **state mutation** — what changes in the game?
+3. Rewrite using **class-based OOP** and `GameEngine.state` as single source of truth.
+4. Verify scaling math matches the original Lua.
+
+---
+
+## 6. Owned-Card Exclusion (No Duplicates in Shop/Packs)
+
+**Design:** Until a card is used or sold, no duplicate should appear in the shop or packs.  
+Example: If Worship Ares is in consumables, no Worship Ares appears in direct sales or worship packs until used or sold.
+
+**Balatro-style shop/pack exclusion:** Cards displayed in the shop (Wares/direct sales) must not appear in packs opened from that same shop visit. Example: If Cornucopia is in Wares, opening a Boon pack will not offer Cornucopia.
+
+**Implementation:**
+- `getOwnedCardIds(gameState)` returns `{ jokerIds: Set, consumableIds: Set }` from `state.jokers` and `state.consumables`.
+- `getShopDisplayedCardIds()` returns IDs of cards currently in `#shopDirectSales` (read from DOM).
+- Shop direct sales, addOneDirectSale — exclude `ownedJokerIds` / `ownedConsumableIds`.
+- Pack generation (generatePackContents, generatePackCardData, generateChaosPackCardData, generatePackContentsForDisplay, generateChaosPackContents) — exclude both owned IDs and `getShopDisplayedCardIds()`.
+
+---
+
+## 7. Expulsion (Balatro: No Space / Sell to Make Room)
+
+Balatro's slot-full behavior:
+- **`check_for_buy_space`** (button_callbacks.lua ~2347): Before buying, checks `#G.jokers.cards < card_limit` (or consumeables). If full → **`alert_no_space`** (misc_functions.lua ~788) → blocks purchase.
+- **`alert_no_space`**: Sets `G.CONTROLLER.locks.no_space`, shows "No Space!" with `attention_text`, juices the card and area, plays sound, releases lock after 0.5s.
+- **Pack selection** (`can_select_card`): For Joker-type pack cards, select button is enabled only when `#G.jokers.cards < card_limit`. When full, you cannot pick a card; you must sell one first, then pick.
+
+**Dice of Dionysus expulsion design:**
+- When boon or consumable slots are full and the player tries to **buy** or **claim** (pack/direct):
+  1. **Expulsion mode**: Show overlay "Make room for [Card Name]" with current boons or consumables.
+  2. Player chooses one to **sell** (expulsion). Gold is awarded.
+  3. New card is added. Overlay closes.
+- **Cancel**: Dismiss overlay without adding. If the acquisition was a purchase, refund gold.
+- **Math**: Same sell logic as normal `sellCard` — sell value, sell timing hooks (e.g. Mortal Vineyard).
+
+---
+
+## 8. Save-State Management (Balatro Reference)
+
+Balatro does **not** save when you hit "Main Menu" (`go_to_menu`). Instead:
+- `go_to_menu` calls `delete_run()` — wipes in-memory run only
+- `save_run()` is called at checkpoints during play: after blind select, round eval, shop close, booster use, etc.
+- `G.ARGS.save_run` includes: `cardAreas` (jokers, consumeables, hand, shop…), `tags`, `GAME`, `STATE`, `BLIND`, `BACK`
+- Save is async: queued to `G.SAVE_MANAGER.channel`, written to `save.jkr` by a worker thread
+- Continue works because a prior `save_run()` already wrote to disk
+
+**Dice of Dionysus adaptation:**
+- Save **before** showing pause menu and **on** exit to menu — ensure boons/consumables persist
+- Use a single `exitToMenuAndSave()` path for both pause Exit and GameEngine overlay Exit
+- Persist `state.jokers`, `state.consumables`, PRNG state, and `resumePhase` as in ARCHITECTURE.md
+
+---
+
+## 9. Prohibited Practices
+
+- **Do not** use Balatro's global `G` table. Use `GameEngine.state` or appropriate manager.
+- **Do not** simplify the math; Balatro's scoring complexity is intentional.

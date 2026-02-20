@@ -1,0 +1,154 @@
+/**
+ * ScoringEngine - Orchestrates scoring math (HandEvaluator + context)
+ * Balatro-grade pipeline: Hand -> Base Stats -> Blessings (Dice -> Hand -> Inventory)
+ * Single entry point for category evaluation. UI and GameEngine only READ from here.
+ * @module ScoringEngine
+ */
+
+// GOD_TO_CATEGORY from GameConstants.js (loaded before this script)
+// Maps score category → god for worship/favour lookups
+
+const PHASE_ORDER = ['dice', 'hand', 'inventory'];
+
+const ScoringEngine = {
+    /**
+     * Build scoring context from game state
+     * @param {Object} state - Game state
+     * @returns {{ pipsBonuses: Object, jokers: Object[], activeBlind: string|null, unlockedCategories: Object }}
+     */
+    buildContext(state) {
+        return {
+            pipsBonuses: state.pipsBonuses || {},
+            jokers: state.jokers || [],
+            activeBlind: state.activeBlind || null,
+            unlockedCategories: state.unlockedCategories || {}
+        };
+    },
+
+    /**
+     * Evaluate a category - pure logic, no side effects
+     * @param {string} category
+     * @param {number[]} faces
+     * @param {Object} counts - value -> count
+     * @param {Object} context - from buildContext(state)
+     * @returns {{ pips: number, isValid: boolean }}
+     */
+    evaluateCategory(category, faces, counts, context) {
+        if (typeof HandEvaluator === 'undefined') {
+            if (typeof Logger !== 'undefined') Logger.error('ScoringEngine: HandEvaluator not loaded');
+            return { pips: 0, isValid: false };
+        }
+        return HandEvaluator.evaluate(category, faces, counts, context);
+    },
+
+    /**
+     * Run full scoring pipeline: Hand -> Base -> Blessings (phased)
+     * @param {string} category
+     * @param {Object} gameState
+     * @param {Object} [options] - { tempPips, tempFavour, applyGlobalBonuses }
+     * @returns {{ pips: number, favour: number, favourMult: number, finalScore: number, isValid: boolean }}
+     */
+    runPipeline(category, gameState, options = {}) {
+        const state = gameState;
+        const { tempPips = 0, tempFavour = 0, applyGlobalBonuses = true } = options;
+
+        if (!state || !state.dice || state.dice.length === 0) {
+            return { pips: 0, favour: 1, favourMult: 1, finalScore: 0, isValid: false };
+        }
+
+        const diceSubstitutions = state.diceSubstitutions || {};
+        const faces = state.dice.map((d) => {
+            let face = typeof d.getEffectiveFace === 'function' ? d.getEffectiveFace() : (d.currentFace || 0);
+            if (typeof face !== 'number' || isNaN(face)) face = 0;
+            if (diceSubstitutions.foursAsFives && face === 4) face = 5;
+            return face;
+        });
+        const counts = {};
+        faces.forEach((val) => {
+            if (val > 0) counts[val] = (counts[val] || 0) + 1;
+        });
+
+        const context = this.buildContext(state);
+        const { pips: basePips, isValid } = this.evaluateCategory(category, faces, counts, context);
+
+        let favour = 1;
+        const god = GOD_TO_CATEGORY[category];
+        // Worship bonus (pips + mult) only applies on non-zero dice entries; boons apply even on scratch
+        const hasValidDiceScore = basePips > 0;
+        if (hasValidDiceScore) {
+            if (god && state.worshipLevels && state.worshipLevels[god]) {
+                favour += state.worshipLevels[god];
+            }
+            if (state.consumables && Array.isArray(state.consumables)) {
+                state.consumables.forEach((c) => {
+                    if (c && typeof c.applyBasicWorshipEffect === 'function') {
+                        const res = c.applyBasicWorshipEffect(state, { category, pips: basePips, favour });
+                        favour = res.favour;
+                    }
+                });
+            }
+        }
+
+        let pips = basePips + tempPips;
+        favour += tempFavour;
+
+        // Balatro-style: add pips per worship level — only on non-zero dice score
+        if (hasValidDiceScore) {
+            const worshipLevel = (god && state.worshipLevels && state.worshipLevels[god]) ? state.worshipLevels[god] : 0;
+            const pipsPerLevel = (typeof CATEGORY_PIPS_PER_LEVEL !== 'undefined' && CATEGORY_PIPS_PER_LEVEL[category]) || 0;
+            pips += worshipLevel * pipsPerLevel;
+        }
+
+        if (isValid && state.dice) {
+            state.dice.forEach((die) => {
+                if (die && die.hasEnhancementForCurrentFace) {
+                    if (die.hasEnhancementForCurrentFace('iron')) {
+                        pips += (typeof ENHANCEMENT_BONUSES !== 'undefined' ? ENHANCEMENT_BONUSES.IRON_PIPS : 5);
+                    }
+                    if (die.hasEnhancementForCurrentFace('mother_of_pearl') && die.motherOfPearlBonus !== undefined) {
+                        pips += die.motherOfPearlBonus;
+                    }
+                    // Wild: getEffectiveFace() already returns wildValue, so basePips includes it - no extra pips
+                }
+            });
+        }
+
+        let favourMult = 1;
+        let eventData = { category, pips, favour, favourMult, isValid };
+        const jokers = state.jokers || [];
+
+        PHASE_ORDER.forEach((phase) => {
+            jokers.forEach((j) => {
+                const jPhase = j.triggerPhase ?? 'hand';
+                if (jPhase !== phase) return;
+                if (j.timing && j.timing.before_score && typeof j.onTimingEvent === 'function') {
+                    eventData = j.onTimingEvent('before_score', state, eventData);
+                }
+            });
+        });
+
+        pips = Math.max(0, eventData.pips ?? pips);
+        favour = Math.max(0.1, eventData.favour ?? favour);
+        favourMult = Math.max(1, eventData.favourMult ?? 1);
+
+        if (applyGlobalBonuses && state.globalBonuses && state.globalBonuses.fivesToAll && state.dice) {
+            const fivesCount = state.dice.filter((d) => (d.getEffectiveFace ? d.getEffectiveFace() : d.currentFace) === 5).length;
+            pips += fivesCount * 5;
+        }
+
+        const totalFavour = favour * favourMult;
+        const finalScore = typeof SafeMath !== 'undefined'
+            ? SafeMath.safeMultiply(pips, totalFavour)
+            : Math.max(0, Math.min(Math.floor(pips * totalFavour), Number.MAX_SAFE_INTEGER));
+
+        return {
+            pips,
+            favour,
+            favourMult,
+            finalScore,
+            isValid
+        };
+    }
+};
+
+if (typeof window !== 'undefined') window.ScoringEngine = ScoringEngine;

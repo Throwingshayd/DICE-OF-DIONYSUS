@@ -2,19 +2,13 @@ import { defineConfig } from 'vite';
 import legacy from '@vitejs/plugin-legacy';
 
 export default defineConfig({
-  // Base path for the application
+  root: 'game',
   base: './',
-  
-  // Build configuration
   build: {
-    outDir: 'dist',
+    outDir: '../dist',
+    emptyOutDir: true,
     assetsDir: 'assets',
     sourcemap: true,
-    rollupOptions: {
-      input: {
-        main: 'index.html'
-      }
-    }
   },
   
   // Development server configuration

@@ -1,0 +1,394 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dice of Dionysus</title>
+    <!-- Minimal fallback if external CSS blocked (e.g. file://) - avoid overriding normal screen switching -->
+    <style>
+        body{background:#1a3d38;color:#f0e6d2;margin:0;min-height:100vh}
+        .hidden{display:none!important}
+    </style>
+    <link rel="stylesheet" href="css/styles.css">
+    <link rel="stylesheet" href="css/balatro-effects.css">
+    <link rel="stylesheet" href="css/juice-effects.css">
+    <link rel="stylesheet" href="css/visual-tokens.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=IM+Fell+English+SC&family=VT323&display=swap" rel="stylesheet">
+    <link rel="icon" href="ART/Title art.png" type="image/png">
+</head>
+<body>
+    <!-- Start Screen -->
+    <div id="startScreen">
+        <div class="modal-content" style="text-align: center; border-color: var(--accent-green);">
+            <div class="start-options">
+                <button class="divine-button" id="playButton">Play</button>
+                <button class="divine-button" id="continueButton" style="display: none;">Continue</button>
+                <button class="divine-button" id="collectionButton" style="background: var(--bg-light-green);">Anthology</button>
+                <button class="divine-button" id="settingsButton" title="Options">Settings</button>
+                <input type="text" id="seedInput" placeholder="Enter Seed (optional)" style="padding: 12px 20px; border-radius: 8px; border: 2px solid var(--stone-terracotta); background: rgba(0,0,0,0.3); color: var(--text-light); font-family: 'DisneyHeroic', sans-serif; font-size: 1rem; min-width: 200px;">
+            </div>
+        </div>
+    </div>
+
+    <!-- Collection Screen -->
+    <div id="collectionScreen" class="hidden">
+        <div class="modal-content" style="max-width: 1200px;">
+            <div class="collection-header">
+                <h2 class="shop-title">Discovered Lore</h2>
+                <button class="divine-button" id="backToStartButton">Back</button>
+            </div>
+            <div class="collection-tabs">
+                <button class="divine-button active" data-tab="boons">Boons</button>
+                <button class="divine-button" data-tab="artifacts">Divine Artifacts</button>
+                <button class="divine-button" data-tab="worship">Worship Cards</button>
+                <button class="divine-button" data-tab="libations">Libations</button>
+            </div>
+            <div class="collection-grid" id="boonsCollectionGrid"></div>
+            <div class="collection-grid hidden" id="artifactsCollectionGrid"></div>
+            <div class="collection-grid hidden" id="worshipCollectionGrid"></div>
+            <div class="collection-grid hidden" id="libationsCollectionGrid"></div>
+        </div>
+    </div>
+
+    <!-- Game Container: template content injected by Main.loadGameUI() -->
+    <div class="game-container hidden" id="gameContainerWrapper"></div>
+    
+    <!-- Game UI Template -->
+    <template id="gameUITemplate">
+        <!-- Game Border -->
+        <div class="game-border"></div>
+        
+        <!-- Game Content Container -->
+        <div class="game-content">
+            <button class="divine-button return-to-menu-btn" id="returnToMenuBtn" title="Save and return to main menu">Menu</button>
+
+            <!-- Main game area -->
+            <div class="main-game">
+            <!-- Inventory panel: fills gap between left-info-column and right-scorecard (75% Boons, 25% Libations) -->
+            <div class="inventory-panel">
+                <div class="inventory-panel-boons">
+                    <div class="inventory-panel-scanlines" aria-hidden="true"></div>
+                    <div class="joker-slots card-area-squish" id="jokerSlots"></div>
+                    <span class="inventory-counter" id="boonSlotCounter">0/5</span>
+                </div>
+                <div class="inventory-panel-consumables">
+                    <div class="inventory-panel-scanlines" aria-hidden="true"></div>
+                    <div class="consumable-slots card-area-squish" id="consumableSlots"></div>
+                    <span class="inventory-counter" id="consumableSlotCounter">0/2</span>
+                </div>
+            </div>
+                            <!-- Left column: Game info + Gnosis -->
+            <div class="left-info-column">
+                <div class="game-info">
+                    <!-- Gnosis panel: heading, live score, then round/interest/scoring below -->
+                    <div class="gnosis-panel">
+                        <div class="live-score-title">Gnosis</div>
+                        <!-- Balatro-style: separate panels like Small Blind + Round score -->
+                        <div class="gnosis-objective-panel">
+                            <span class="gnosis-objective-label">Required offerings</span>
+                            <span class="gnosis-objective-value" id="scoreThresholdDisplay">500</span>
+                        </div>
+                        <div class="gnosis-score-panel">
+                            <span class="gnosis-score-label">Total score</span>
+                            <span class="gnosis-score-value" id="totalScore">0</span>
+                        </div>
+                        <div id="liveScoreDisplay" class="live-score-display visible" data-live-root>
+                            <span class="gnosis-category-name" data-live="category">Offering</span>
+                            <div class="gnosis-cashout-content hidden" id="gnosisCashoutContent">
+                                <span class="gnosis-cashout-title" id="gnosisCashoutTitle"></span>
+                                <div class="gnosis-cashout-lines" id="gnosisCashoutLines" role="region" aria-live="polite"></div>
+                                <p class="gnosis-cashout-sub">— Off to the shop —</p>
+                            </div>
+                            <div class="gnosis-row" data-live="row">
+                                <span class="pips-cell">
+                                    <span class="pips-line">
+                                        <span class="pips" data-live="pips">0</span>
+                                        <span class="live-add" data-live="pips-add" hidden><span class="plus-symbol">+</span><span class="pips pip-contribution" data-live="pips-contrib"></span></span>
+                                    </span>
+                                    <span class="gnosis-pips-bonus" data-live="pips-label">0 pips</span>
+                                </span>
+                                <span class="multiply-symbol">×</span>
+                                <span class="favour-cell">
+                                    <span class="favour-line">
+                                        <span class="favour" data-live="favour">0</span>
+                                        <span class="live-add" data-live="favour-add" hidden><span class="plus-symbol">+</span><span class="favour favour-contribution" data-live="favour-contrib"></span></span>
+                                    </span>
+                                    <span class="gnosis-mult-bonus" data-live="favour-label">favour</span>
+                                </span>
+                                <span class="equals-symbol live-extra" data-live="equals" hidden>=</span>
+                                <span class="score-preview live-extra" data-live="score-preview" hidden>0</span>
+                            </div>
+                            <div class="gnosis-row gnosis-row-na" data-live="row-na" hidden><span class="n-letter">N</span><span class="slash-symbol">/</span><span class="a-letter">A</span></div>
+                        </div>
+                        <span id="rollsLeft" class="rolls-left">Rolls Left: 3</span>
+                        <!-- Balatro-style stats bar: Gold, Ante & Round – bottom of panel -->
+                        <div class="gnosis-stats-bar gnosis-stats-bar-bottom">
+                            <div class="gnosis-gold-box">
+                                <span class="gnosis-gold-value" id="goldDisplay">0</span>
+                                <span class="gnosis-gold-suffix">G</span>
+                            </div>
+                            <div class="gnosis-stats-row">
+                                <div class="gnosis-stat-box gnosis-ante-box">
+                                    <span class="gnosis-stat-label">Ante</span>
+                                    <span class="gnosis-stat-value" id="anteDisplay">1 / 8</span>
+                                </div>
+                                <div class="gnosis-stat-box gnosis-round-box">
+                                    <span class="gnosis-stat-label">Turns</span>
+                                    <span class="gnosis-stat-value" id="turnDisplay">1</span>
+                                </div>
+                            </div>
+                        </div>
+                        <div id="gnosisMessage" class="gnosis-message"></div>
+                    </div>
+                    <!-- Artifacts section -->
+                    <div class="artifact-section">
+                        <div class="artifact-slots" id="artifactSlots">
+                            <h3>Divine Artifacts</h3>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Center game area - Stage swap per 6-translator (Balatro: G.hand vs G.shop) -->
+            <div class="center-game-area">
+                    <!-- Game board background: centred on dice container level -->
+                    <div class="game-board-bg" aria-hidden="true"></div>
+                    <!-- Oval dice roll zone: matches inner red area of dice table -->
+                    <div class="dice-roll-zone" id="diceRollZone" aria-hidden="true"></div>
+                    <!-- ROUND: Play area (dice center, button under, rolls under that) -->
+                    <div id="playStage" class="game-stage">
+                        <div class="play-stage-spacer"></div>
+                        <div class="dice-container" id="diceContainer"></div>
+                        <div class="rolling-controls">
+                            <button id="rollButton" class="roll-button">Cast the Bones</button>
+                        </div>
+                        <div class="play-stage-spacer"></div>
+                    </div>
+                    <!-- SHOP: Shop area (replaces play area, per Balatro stage swap) -->
+                    <div id="shopStage" class="game-stage hidden">
+                        <div class="shop-header">
+                            <h2 class="shop-title"></h2>
+                        </div>
+                        <div id="shopDefaultView">
+                            <div id="shopInventory"></div>
+                            <div class="shop-row shop-items" id="shopItemsRow">
+                                <div class="shop-section" id="shopArtifactsArea"><h4>Divine Artifacts</h4></div>
+                                <div class="shop-section" id="shopDirectSales"><h4>Wares</h4></div>
+                            </div>
+                            <div class="shop-row shop-packs" id="shopPacksRow">
+                                <div class="shop-section" id="shopPacksArea"><h4>Packs</h4></div>
+                            </div>
+                        </div>
+                        <div id="packOpeningView" class="hidden">
+                            <div class="shop-main-area">
+                                <div class="shop-section" id="packRevealedCards"><h4>Pack Contents</h4></div>
+                                <div class="shop-section" id="packPlayerConsumables"><h4>Your Libations</h4></div>
+                            </div>
+                        </div>
+                        <div class="shop-actions">
+                            <button class="divine-button" id="rerollShop">Reroll (4g)</button>
+                            <button class="divine-button" id="closeShop">Continue</button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Right column: Scorecard -->
+                <div class="right-scorecard">
+                    <div class="scorecard" id="scorecard">
+                        <h3>Pantheon</h3>
+                        
+                        <!-- Bonus Yahtzee indicator -->
+                        <div class="bonus-yahtzee-indicator" id="bonusYahtzeeIndicator" style="display: none;">
+                            <span class="bonus-text">Bonus Heureka!</span>
+                            <span class="bonus-count" id="bonusCount">0</span>
+                        </div>
+
+                        <div class="score-section">
+                            <div class="score-row" data-category="Ones">
+                                <span>Ones (Artemis)</span>
+                                <div class="score-details">
+                                    <span class="potential-score">-</span>
+                                </div>
+                            </div>
+                            <div class="score-row" data-category="Twos">
+                                <span>Twos (Persephone)</span>
+                                <div class="score-details">
+                                    <span class="potential-score">-</span>
+                                </div>
+                            </div>
+                            <div class="score-row" data-category="Threes">
+                                <span>Threes (Morpheus)</span>
+                                <div class="score-details">
+                                    <span class="potential-score">-</span>
+                                </div>
+                            </div>
+                            <div class="score-row" data-category="Fours">
+                                <span>Fours (Hera)</span>
+                                <div class="score-details">
+                                    <span class="potential-score">-</span>
+                                </div>
+                            </div>
+                            <div class="score-row" data-category="Fives">
+                                <span>Fives (Athena)</span>
+                                <div class="score-details">
+                                    <span class="potential-score">-</span>
+                                </div>
+                            </div>
+                            <div class="score-row" data-category="Sixes">
+                                <span>Sixes (Heracles)</span>
+                                <div class="score-details">
+                                    <span class="potential-score">-</span>
+                                </div>
+                            </div>
+                            <div class="score-row" data-category="Sevens" style="display: none;">
+                                <span>Sevens (The Pleiades)</span>
+                                <div class="score-details">
+                                    <span class="potential-score">-</span>
+                                </div>
+                            </div>
+                            <div class="score-row" data-category="Eights" style="display: none;">
+                                <span>Eights (Poseidon)</span>
+                                <div class="score-details">
+                                    <span class="potential-score">-</span>
+                                </div>
+                            </div>
+                            <div class="score-row" data-category="Nines" style="display: none;">
+                                <span>Nines (The Nine Muses)</span>
+                                <div class="score-details">
+                                    <span class="potential-score">-</span>
+                                </div>
+                            </div>
+                            <div class="score-row" data-category="Three of a Kind">
+                                <span>Three of a Kind (Hephaestus)</span>
+                                <div class="score-details">
+                                    <span class="potential-score">-</span>
+                                </div>
+                            </div>
+                            <div class="score-row" data-category="Small Straight">
+                                <span>Small Straight (Hermes)</span>
+                                <div class="score-details">
+                                    <span class="potential-score">-</span>
+                                </div>
+                            </div>
+                            <div class="score-row" data-category="Full House">
+                                <span>Full House (Dionysus)</span>
+                                <div class="score-details">
+                                    <span class="potential-score">-</span>
+                                </div>
+                            </div>
+                            <div class="score-row" data-category="Four of a Kind">
+                                <span>Four of a Kind (Ares)</span>
+                                <div class="score-details">
+                                    <span class="potential-score">-</span>
+                                </div>
+                            </div>
+                            <div class="score-row" data-category="Large Straight">
+                                <span>Large Straight (Apollo)</span>
+                                <div class="score-details">
+                                    <span class="potential-score">-</span>
+                                </div>
+                            </div>
+                                <div class="score-row" data-category="Yahtzee">
+                                <span>Heureka (Zeus)</span>
+                                <div class="score-details">
+                                    <span class="potential-score">-</span>
+                                </div>
+                            </div>
+                            <div class="score-row" data-category="Chance">
+                                <span>Chance (Nyx)</span>
+                                <div class="score-details">
+                                    <span class="potential-score">-</span>
+                                </div>
+                            </div>
+                            <div class="score-row" data-category="Pandora's Box">
+                                <span>Pandora's Box</span>
+                                <div class="score-details">
+                                    <span class="potential-score">-</span>
+                                </div>
+                            </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+    </template>
+
+    <!-- Shop now lives in template shopStage (replaces rolling area per 6-translator) -->
+
+    <div class="overlay hidden" id="confirmOverlay">
+        <div class="modal-content confirmation-modal">
+            <h3 id="confirmText" class="shop-title">Confirm Score?</h3>
+            <p id="confirmDetails"></p>
+            <div id="confirmActions">
+                <button class="divine-button" id="confirmYes">✅ Yes</button>
+                <button class="divine-button" id="confirmNo">❌ No</button>
+            </div>
+        </div>
+    </div>
+
+    <div class="overlay hidden" id="libationOverlay">
+        <div class="modal-content libation-modal">
+            <h2 class="shop-title">Libation to the Gods</h2>
+            <p>Enhance all dice of a chosen face permanently.</p>
+            <div class="enhancement-choice-grid" id="libationChoices"></div>
+        </div>
+    </div>
+
+    <div class="overlay hidden" id="pantheonTotalOverlay">
+        <div class="modal-content pantheon-total-modal">
+            <div class="pantheon-overlay-content" id="pantheonOverlayContent">
+                <h3 class="pantheon-total-title">Pantheon Total</h3>
+                <div class="pantheon-total-value" id="pantheonTotalValue">0</div>
+                <p class="pantheon-total-sub">— Off to the shop —</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Expulsion overlay (Balatro: No Space — choose one to sell to make room) -->
+    <div class="overlay hidden" id="expulsionOverlay">
+        <div class="modal-content expulsion-modal">
+            <h3 class="shop-title" id="expulsionTitle">Make Room</h3>
+            <p id="expulsionSubtitle">Choose one to sell and make room:</p>
+            <div class="expulsion-card-grid" id="expulsionCardGrid"></div>
+            <button class="divine-button" id="expulsionCancelBtn">Cancel</button>
+        </div>
+    </div>
+
+    <!-- Settings and pause overlays created dynamically (Balatro: G.FUNCS.overlay_menu) -->
+
+    <!-- Scripts loaded in dependency order (defer = non-blocking parse, exec after DOM ready) -->
+    <script defer src="js/utils/seededRNG.js"></script>
+    <script defer src="js/utils/Logger.js"></script>
+    <script defer src="js/utils/dataManager.js"></script>
+    <script defer src="js/utils/JuiceManager.js"></script>
+    <script defer src="js/utils/ParticleSystem.js"></script>
+    <script defer src="js/config/GameConstants.js"></script>
+    <script defer src="js/config/ScoringConstants.js"></script>
+    <script defer src="js/config/UIConstants.js"></script>
+    <script defer src="js/config/BoonConstants.js"></script>
+    <script defer src="js/data/assetMapping.js"></script>
+    <script defer src="js/data/AnteData_js.js"></script>
+    <script defer src="js/data/gameData.js"></script>
+    <script defer src="js/classes/Die.js"></script>
+    <script defer src="js/classes/Card.js"></script>
+    <script defer src="js/classes/Joker.js"></script>
+    <script defer src="js/classes/WorshipCard.js"></script>
+    <script defer src="js/classes/LibationCard.js"></script>
+    <script defer src="js/classes/Artifact.js"></script>
+    <script defer src="js/engine/HandEvaluator.js"></script>
+    <script defer src="js/engine/SafeMath.js"></script>
+    <script defer src="js/engine/ScoringEngine.js"></script>
+    <script defer src="js/engine/GameStateManager.js"></script>
+    <script defer src="js/game/GameEngine.js"></script>
+    <script defer src="js/ui/UIManager.js"></script>
+    <script defer src="js/ui/BalatroEffects.js"></script>
+    <script defer src="js/ui/SoundManager.js"></script>
+    <script defer src="js/ui/JuiceIntegration.js"></script>
+    <script defer src="js/ui/SettingsOverlay.js"></script>
+    <script defer src="js/Main.js"></script>
+
+    <!-- Cash out feature removed as requested -->
+</body>
+</html>

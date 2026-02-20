@@ -1,0 +1,89 @@
+/**
+ * Visual Tokens - 2-visuals.mdc / 16-bit pixel aesthetic
+ * Balatro-inspired: dithering, hard edges, no blur
+ * Reference: .cursor/context/BALATRO_DESIGN_PRINCIPLES.md
+ */
+
+/* === Dithering patterns (replace smooth gradients) === */
+.dither-dark {
+    background-color: #1a1a2e;
+    background-image: 
+        repeating-linear-gradient(
+            90deg,
+            transparent,
+            transparent 2px,
+            rgba(0,0,0,0.15) 2px,
+            rgba(0,0,0,0.15) 4px
+        ),
+        repeating-linear-gradient(
+            0deg,
+            transparent,
+            transparent 2px,
+            rgba(0,0,0,0.1) 2px,
+            rgba(0,0,0,0.1) 4px
+        );
+}
+
+.dither-gold {
+    background-color: #b8860b;
+    background-image: 
+        repeating-linear-gradient(
+            45deg,
+            transparent,
+            transparent 1px,
+            rgba(255,215,0,0.2) 1px,
+            rgba(255,215,0,0.2) 2px
+        );
+}
+
+.dither-terracotta {
+    background-color: var(--stone-terracotta-dark, #a16e5e);
+    background-image: 
+        repeating-linear-gradient(
+            90deg,
+            transparent,
+            transparent 2px,
+            rgba(0,0,0,0.08) 2px,
+            rgba(0,0,0,0.08) 4px
+        );
+}
+
+/* === Hard-edge shadows (replace soft box-shadow) === */
+.shadow-pixel {
+    box-shadow: 
+        2px 0 0 rgba(0,0,0,0.4),
+        0 2px 0 rgba(0,0,0,0.4),
+        2px 2px 0 rgba(0,0,0,0.3);
+}
+
+.shadow-pixel-sm {
+    box-shadow: 1px 1px 0 rgba(0,0,0,0.3);
+}
+
+/* === Balatro button polish === */
+.divine-button,
+.roll-button {
+    border: 2px solid currentColor;
+    image-rendering: pixelated;
+    image-rendering: crisp-edges;
+}
+
+.divine-button:hover:not(:disabled),
+.roll-button:hover:not(:disabled) {
+    transform: translateY(-3px) scale(1.05);
+    transition: transform 0.15s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+.divine-button:active:not(:disabled),
+.roll-button:active:not(:disabled) {
+    transform: translateY(0) scale(0.96);
+    transition: transform 0.05s ease-out;
+}
+
+/* === No blur - explicit rule === */
+/* 2-visuals: No filter: blur() or soft box-shadow */
+.overlay-backdrop,
+.modal-backdrop {
+    background: rgba(0,0,0,0.85);
+    /* NO backdrop-filter: blur() */
+}

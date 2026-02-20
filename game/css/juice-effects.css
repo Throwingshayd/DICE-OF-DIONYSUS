@@ -1,0 +1,468 @@
+/* Juice Effects CSS - Balatro-inspired smooth transitions and feedback */
+
+/* ===========================
+   Button Juice
+   =========================== */
+
+.divine-button, .roll-button {
+    transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+    transform-origin: center;
+    position: relative;
+    overflow: hidden;
+}
+
+.divine-button:hover:not(:disabled),
+.roll-button:hover:not(:disabled) {
+    transform: translateY(-2px) scale(1.05);
+    filter: brightness(1.1);
+    box-shadow: 0 8px 20px rgba(212, 175, 55, 0.4);
+}
+
+.divine-button:active:not(:disabled),
+.roll-button:active:not(:disabled) {
+    transform: translateY(0) scale(0.95);
+    transition: all 0.05s;
+}
+
+.divine-button:disabled,
+.roll-button:disabled {
+    filter: grayscale(0.5) brightness(0.7);
+    cursor: not-allowed;
+    opacity: 0.6;
+    transform: none !important;
+}
+
+/* Ripple effect on click */
+.divine-button::after,
+.roll-button::after {
+    content: '';
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: 0;
+    height: 0;
+    border-radius: 50%;
+    background: rgba(255, 255, 255, 0.5);
+    transform: translate(-50%, -50%);
+    transition: width 0.6s, height 0.6s, opacity 0.6s;
+    opacity: 0;
+    pointer-events: none;
+}
+
+.divine-button:active::after,
+.roll-button:active::after {
+    width: 300px;
+    height: 300px;
+    opacity: 0;
+}
+
+/* ===========================
+   Card/Die Juice
+   =========================== */
+
+.card, .die {
+    transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+    transform-origin: center;
+    position: relative;
+}
+
+.card:hover,
+.die:hover {
+    transform: translateY(-8px) scale(1.05);
+    box-shadow: 0 12px 24px rgba(0, 0, 0, 0.3);
+    z-index: 10;
+}
+
+.card:active,
+.die:active {
+    transform: translateY(-4px) scale(1.02);
+    transition: all 0.1s;
+}
+
+/* Shimmer effect on hover */
+.card:hover::before,
+.die:hover::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: linear-gradient(45deg, transparent, rgba(255, 255, 255, 0.1), transparent);
+    animation: shimmer 1.5s ease-in-out infinite;
+    pointer-events: none;
+}
+
+@keyframes shimmer {
+    0% { transform: translateX(-100%); }
+    100% { transform: translateX(100%); }
+}
+
+/* ===========================
+   Dice Rolling Animation
+   =========================== */
+
+.die.rolling {
+    animation: dice-roll 0.3s ease-in-out;
+}
+
+@keyframes dice-roll {
+    0%, 100% { transform: rotate(0deg) scale(1); }
+    25% { transform: rotate(-10deg) scale(1.1); }
+    50% { transform: rotate(10deg) scale(0.9); }
+    75% { transform: rotate(-5deg) scale(1.05); }
+}
+
+.die.revealing {
+    animation: dice-reveal 0.4s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+}
+
+@keyframes dice-reveal {
+    0% { 
+        transform: scale(0) rotate(-180deg);
+        opacity: 0;
+    }
+    100% { 
+        transform: scale(1) rotate(0deg);
+        opacity: 1;
+    }
+}
+
+/* ===========================
+   Score Animation
+   =========================== */
+
+.score-popup {
+    animation: score-popup 1s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+    pointer-events: none;
+}
+
+@keyframes score-popup {
+    0% {
+        transform: translateY(0) scale(0.5);
+        opacity: 0;
+    }
+    50% {
+        transform: translateY(-20px) scale(1.2);
+        opacity: 1;
+    }
+    100% {
+        transform: translateY(-40px) scale(1);
+        opacity: 0;
+    }
+}
+
+.score-row.highlighting {
+    animation: score-highlight 0.6s ease-out;
+}
+
+@keyframes score-highlight {
+    0%, 100% {
+        background-color: transparent;
+        transform: scale(1);
+    }
+    50% {
+        background-color: rgba(212, 175, 55, 0.3);
+        transform: scale(1.02);
+    }
+}
+
+/* ===========================
+   Overlay Transitions
+   =========================== */
+
+.overlay {
+    transition: opacity 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.overlay.hidden {
+    opacity: 0;
+    pointer-events: none;
+}
+
+.overlay:not(.hidden) {
+    opacity: 1;
+}
+
+.modal-content {
+    transition: transform 0.3s cubic-bezier(0.68, -0.55, 0.265, 1.55),
+                opacity 0.3s ease-out;
+}
+
+.overlay.hidden .modal-content {
+    transform: scale(0.8) translateY(-50px);
+    opacity: 0;
+}
+
+.overlay:not(.hidden) .modal-content {
+    transform: scale(1) translateY(0);
+    opacity: 1;
+}
+
+/* ===========================
+   Pulse Effects
+   =========================== */
+
+.pulse {
+    animation: pulse 2s ease-in-out infinite;
+}
+
+@keyframes pulse {
+    0%, 100% { transform: scale(1); opacity: 1; }
+    50% { transform: scale(1.05); opacity: 0.8; }
+}
+
+.pulse-fast {
+    animation: pulse 1s ease-in-out infinite;
+}
+
+.pulse-glow {
+    animation: pulse-glow 2s ease-in-out infinite;
+}
+
+@keyframes pulse-glow {
+    0%, 100% { 
+        box-shadow: 0 0 10px rgba(212, 175, 55, 0.3);
+    }
+    50% { 
+        box-shadow: 0 0 20px rgba(212, 175, 55, 0.6);
+    }
+}
+
+/* ===========================
+   Shake Effects
+   =========================== */
+
+.shake {
+    animation: shake 0.5s ease-in-out;
+}
+
+@keyframes shake {
+    0%, 100% { transform: translateX(0); }
+    10%, 30%, 50%, 70%, 90% { transform: translateX(-5px); }
+    20%, 40%, 60%, 80% { transform: translateX(5px); }
+}
+
+.shake-vertical {
+    animation: shake-vertical 0.5s ease-in-out;
+}
+
+@keyframes shake-vertical {
+    0%, 100% { transform: translateY(0); }
+    10%, 30%, 50%, 70%, 90% { transform: translateY(-5px); }
+    20%, 40%, 60%, 80% { transform: translateY(5px); }
+}
+
+/* ===========================
+   Bounce Effects
+   =========================== */
+
+.bounce {
+    animation: bounce 0.6s ease-out;
+}
+
+@keyframes bounce {
+    0%, 100% { transform: translateY(0); }
+    25% { transform: translateY(-20px); }
+    50% { transform: translateY(-10px); }
+    75% { transform: translateY(-5px); }
+}
+
+.bounce-in {
+    animation: bounce-in 0.6s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+}
+
+@keyframes bounce-in {
+    0% {
+        transform: scale(0);
+        opacity: 0;
+    }
+    50% {
+        transform: scale(1.2);
+    }
+    100% {
+        transform: scale(1);
+        opacity: 1;
+    }
+}
+
+/* ===========================
+   Fade Transitions
+   =========================== */
+
+.fade-in {
+    animation: fade-in 0.4s ease-out;
+}
+
+@keyframes fade-in {
+    from { opacity: 0; }
+    to { opacity: 1; }
+}
+
+.fade-out {
+    animation: fade-out 0.4s ease-out;
+}
+
+@keyframes fade-out {
+    from { opacity: 1; }
+    to { opacity: 0; }
+}
+
+.slide-in-up {
+    animation: slide-in-up 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+@keyframes slide-in-up {
+    from {
+        transform: translateY(50px);
+        opacity: 0;
+    }
+    to {
+        transform: translateY(0);
+        opacity: 1;
+    }
+}
+
+.slide-in-down {
+    animation: slide-in-down 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+@keyframes slide-in-down {
+    from {
+        transform: translateY(-50px);
+        opacity: 0;
+    }
+    to {
+        transform: translateY(0);
+        opacity: 1;
+    }
+}
+
+/* ===========================
+   Gold/Currency Effects
+   =========================== */
+
+.gold-change {
+    animation: gold-change 0.6s ease-out;
+}
+
+@keyframes gold-change {
+    0% {
+        transform: scale(1);
+    }
+    50% {
+        transform: scale(1.3);
+        color: #FFD700;
+        text-shadow: 0 0 10px #FFD700;
+    }
+    100% {
+        transform: scale(1);
+    }
+}
+
+.gold-gain {
+    animation: gold-gain 0.8s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+}
+
+@keyframes gold-gain {
+    0% {
+        transform: translateY(20px) scale(0);
+        opacity: 0;
+    }
+    50% {
+        transform: translateY(-10px) scale(1.2);
+        opacity: 1;
+    }
+    100% {
+        transform: translateY(0) scale(1);
+        opacity: 1;
+    }
+}
+
+/* ===========================
+   Special Effects
+   =========================== */
+
+.celebration {
+    animation: celebration 1s ease-out;
+}
+
+@keyframes celebration {
+    0% {
+        transform: scale(1) rotate(0deg);
+    }
+    25% {
+        transform: scale(1.2) rotate(5deg);
+    }
+    50% {
+        transform: scale(1.1) rotate(-5deg);
+    }
+    75% {
+        transform: scale(1.15) rotate(3deg);
+    }
+    100% {
+        transform: scale(1) rotate(0deg);
+    }
+}
+
+.flash {
+    animation: flash 0.3s ease-out;
+}
+
+@keyframes flash {
+    0%, 100% {
+        opacity: 1;
+    }
+    50% {
+        opacity: 0.3;
+        filter: brightness(2);
+    }
+}
+
+/* ===========================
+   Interactive Feedback
+   =========================== */
+
+.clickable {
+    cursor: pointer;
+    user-select: none;
+}
+
+.clickable:hover {
+    filter: brightness(1.1);
+}
+
+.clickable:active {
+    filter: brightness(0.9);
+}
+
+/* ===========================
+   Stagger Animations
+   =========================== */
+
+.stagger-delay-1 { animation-delay: 0.05s; }
+.stagger-delay-2 { animation-delay: 0.1s; }
+.stagger-delay-3 { animation-delay: 0.15s; }
+.stagger-delay-4 { animation-delay: 0.2s; }
+.stagger-delay-5 { animation-delay: 0.25s; }
+.stagger-delay-6 { animation-delay: 0.3s; }
+
+/* ===========================
+   Performance Optimization
+   =========================== */
+
+.card, .die, .divine-button, .roll-button {
+    will-change: transform;
+}
+
+.card:hover, .die:hover {
+    will-change: transform, box-shadow;
+}
+
+/* Use GPU acceleration */
+.card, .die, .divine-button, .roll-button,
+.overlay, .modal-content {
+    transform: translateZ(0);
+    backface-visibility: hidden;
+}
+

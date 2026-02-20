@@ -14,8 +14,8 @@
     "playtest:economy": "playwright test e2e/economy-shop.spec.js",
     "playtest:ante1": "playwright test e2e/first-ante-playtest.spec.js",
     "playtest:winning": "playwright test e2e/winning-playtest.spec.js",
-    "lint": "eslint js/**/*.js",
-    "lint:fix": "eslint js/**/*.js --fix",
+    "lint": "eslint game/js/**/*.js",
+    "lint:fix": "eslint game/js/**/*.js --fix",
     "type-check": "tsc --noEmit",
     "start": "electron .",
     "build:electron": "electron-builder",
@@ -55,12 +55,11 @@
     },
     "files": [
       "dist/**/*",
-      "ART/**/*",
       "!node_modules/**/*"
     ],
     "win": {
       "target": "portable",
-      "icon": "ART/Title art.png"
+      "icon": "game/public/ART/Title art.png"
     },
     "portable": {
       "artifactName": "DiceOfDionysus-v1.4-Portable.exe"

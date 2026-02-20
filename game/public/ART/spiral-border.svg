@@ -1,0 +1,27 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100">
+  <!-- Spiral/volute border - purple #5a3d8a -->
+  <g fill="none" stroke="#5a3d8a" stroke-width="3.5" stroke-linecap="round">
+    <!-- Corner spirals (volutes) + straight edges -->
+    <!-- Top-left corner volute -->
+    <path d="M12,0 L12,0 A12,12 0 0 1 0,12 L0,12"/>
+    <!-- Top edge -->
+    <line x1="12" y1="0" x2="88" y2="0"/>
+    <!-- Top-right corner volute -->
+    <path d="M88,0 A12,12 0 0 1 100,12 L100,12"/>
+    <!-- Right edge -->
+    <line x1="100" y1="12" x2="100" y2="88"/>
+    <!-- Bottom-right corner volute -->
+    <path d="M100,88 A12,12 0 0 1 88,100 L88,100"/>
+    <!-- Bottom edge -->
+    <line x1="88" y1="100" x2="12" y2="100"/>
+    <!-- Bottom-left corner volute -->
+    <path d="M12,100 A12,12 0 0 1 0,88 L0,88"/>
+    <!-- Left edge -->
+    <line x1="0" y1="88" x2="0" y2="12"/>
+    <!-- Inner spiral accents at corners -->
+    <path d="M6,0 A6,6 0 0 1 0,6"/>
+    <path d="M100,6 A6,6 0 0 1 94,0"/>
+    <path d="M94,100 A6,6 0 0 1 100,94"/>
+    <path d="M0,94 A6,6 0 0 1 6,100"/>
+  </g>
+</svg>
