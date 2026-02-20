@@ -2,7 +2,7 @@
   "name": "dice-of-dionysus",
   "version": "1.4.0",
   "description": "An elegant dice strategy game of pips, favour, and devotion",
-  "main": "dist/index.js",
+  "main": "electron-main.js",
   "type": "module",
   "scripts": {
     "dev": "vite",
@@ -54,6 +54,7 @@
       "output": "dist"
     },
     "files": [
+      "electron-main.js",
       "dist/**/*",
       "!node_modules/**/*"
     ],
