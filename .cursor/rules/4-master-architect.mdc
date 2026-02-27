@@ -1,0 +1,33 @@
+---
+description: The Architect — invoked for polish, bug-hunting, Balatro alignment. Health Status → phases → execute
+alwaysApply: false
+---
+
+# Master Architect Mode (The Architect)
+
+**Identity:** Invoked (@4-master-architect) for polish, bug-hunting, translator alignment. Lead Systems Architect + Senior Gameplay Engineer.
+
+## Phase 1: Filesystem & Logic Sanitization
+
+1. **Index & Audit** — Scan @Codebase. Identify redundant files, dead code, placeholder scripts.
+2. **Refactor for Scalability** — Hand validation (Yahtzee) and multiplier stack (+Mult, ×Mult) must be decoupled. Scoring must handle infinite scaling without integer overflow.
+3. **Rule Alignment** — Verify code follows .cursor/rules/.
+
+## Phase 2: Bug-Hunting Loop
+
+1. **Terminal Diagnostics** — Run `npm run dev` (or `npm run build`).
+2. **Silent Failure Check** — Verify logic: e.g. Full House triggers all Blessing multipliers in correct order.
+3. **Self-Healing** — If error in terminal/console, fix immediately and re-test. Repeat until 0 errors.
+
+## Phase 3: Balatro-Level Polish
+
+1. **Juice** — Screen shake, particles for high-scoring hands, dynamic UI (16-bit style per 2-visuals.mdc).
+2. **Balance Pass** — Analyze Blessing pool. Ensure no item is game-breaking or uselessly weak.
+3. **Translator Alignment** — For any mechanic ported from Balatro, verify against `.cursor/rules/6-translator.mdc` (core logic mapping, trigger order, no global `G`).
+
+## Execution Rules
+
+- Do not ask permission for minor refactors or bug fixes.
+- Always run a test after an edit.
+- If stuck, explain the conflict and propose two solutions.
+- **Begin** by analyzing file structure and reporting "Health Status".

@@ -1,5 +1,28 @@
 # Dice of Dionysus - Changelog
 
+## Tester Identity (Feb 2025)
+
+- **Created** `.cursor/tester/SOUL.md` — Tester identity: folder map, commands, when to update tracking
+- **Created** `tracking/README.md` — Canonical vs generated files
+- **Added** test-results/, playwright-report/ to .gitignore
+- **Wired** tester SOUL into SOUL.md and 3-automation.mdc
+
+## Docs Consolidation (Feb 2025)
+
+### docs/ → .cursor/context/ + archive/
+- **Moved:** ARCHITECTURE.md, GOD_METADATA_REFERENCE.md, system_map.md → .cursor/context/
+- **Archived:** GOLD_AND_INTEREST_SYSTEM_EXPLAINED, FAVOUR_SYSTEM_EXPLAINED, ENHANCEMENT_SYSTEM_CLARIFICATION, LIBATION_TO_ENHANCEMENT_MAPPING, JUICE_QUICK_START, PACK_OPENING_IMPLEMENTATION, TESTING_GUIDE_56_BOONS, PLAYTESTING_REPORT_BOONS, TEST_MODE_INSTRUCTIONS → archive/
+- **Fixed:** Starting gold 15→6, reroll cost 2→4, test mode gold note (4→6)
+
+## Agent Context Consolidation (Feb 2025)
+
+### meta/ → .cursor/context/
+- **Merged folders**: meta/ and .cursor/rules/ unified under .cursor/
+- **meta/ removed**: All reference docs now in .cursor/context/
+- **Unified vision**: .cursorrules slims to SOUL.md alignment; single project vision
+- **Outdated fix**: MusicManager → SoundManager in ai_context.yaml
+- **Paths**: All meta/ references updated to .cursor/context/
+
 ## Version 1.4.3 - Libation Adjustments
 
 ### Content Removal

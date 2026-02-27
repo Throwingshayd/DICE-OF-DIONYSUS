@@ -8,7 +8,7 @@ An elegant dice strategy game of pips, favour, and devotion. Cast the bones, cou
 
 ### How to play
 1) Start a run
-   - Open `index.html` in a modern desktop browser.
+   - Run `npm run dev` and open http://localhost:3000, or build with `npm run build` and serve the `dist/` folder.
    - Click Play (optionally enter a seed to make the run reproducible).
 
 2) Rolling and holding
@@ -59,15 +59,16 @@ An elegant dice strategy game of pips, favour, and devotion. Cast the bones, cou
 - Esc: Back (from game or collection)
 
 ### Running locally
-- Just open `index.html` in a modern desktop browser on a desktop machine (fixed 1920×1080 layout).
-- No build step required; assets and scripts are included.
+- `npm run dev` — Starts Vite dev server at http://localhost:3000 (fixed 1920×1080 layout).
+- `npm run build` — Builds to `dist/` for production.
+- `npm run preview` — Serves the production build locally.
 
 ### Debugging
 - The in-game console is the primary debugging surface.
-- Development helpers can be enabled in `js/Main.js` (debug mode).
+- Development helpers can be enabled in `game/js/Main.js` (debug mode).
 
 ### Art and UI notes
-- Worship and Libation cards globally use `ART/worship frame.png` and `ART/libation frame.png` frames (sized with background-size: contain to avoid cropping).
+- Worship and Libation cards globally use `game/public/ART/worship frame.png` and `game/public/ART/libation frame.png` frames (sized with background-size: contain to avoid cropping).
 - Shop and pack items hide on-asset text by default; hover reveals a white tooltip under the item.
 
 ### License (Australia-focused)
@@ -92,7 +93,14 @@ If you wish to license, adapt, or distribute this work, please contact the autho
 
 ### Credits & Attribution
 - Visual/UI concepts align with a clean, legible, tactile aesthetic inspired by tabletop dice, ancient scrolls, and mythic motifs.
-- Fonts and image assets are included in the `ART/` folder and used in good faith for this project.
+- Fonts and image assets are in `game/public/ART/` and used in good faith for this project.
+
+### Project structure
+- `game/` — Game application (Vite root: index.html, js/, css/, public/ART/)
+- `e2e/` — Playwright E2E tests
+- `tests/` — Vitest unit tests
+- `docs/`, `design/`, `archive/`, `tracking/` — Documentation and meta
+- `Balatro CODE/` — Balatro Lua reference for porting
 
 ### Contact
 For licensing, collaboration, or questions, please reach out via DiceofDionysus@gmail.com 

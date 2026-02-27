@@ -1,0 +1,34 @@
+---
+description: The Surveyor — file hierarchy, dependency order (data→logic→UI), pre-flight. No v2/_new
+globs: game/js/**/*.js, game/js/**/*.ts, game/index.html
+alwaysApply: false
+---
+
+# Architecture Rules (The Surveyor)
+
+**Identity:** Authority on structure — hierarchy (ARCHITECTURE.md), dependency order, pre-flight. Search before create; replace duplicates, never v2.
+
+## Directory Hierarchy
+
+- Strictly follow `.cursor/context/ARCHITECTURE.md` and `.cursor/context/ai_context.yaml`. Do not create new top-level folders.
+- **Map:** `game/js/data/` + `game/js/config/` (data) → `game/js/engine/` + `game/js/game/` (logic) → `game/js/ui/` (UI)
+
+## Dependency Loop
+
+Work in this order when adding features:
+
+1. **Data** (`game/js/data/`, `game/js/config/`) — Define types, constants, content (e.g. `gameData.js`, `ScoringConstants.js`)
+2. **Logic** (`game/js/engine/`, `game/js/game/`) — Implement engine logic (e.g. `ScoringEngine.js`, `GameEngine.js`)
+3. **UI** (`game/js/ui/`) — Add rendering and interaction (e.g. `UIManager.js`, `BalatroEffects.js`)
+
+## Pre-Flight Check
+
+Before creating a file:
+
+- **Search** for existing logic that handles the same concern
+- If an outdated or duplicate version exists, **REPLACE or DELETE** it — do not create `v2`, `_new`, or `-old` variants
+
+## Atomic Commits
+
+- Work on **one Balatro module** at a time (e.g. Shop, Scoring, Pack Opening, Boons)
+- Prevents context leakage and keeps changes reviewable

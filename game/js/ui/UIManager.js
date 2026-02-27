@@ -456,6 +456,7 @@ class UIManager {
                 if (targeting) {
                     window.balatroEffects?.hideAllTooltips();
                     const { libation, enhancementType } = targeting;
+                    // Use effective face (1-9) so libations work on high-category faces 7, 8, 9
                     const targetFace = gameState.hasRolled ? die.getEffectiveFace() : (die.currentFace || (index % 6) + 1);
                     libation.applyEnhancementToDie(gameState, index, enhancementType, targetFace, game);
                     libation.use();

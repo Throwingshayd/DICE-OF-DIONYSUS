@@ -1,7 +1,7 @@
 /* ===== CUSTOM FONT DECLARATION ===== */
 @font-face {
     font-family: 'DisneyHeroic';
-    src: url('../public/ART/DisneyHeroic.ttf') format('truetype');
+    src: url('/ART/DisneyHeroic.ttf') format('truetype');
     font-weight: normal;
     font-style: normal;
 }
@@ -70,7 +70,7 @@ body::after {
 .game-container {
     width: 1920px;
     height: 1080px;
-    background-image: url('../public/ART/background swirl.png');
+    background-image: url('/ART/background swirl.png');
     background-size: cover;
     background-position: center;
     background-repeat: no-repeat;
@@ -124,7 +124,7 @@ body::after {
     left: 20px;
     width: 250px;
     height: 100px;
-    background-image: url('../public/ART/in game title .png');
+    background-image: url('/ART/in game title .png');
     background-size: contain;
     background-position: center;
     background-repeat: no-repeat;
@@ -149,7 +149,7 @@ body::after {
     inset: 0;
     z-index: 0;
     pointer-events: none;
-    background-image: url('../public/ART/dice table.png');
+    background-image: url('/ART/dice table.png');
     background-size: 93%;
     background-position: center;
     background-repeat: no-repeat;
@@ -442,7 +442,7 @@ body::after {
     position: relative;
     width: 100%;
     height: 100%;
-    background-image: url('../public/ART/column scroll new.png');
+    background-image: url('/ART/column scroll new.png');
     background-size: cover;
     background-position: center;
     background-repeat: no-repeat;
@@ -467,7 +467,7 @@ body::after {
 .scorecard {
     width: 100%;
     height: 100%;
-    background-image: url('../public/ART/column scroll new.png');
+    background-image: url('/ART/column scroll new.png');
     background-size: cover;
     background-position: center;
     background-repeat: no-repeat;
@@ -540,7 +540,7 @@ body::after {
 }
 
 #shopStage {
-    background: url('../public/ART/shopfront new (1).png') center center / cover no-repeat;
+    background: url('/ART/shopfront new (1).png') center center / cover no-repeat;
     padding: 12px 16px;
     overflow: hidden;
     display: flex;
@@ -710,86 +710,86 @@ body::after {
 
 /* Die face images */
 .die[data-face="1"] {
-    background-image: url('../public/ART/die face 1.png') !important;
+    background-image: url('/ART/die face 1.png') !important;
 }
 
 .die[data-face="2"] {
-    background-image: url('../public/ART/die face 2.png') !important;
+    background-image: url('/ART/die face 2.png') !important;
 }
 
 .die[data-face="3"] {
-    background-image: url('../public/ART/die face 3.png') !important;
+    background-image: url('/ART/die face 3.png') !important;
 }
 
 .die[data-face="4"] {
-    background-image: url('../public/ART/die face 4.png') !important;
+    background-image: url('/ART/die face 4.png') !important;
 }
 
 .die[data-face="5"] {
-    background-image: url('../public/ART/die face 5.png') !important;
+    background-image: url('/ART/die face 5.png') !important;
 }
 
 .die[data-face="6"] {
-    background-image: url('../public/ART/die face 6.png') !important;
+    background-image: url('/ART/die face 6.png') !important;
 }
 
 .die[data-face="7"] {
-    background-image: url('../public/ART/die face 7.png') !important;
+    background-image: url('/ART/die face 7.png') !important;
 }
 
 .die[data-face="8"] {
-    background-image: url('../public/ART/die face 8.png') !important;
+    background-image: url('/ART/die face 8.png') !important;
 }
 
 .die[data-face="9"] {
-    background-image: url('../public/ART/die face 9.png') !important;
+    background-image: url('/ART/die face 9.png') !important;
 }
 
 .die[data-face="?"] {
-    background-image: url('../public/ART/dice face question mark.png') !important;
+    background-image: url('/ART/dice face question mark.png') !important;
     color: transparent;
     font-size: 0;
 }
 
 /* Die face images for enhancement selection */
 .die-option .die-face-display[data-face="1"] {
-    background-image: url('../public/ART/die face 1.png');
+    background-image: url('/ART/die face 1.png');
 }
 
 .die-option .die-face-display[data-face="2"] {
-    background-image: url('../public/ART/die face 2.png');
+    background-image: url('/ART/die face 2.png');
 }
 
 .die-option .die-face-display[data-face="3"] {
-    background-image: url('../public/ART/die face 3.png');
+    background-image: url('/ART/die face 3.png');
 }
 
 .die-option .die-face-display[data-face="4"] {
-    background-image: url('../public/ART/die face 4.png');
+    background-image: url('/ART/die face 4.png');
 }
 
 .die-option .die-face-display[data-face="5"] {
-    background-image: url('../public/ART/die face 5.png');
+    background-image: url('/ART/die face 5.png');
 }
 
 .die-option .die-face-display[data-face="6"] {
-    background-image: url('../public/ART/die face 6.png');
+    background-image: url('/ART/die face 6.png');
 }
 
 .die-option .die-face-display[data-face="7"] {
-    background-image: url('../public/ART/die face 7.png');
+    background-image: url('/ART/die face 7.png');
 }
 
 .die-option .die-face-display[data-face="8"] {
-    background-image: url('../public/ART/die face 8.png');
+    background-image: url('/ART/die face 8.png');
 }
 
 .die-option .die-face-display[data-face="9"] {
-    background-image: url('../public/ART/die face 9.png');
+    background-image: url('/ART/die face 9.png');
 }
 
 .die-option .die-face-display[data-face="?"] {
-    background-image: url('../public/ART/dice face question mark.png');
+    background-image: url('/ART/dice face question mark.png');
 }
 
 /* 6. ROLLING CONTROLS - overlays bottom of dice asset */
@@ -808,7 +808,7 @@ body::after {
 }
 
 .roll-button {
-    background-image: url('../public/ART/roll button.png');
+    background-image: url('/ART/roll button.png');
     background-size: contain;
     background-position: center;
     background-repeat: no-repeat;
@@ -2059,7 +2059,7 @@ body::after {
 
 
 .modal-content {
-    background-image: url('../public/ART/shopfront new (1).png');
+    background-image: url('/ART/shopfront new (1).png');
     background-size: contain;
     background-position: center;
     background-repeat: no-repeat;
@@ -2107,7 +2107,7 @@ body::after {
     font-weight: bold;
     text-shadow: 2px 2px 4px rgba(0,0,0,0.8);
     visibility: visible !important;
-    background-image: url('../public/ART/Picture1.png');
+    background-image: url('/ART/Picture1.png');
     background-size: 120% 120%;
     background-position: center;
     background-repeat: no-repeat;
@@ -2381,25 +2381,25 @@ body::after {
 
 /* Pack art bindings */
 #shopDefaultView .pack-card.pack-joker { /* Boon pack */
-    background-image: url('../public/ART/boon pack.png') !important;
+    background-image: url('/ART/boon pack.png') !important;
     background-size: contain !important;
     background-position: center !important;
     background-repeat: no-repeat !important;
 }
 #shopDefaultView .pack-card.pack-worship {
-    background-image: url('../public/ART/worship pack.png') !important;
+    background-image: url('/ART/worship pack.png') !important;
     background-size: contain !important;
     background-position: center !important;
     background-repeat: no-repeat !important;
 }
 #shopDefaultView .pack-card.pack-libation { /* Libation pack */
-    background-image: url('../public/ART/Libation pack.png') !important;
+    background-image: url('/ART/Libation pack.png') !important;
     background-size: contain !important;
     background-position: center !important;
     background-repeat: no-repeat !important;
 }
 #shopDefaultView .pack-card.pack-chaos { /* Chaos pack */
-    background-image: url('../public/ART/chaos pack.png') !important;
+    background-image: url('/ART/chaos pack.png') !important;
     background-size: contain !important;
     background-position: center !important;
     background-repeat: no-repeat !important;
@@ -2469,7 +2469,7 @@ body::after {
 
 /* Artifact cards - specifically target artifacts in shop */
 #shopDefaultView #shopArtifactsArea .pack-card {
-    background-image: url('../public/ART/artifact undecided.png') !important;
+    background-image: url('/ART/artifact undecided.png') !important;
     background-size: contain !important;
     background-position: center !important;
     background-repeat: no-repeat !important;
@@ -2595,7 +2595,7 @@ body::after {
 
 /* Pack assets for all contexts */
 .pack-card.pack-joker {
-    background-image: url('../public/ART/boon pack.png') !important;
+    background-image: url('/ART/boon pack.png') !important;
     background-size: contain !important;
     background-position: center !important;
     background-repeat: no-repeat !important;
@@ -2606,7 +2606,7 @@ body::after {
 }
 
 .pack-card.pack-worship {
-    background-image: url('../public/ART/worship pack.png') !important;
+    background-image: url('/ART/worship pack.png') !important;
     background-size: contain !important;
     background-position: center !important;
     background-repeat: no-repeat !important;
@@ -2617,7 +2617,7 @@ body::after {
 }
 
 .pack-card.pack-libation {
-    background-image: url('../public/ART/Libation pack.png') !important;
+    background-image: url('/ART/Libation pack.png') !important;
     background-size: contain !important;
     background-position: center !important;
     background-repeat: no-repeat !important;
@@ -2628,7 +2628,7 @@ body::after {
 }
 
 .pack-card.pack-chaos {
-    background-image: url('../public/ART/chaos pack.png') !important;
+    background-image: url('/ART/chaos pack.png') !important;
     background-size: contain !important;
     background-position: center !important;
     background-repeat: no-repeat !important;
@@ -2640,7 +2640,7 @@ body::after {
 
 /* Artifact assets for all contexts */
 .pack-card:not([class*="pack-"]) {
-    background-image: url('../public/ART/artifact undecided.png') !important;
+    background-image: url('/ART/artifact undecided.png') !important;
     background-size: contain !important;
     background-position: center !important;
     background-repeat: no-repeat !important;
@@ -2686,7 +2686,7 @@ body::after {
     left: 0;
     right: 0;
     bottom: 0;
-    background-image: url('../public/ART/column scroll new.png');
+    background-image: url('/ART/column scroll new.png');
     background-size: cover;
     background-position: center;
     opacity: 0.1;
@@ -2747,7 +2747,7 @@ body::after {
     left: 5px;
     right: 5px;
     bottom: 5px;
-    background-image: url('../public/ART/dice table.png');
+    background-image: url('/ART/dice table.png');
     background-size: contain;
     background-position: center;
     background-repeat: no-repeat;
@@ -3396,7 +3396,7 @@ body::after {
     display: none !important; 
 }
 
-/* ===== START SCREEN ===== */
+/* ===== START SCREEN (Balatro-style main menu bar) ===== */
 
 #startScreen {
     position: fixed;
@@ -3404,35 +3404,64 @@ body::after {
     left: 0;
     width: 100%;
     height: 100%;
-    background-image: url('../public/ART/Title art.png');
+    background-image: url('/ART/Title art.png');
     background-size: 100% 100%;
     background-position: center;
     background-repeat: no-repeat;
     display: flex;
     justify-content: center;
-    align-items: flex-end; /* Balatro-style: bottom alignment */
+    align-items: center;
     z-index: 1000;
 }
 
-#startScreen .modal-content {
+/* Modal fills viewport; bar sits below centre (Balatro: align "bm", bar with emboss) */
+#startScreen .modal-content.start-screen-modal {
     background: transparent;
     border: none;
     box-shadow: none;
     text-align: center;
-    padding: 40px 20px; /* More padding at bottom */
+    padding: 0;
     position: relative;
     z-index: 1001;
-    margin-bottom: 80px; /* Balatro-style: buttons at bottom-middle */
-    margin-top: 0; /* Remove top margin */
+    width: 1200px;
+    height: 800px;
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-end;
+    align-items: center;
+    padding-bottom: 60px;
+}
+
+/* Balatro-style bar: dark panel, padding, rounded, emboss (L_BLACK + emboss 0.1) */
+.main-menu-bar {
+    background: rgba(0, 0, 0, 0.75);
+    border: 2px solid rgba(255, 255, 255, 0.08);
+    border-radius: 12px;
+    padding: 20px 32px;
+    box-shadow:
+        inset 0 1px 0 rgba(255, 255, 255, 0.06),
+        0 4px 0 rgba(0, 0, 0, 0.5),
+        2px 2px 0 rgba(0, 0, 0, 0.3);
 }
 
 .start-options {
     display: flex;
-    flex-direction: row; /* Balatro-style: horizontal layout */
+    flex-direction: row;
     gap: 20px;
     align-items: center;
     justify-content: center;
-    flex-wrap: wrap; /* Allow wrapping on small screens */
+    flex-wrap: wrap;
+}
+
+.seed-input-inline {
+    padding: 12px 20px;
+    border-radius: 8px;
+    border: 2px solid var(--stone-terracotta);
+    background: rgba(0, 0, 0, 0.3);
+    color: var(--text-light);
+    font-family: 'DisneyHeroic', sans-serif;
+    font-size: 1rem;
+    min-width: 200px;
 }
 
 .divine-button {
@@ -5187,19 +5216,19 @@ body::after {
 
 /* Pack type backgrounds */
 .pack-rip-animation.pack-joker .pack-image {
-    background-image: url('../public/ART/boon pack.png');
+    background-image: url('/ART/boon pack.png');
 }
 
 .pack-rip-animation.pack-worship .pack-image {
-    background-image: url('../public/ART/worship pack.png');
+    background-image: url('/ART/worship pack.png');
 }
 
 .pack-rip-animation.pack-libation .pack-image {
-    background-image: url('../public/ART/Libation pack.png');
+    background-image: url('/ART/Libation pack.png');
 }
 
 .pack-rip-animation.pack-chaos .pack-image {
-    background-image: url('../public/ART/chaos pack.png');
+    background-image: url('/ART/chaos pack.png');
 }
 
 .pack-rip-overlay {

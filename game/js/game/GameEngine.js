@@ -504,8 +504,16 @@ class GameEngine {
         // Reset transient bonus-yahtzee roll counter each ante
         this.state.rolledBonusYahtzees = 0;
 
+        // FIX: Set rolls for turn 1 of new ante (was left at 0 from previous ante's last turn)
+        this.state.rollsLeft = GAME_BALANCE.STARTING_ROLLS;
+        this.state.jokers.forEach(joker => {
+            if (joker.timing && joker.timing.turn_start) {
+                joker.onTimingEvent('turn_start', this.state);
+            }
+        });
+
         if (this.domReady) {
-            this.updateAllUI();
+            this.updateAllUI(true); // Immediate: ensure roll button enabled before playtest/user acts
         }
     }
     

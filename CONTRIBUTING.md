@@ -393,7 +393,7 @@ All code changes should:
 ## 💬 Communication
 
 ### Asking Questions
-- Check ARCHITECTURE.md first
+- Check .cursor/context/ARCHITECTURE.md first
 - Search existing issues
 - Include seed + steps to reproduce
 - Include console logs (Logger.exportLogs())

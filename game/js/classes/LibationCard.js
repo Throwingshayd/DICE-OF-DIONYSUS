@@ -437,7 +437,7 @@ class LibationCard extends Card {
         // Validate target face using die's validation method
         if (!die.isValidFace(targetFace)) {
             const engine = gameEngine || window.game;
-            const errorMsg = `Invalid face value: ${targetFaceValue}. Must be 1-6.`;
+            const errorMsg = `Invalid face value: ${targetFaceValue}. Must be 1-9.`;
             engine?.showMessage?.(errorMsg);
             console.warn(errorMsg);
             return;

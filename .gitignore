@@ -22,6 +22,8 @@ SAVE_CONFIRMATION.txt
 
 # Testing and debug files
 test-saves/
+test-results/
+playwright-report/
 debug-logs/
 *.log
 

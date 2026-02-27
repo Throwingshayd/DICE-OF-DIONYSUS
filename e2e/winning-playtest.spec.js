@@ -17,9 +17,20 @@ const CATEGORIES = [
 const REPORT_PATH = path.join(process.cwd(), 'tracking', 'WINNING_PLAYTEST_REPORT.md');
 const MAX_ANTES = 14;
 
-async function scoreTurn(page, category) {
+async function waitForRollButtonReady(page, timeoutMs = 15000) {
   const rollBtn = page.getByRole('button', { name: /cast the bones/i });
-  await rollBtn.waitFor({ state: 'visible', timeout: 20000 });
+  await rollBtn.waitFor({ state: 'visible', timeout: timeoutMs });
+  for (let i = 0; i < timeoutMs / 200; i++) {
+    const disabled = await rollBtn.isDisabled().catch(() => true);
+    if (!disabled) break;
+    await page.waitForTimeout(200);
+  }
+  await page.waitForTimeout(300);
+}
+
+async function scoreTurn(page, category) {
+  await waitForRollButtonReady(page);
+  const rollBtn = page.getByRole('button', { name: /cast the bones/i });
   await rollBtn.click();
   await page.waitForTimeout(500);
   await page.locator(`.score-row[data-category="${category}"]`).click();
@@ -40,7 +51,8 @@ async function closeShopAndTransitions(page) {
   const shopHidden = await shopStage.evaluate(el => el.classList.contains('hidden')).catch(() => true);
   if (shopVisible && !shopHidden) {
     await page.locator('#closeShop').click();
-    await page.waitForTimeout(1500); // Wait for stage swap back to play
+    await page.waitForTimeout(2000); // Wait for stage swap + ante transition if any
+    await waitForRollButtonReady(page); // Human-like: wait for roll button enabled
     const beginBtn2 = page.locator('#anteBeginButton, .ante-begin-button');
     if (await beginBtn2.isVisible().catch(() => false)) {
       await beginBtn2.click();

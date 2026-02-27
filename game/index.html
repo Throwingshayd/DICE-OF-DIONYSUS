@@ -19,15 +19,17 @@
     <link rel="icon" href="ART/Title art.png" type="image/png">
 </head>
 <body>
-    <!-- Start Screen -->
+    <!-- Start Screen (Balatro-style: bar below centre) -->
     <div id="startScreen">
-        <div class="modal-content" style="text-align: center; border-color: var(--accent-green);">
-            <div class="start-options">
-                <button class="divine-button" id="playButton">Play</button>
-                <button class="divine-button" id="continueButton" style="display: none;">Continue</button>
-                <button class="divine-button" id="collectionButton" style="background: var(--bg-light-green);">Anthology</button>
-                <button class="divine-button" id="settingsButton" title="Options">Settings</button>
-                <input type="text" id="seedInput" placeholder="Enter Seed (optional)" style="padding: 12px 20px; border-radius: 8px; border: 2px solid var(--stone-terracotta); background: rgba(0,0,0,0.3); color: var(--text-light); font-family: 'DisneyHeroic', sans-serif; font-size: 1rem; min-width: 200px;">
+        <div class="modal-content start-screen-modal" style="text-align: center; border-color: var(--accent-green);">
+            <div class="main-menu-bar">
+                <div class="start-options">
+                    <button class="divine-button" id="playButton">Play</button>
+                    <button class="divine-button" id="continueButton" style="display: none;">Continue</button>
+                    <button class="divine-button" id="collectionButton" style="background: var(--bg-light-green);">Anthology</button>
+                    <button class="divine-button" id="settingsButton" title="Options">Settings</button>
+                    <input type="text" id="seedInput" placeholder="Enter Seed (optional)" class="seed-input-inline">
+                </div>
             </div>
         </div>
     </div>

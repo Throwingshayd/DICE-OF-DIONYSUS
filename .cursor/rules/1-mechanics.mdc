@@ -1,0 +1,42 @@
+---
+description: The Judge — hand validation, mult order (+ then ×), timing (turn_start in nextTurn)
+globs: js/game/**, js/classes/**, js/config/**, js/data/gameData.js
+alwaysApply: false
+---
+
+# Mechanics Rules (The Judge)
+
+**Identity:** Authority on game logic — hand validation, multiplier order, blessing timing. Consult 6-translator for Balatro-derived mechanics.
+
+## Balatro Porting
+
+When implementing mechanics from or inspired by Balatro:
+- **Consult** `.cursor/rules/6-translator.mdc` for correct Lua→project mapping
+- Use the translator's core logic mapping (`G.jokers` → `state.jokers`, `G.hand` → `state.dice`, etc.)
+- Preserve Balatro's math and trigger order — do not simplify scoring complexity
+
+## Hand Validation
+
+- Ensure all scoring logic accounts for **5 dice** and **13 standard Yahtzee categories**
+- Categories live in `ScoringConstants.js` and `GameEngine.js`
+- Use seeded RNG (`this.prng.random()`) — **never** `Math.random()`
+
+## Multiplier Logic
+
+- **Mult is additive (+) then multiplicative (×)**. Always follow this order
+- Base formula: `Pips × Favour = Final Score`
+- Worship cards add +1 favour per category
+- Joker (boon) effects use timing: `before_roll`, `before_score`, `after_score`, `turn_end`, `ante_end`
+- **CRITICAL:** `turn_start` effects belong in `nextTurn()`, never in `executeRoll()`
+
+## The Blessing System (Libations/Worship)
+
+- Consumable items (Blessings) must be **destroyed after use**
+- Cannot exceed a **2-slot inventory** for consumables
+- Libations and Worship cards are consumables
+- Add new cards in `gameData.js` first, then implement in appropriate class
+- **Update** `.cursor/context/CONSOLIDATED_BOON_REFERENCE.md` and `.cursor/context/CARD_METADATA_REFERENCE.md` when adding/updating cards
+
+## Timing Reference
+
+See `.cursor/context/CONSOLIDATED_BOON_REFERENCE.md` for timing system and implementation patterns.

@@ -1,0 +1,61 @@
+---
+description: The Playtester — playtest→translator bridge. npm run playtest:ante1 → report
+globs: js/**, .cursor/context/*.md, e2e/**
+alwaysApply: false
+---
+
+# Translator Playtest (The Playtester)
+
+**Identity:** Bridge from playtest results to translator improvements. Use with 6-translator when improving from playtest findings.
+
+**Source:** `npm run playtest:ante1` → `tracking/FIRST_ANTE_PLAYTEST_REPORT.md`
+
+When improving the game from playtest findings, follow this template.
+
+---
+
+## 1. Map Playtest Results to Balatro
+
+| Playtest Metric        | Balatro Equivalent | Dice of Dionysus |
+|------------------------|-------------------|------------------|
+| Ante cleared           | Blind defeated     | `state.ante` advances |
+| Total score            | Chips × mult      | `state.totalScore` (scorecard sum + bonuses) |
+| Gold at shop           | Dollars           | `state.gold` |
+| Categories filled      | Hand types scored | `Object.keys(state.scorecard).length` |
+
+---
+
+## 2. Gameplay Loop Checklist (from first-ante playtest)
+
+- [ ] Turn: roll → hold (or skip) → score category → `nextTurn()`
+- [ ] `nextTurn()`: `turn_end` → `turn++` → default rolls → `turn_start` → shop if turn 4/8
+- [ ] Shop: turn 4, 8, end-of-ante (when threshold met)
+- [ ] Ante end: `areAllCategoriesFilled && totalScore >= threshold` → tally → shop
+- [ ] Economy: +1 gold per score, interest = floor(gold/5) max 5
+
+---
+
+## 3. Improvement Actions (when playtest fails)
+
+1. **Ante not clearing**  
+   - Check threshold vs. scoring formula (pips × favour)  
+   - Verify upper/lower bonuses (+35) in tally  
+   - See `AnteData_js.js` for thresholds  
+
+2. **Economy too tight**  
+   - `GAME_BALANCE.STARTING_GOLD`, `GOLD_PER_SCORE`  
+   - `CARD_ECONOMY` prices vs. gold at shop  
+
+3. **Timing / UI blocking**  
+   - Scoring animation duration in E2E (`SCORING_MS`)  
+   - `showInterestThenOpenShop` vs. immediate shop  
+
+---
+
+## 4. Run Playtest
+
+```bash
+npx playwright test e2e/first-ante-playtest.spec.js
+```
+
+Report written to: `tracking/FIRST_ANTE_PLAYTEST_REPORT.md`

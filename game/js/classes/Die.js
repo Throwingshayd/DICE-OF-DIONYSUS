@@ -88,7 +88,7 @@ class Die {
         this.tempModifier = 0;
         this.wildValue = undefined;
         this.motherOfPearlBonus = undefined;
-        // Reset all face enhancements
+        // Reset all face enhancements (including virtual faces 7-9)
         Object.values(this.faces).forEach(face => {
             face.enhancements.clear();
             face.modifiedValue = face.value;
@@ -96,28 +96,38 @@ class Die {
     }
 
     /**
-     * Validate if a face value is in valid range (1-6)
+     * Validate if a face value is in valid range (1-9 for enhancements)
      * @param {number|string} faceValue - Face value to validate
      * @returns {boolean} True if valid, false otherwise
      */
     isValidFace(faceValue) {
         const parsedFace = parseInt(faceValue, 10);
-        return !isNaN(parsedFace) && 
-               parsedFace >= GAME_BALANCE.MIN_DIE_FACE && 
-               parsedFace <= GAME_BALANCE.MAX_DIE_FACE;
+        return !isNaN(parsedFace) &&
+               parsedFace >= GAME_BALANCE.MIN_DIE_FACE &&
+               parsedFace <= GAME_BALANCE.MAX_DIE_FACE_WITH_ENHANCEMENTS;
     }
 
     /**
-     * Get validated face key (1-6) or null if invalid
+     * Get validated face key (1-9) or null if invalid
      * @param {number|string} faceValue - Face value to validate
      * @returns {number|null} Validated face number or null
      */
     getValidatedFaceKey(faceValue) {
         if (!this.isValidFace(faceValue)) {
-            console.warn(`Invalid face value: ${faceValue}. Must be between 1 and 6.`);
+            console.warn(`Invalid face value: ${faceValue}. Must be between 1 and ${GAME_BALANCE.MAX_DIE_FACE_WITH_ENHANCEMENTS}.`);
             return null;
         }
         return parseInt(faceValue, 10);
+    }
+
+    /**
+     * Ensure faces 7-9 exist (lazy init for high-category enhancements)
+     * @param {number} faceKey - Face to ensure exists
+     */
+    _ensureFaceExists(faceKey) {
+        if (faceKey >= 7 && faceKey <= 9 && !this.faces[faceKey]) {
+            this.faces[faceKey] = { value: faceKey, enhancements: new Set(), modifiedValue: faceKey };
+        }
     }
 
     /**
@@ -135,6 +145,7 @@ class Die {
             return false;
         }
         
+        this._ensureFaceExists(faceKey);
         if (!this.faces[faceKey]) {
             console.error(`Face ${faceKey} does not exist in die structure`);
             return false;
@@ -166,10 +177,20 @@ class Die {
      * @returns {boolean} True if modification was successful
      */
     modifyFaceValue(faceValue, delta) {
-        const faceKey = this.getValidatedFaceKey(faceValue);
-        if (faceKey === null) {
+        const targetKey = this.getValidatedFaceKey(faceValue);
+        if (targetKey === null) {
             console.error(`Cannot modify invalid face: ${faceValue}`);
             return false;
+        }
+        
+        // For faces 7-9, find the physical face (1-6) that has this modifiedValue
+        let faceKey = targetKey;
+        if (targetKey >= 7) {
+            faceKey = Object.keys(this.faces).find(k => {
+                const kNum = parseInt(k, 10);
+                return kNum <= 6 && (this.faces[k].modifiedValue || this.faces[k].value) === targetKey;
+            });
+            faceKey = faceKey ? parseInt(faceKey, 10) : this.currentFace;
         }
         
         if (!this.faces[faceKey]) {
@@ -178,8 +199,13 @@ class Die {
         }
         
         const currentValue = this.faces[faceKey].modifiedValue || this.faces[faceKey].value;
-        const newValue = Math.max(GAME_BALANCE.MIN_DIE_FACE, 
-                                   Math.min(GAME_BALANCE.MAX_DIE_FACE_WITH_ENHANCEMENTS, currentValue + delta));
+        let newValue = currentValue + delta;
+        // Wrapping: 9+1=1, 1-1=9 (faces loop)
+        if (newValue > GAME_BALANCE.MAX_DIE_FACE_WITH_ENHANCEMENTS) {
+            newValue = GAME_BALANCE.MIN_DIE_FACE;
+        } else if (newValue < GAME_BALANCE.MIN_DIE_FACE) {
+            newValue = GAME_BALANCE.MAX_DIE_FACE_WITH_ENHANCEMENTS;
+        }
         this.faces[faceKey].modifiedValue = newValue;
         
         return true;
@@ -261,10 +287,13 @@ class Die {
     hasEnhancementForCurrentFace(enhancement) {
         if (this.currentFace === 0) return false;
         
-        const currentFaceData = this.faces[this.currentFace];
-        if (!currentFaceData) return false;
+        const effectiveFace = this.getEffectiveFace();
+        // For faces 7-9, check the virtual face; otherwise check physical face
+        const faceToCheck = (effectiveFace >= 7 && this.faces[effectiveFace]) ? effectiveFace : this.currentFace;
+        const faceData = this.faces[faceToCheck];
+        if (!faceData) return false;
         
-        return currentFaceData.enhancements.has(enhancement);
+        return faceData.enhancements.has(enhancement);
     }
 
     // Summary string for tooltips: face-specific enhancements
@@ -280,11 +309,13 @@ class Die {
         return `Face Enhancements → ${enhancedFaces.join(' | ')}`;
     }
 
-    // Get enhancements for the current face only
+    // Get enhancements for the current face only (includes virtual faces 7-9)
     getCurrentFaceEnhancements() {
         if (this.currentFace === 0) return [];
-        const currentFaceData = this.faces[this.currentFace];
-        return currentFaceData ? Array.from(currentFaceData.enhancements) : [];
+        const effectiveFace = this.getEffectiveFace();
+        const faceToCheck = (effectiveFace >= 7 && this.faces[effectiveFace]) ? effectiveFace : this.currentFace;
+        const faceData = this.faces[faceToCheck];
+        return faceData ? Array.from(faceData.enhancements) : [];
     }
 
     // Check if current face has any enhancements
@@ -390,10 +421,13 @@ class Die {
         newDie.wildValue = this.wildValue;
         newDie.motherOfPearlBonus = this.motherOfPearlBonus;
         
-        // Clone all face data
+        // Clone all face data (including virtual faces 7-9)
         Object.entries(this.faces).forEach(([faceNum, faceData]) => {
-            newDie.faces[faceNum].enhancements = new Set(faceData.enhancements);
-            newDie.faces[faceNum].modifiedValue = faceData.modifiedValue;
+            newDie._ensureFaceExists(parseInt(faceNum, 10));
+            if (newDie.faces[faceNum]) {
+                newDie.faces[faceNum].enhancements = new Set(faceData.enhancements);
+                newDie.faces[faceNum].modifiedValue = faceData.modifiedValue;
+            }
         });
         
         return newDie;
@@ -432,9 +466,10 @@ class Die {
         
         if (data.faces) {
             Object.entries(data.faces).forEach(([faceNum, faceData]) => {
+                this._ensureFaceExists(parseInt(faceNum, 10));
                 if (this.faces[faceNum]) {
                     this.faces[faceNum].enhancements = new Set(faceData.enhancements || []);
-                    this.faces[faceNum].modifiedValue = faceData.modifiedValue || faceData.value;
+                    this.faces[faceNum].modifiedValue = faceData.modifiedValue ?? faceData.value;
                 }
             });
         }

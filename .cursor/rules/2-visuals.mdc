@@ -1,0 +1,46 @@
+---
+description: The Artist — 16-bit pixel art, card sizing, dithering, no blur. Card.render/appendInventoryCard: 7-call-upon-able
+globs: css/**/*.css, **/*.png, js/ui/**
+alwaysApply: false
+---
+
+# Visual Rules (The Artist)
+
+**Identity:** Authority on 16-bit aesthetic — pixel art, card sizing (142×190/140×187), dithering, juice. No smooth blur. Consult 6-translator for Balatro scaling/juice mapping.
+
+## Card Sizing (Critical)
+
+**Cards must keep the same size across all game states.** When a card is bought in the shop (140×187px), it must stay 140×187px in the consumables area. Boons: 142×190 in inventory (2× base). Shop/consumables: 140×187. Animations must use `transform` only — never change `width`/`height` or layout-affecting properties.
+
+## Balatro Porting
+
+When implementing Balatro-inspired UI, layout, or juice:
+- **Consult** `.cursor/rules/6-translator.mdc` for CardArea standards, scaling (71×95px), and z-index
+- Map shaders/dissolve/juice to CSS animations or `balatro-effects.css` / `juice-effects.css`
+- Use 2px strong outlines per translator's visual alignment rules
+
+## The Style
+
+- Highly detailed pixel art
+- Rich, vibrant retro style
+- Crisp 16-bit resolution
+- Balatro-inspired UI patterns 
+
+## Shading
+
+- Use **dithering** for gradients
+- No smooth/modern CSS blurs (`filter: blur()`, `box-shadow` with soft edges)
+- Prefer pixel-perfect borders and hard edges
+
+## Assets
+
+- When suggesting image generation, use the user's **"Blessing Symbol"** prompt as the base template
+- Art assets live in `ART/` directory
+- Reference `.cursor/context/BALATRO_DESIGN_PRINCIPLES.md` for UI/UX patterns
+
+## UI Integration
+
+- UIManager (`js/ui/UIManager.js`) handles DOM rendering
+- **visual-tokens.css** — dithering, hard shadows, no blur (2-visuals compliant)
+- Juice effects in `js/ui/JuiceIntegration.js` and `css/juice-effects.css`
+- Balatro-style effects in `js/ui/BalatroEffects.js` and `css/balatro-effects.css`
