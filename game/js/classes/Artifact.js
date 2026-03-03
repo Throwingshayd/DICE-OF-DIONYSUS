@@ -5,7 +5,7 @@ class Artifact extends Card {
     constructor(data) {
         super(data);
         this.type = 'artifact';
-        this.cost = 10; // All artifacts cost 10 gold (like Balatro vouchers)
+        this.cost = data.cost ?? 10; // Merchant Arrival discount applied when data.cost passed
         this.sellValue = 0; // Artifacts cannot be sold
         this.rarity = 'artifact';
         
@@ -53,7 +53,7 @@ class Artifact extends Card {
         // Add buy label for shop items
         let labelHtml = '';
         if (isShopItem && isDirectSale) {
-            labelHtml = `<div class="buy-sell-label buy artifact-buy" data-action="buy" data-cost="${this.cost}">10g</div>`;
+            labelHtml = `<div class="buy-sell-label buy artifact-buy" data-action="buy" data-cost="${this.cost}">${this.cost}g</div>`;
         }
         
         // Artifact type indicator

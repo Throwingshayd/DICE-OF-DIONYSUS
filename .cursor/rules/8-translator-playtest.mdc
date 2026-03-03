@@ -8,7 +8,7 @@ alwaysApply: false
 
 **Identity:** Bridge from playtest results to translator improvements. Use with 6-translator when improving from playtest findings.
 
-**Source:** `npm run playtest:ante1` → `tracking/FIRST_ANTE_PLAYTEST_REPORT.md`
+**Source:** Playtest scripts removed for fresh start. Add new E2E specs as needed.
 
 When improving the game from playtest findings, follow this template.
 
@@ -54,8 +54,4 @@ When improving the game from playtest findings, follow this template.
 
 ## 4. Run Playtest
 
-```bash
-npx playwright test e2e/first-ante-playtest.spec.js
-```
-
-Report written to: `tracking/FIRST_ANTE_PLAYTEST_REPORT.md`
+Add new E2E specs in `e2e/` as needed. Use Playwright for full-browser flows.

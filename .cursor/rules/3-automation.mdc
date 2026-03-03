@@ -17,8 +17,8 @@ alwaysApply: false
 | `npm run dev` | Start Vite dev server (port 3000) |
 | `npm run build` | Production build → `dist/` |
 | `npm run preview` | Preview build (port 4173) |
-| `npm run test` | Vitest unit tests (tests/) |
-| `npm run playtest:ante1` | Playwright first-ante → tracking/FIRST_ANTE_PLAYTEST_REPORT.md |
+| `npm run test` | Vitest unit tests |
+| `npm run playtest:boons` | E2E boon playtest |
 | `npm run lint` | ESLint check |
 | `npm run lint:fix` | ESLint with auto-fix |
 
@@ -40,8 +40,6 @@ alwaysApply: false
 - Manual browser testing is primary (game uses `window.game`, `window.uiManager` in console)
 - Use **deterministic seeds** for reproducibility
 - Vitest for unit tests; no separate E2E by default
-- See `tracking/BUGS_FIXED_LOG.md` for past issues
-
 ## Verification Protocol
 
 When implementing a feature (e.g. new boon):
@@ -54,8 +52,4 @@ When implementing a feature (e.g. new boon):
 
 ## Playtest (E2E)
 
-```bash
-npx playwright test e2e/first-ante-playtest.spec.js
-```
-
-Report → `tracking/FIRST_ANTE_PLAYTEST_REPORT.md`
+Tests removed for fresh start. Add new E2E specs in `e2e/` as needed.

@@ -49,7 +49,7 @@ class App {
         
         // Apply saved settings (sound, auto-save)
         const s = this.dataManager?.getSettings?.() || {};
-        this.applySoundSetting(s.soundEnabled !== false);
+        this.applySoundSetting(s.soundEnabled !== false, s.musicVolume, s.sfxVolume);
         if (s.autoSave === false) this.stopAutoSave();
         
         // Show start screen
@@ -132,7 +132,7 @@ class App {
         this.showPauseMenu();
     }
 
-    /** Balatro: overlay_menu — create pause menu dynamically */
+    /** Balatro: overlay_menu — create pause menu with Run Info (G.UIDEF.run_info) */
     showPauseMenu() {
         if (this._pauseOverlay) {
             this._pauseOverlay.remove();
@@ -141,6 +141,10 @@ class App {
         this._pauseOverlay.className = 'overlay settings-overlay-created';
         this._pauseOverlay.style.cssText = 'z-index: 10002;';
         this._pauseOverlay.id = 'pauseMenuOverlayDynamic';
+        const gameState = this.game?.state ?? null;
+        const runInfoContent = typeof RunInfoOverlay !== 'undefined'
+            ? RunInfoOverlay.create(gameState)
+            : null;
         this._pauseOverlay.innerHTML = `
             <div class="modal-content pause-menu-modal">
                 <h2 class="shop-title">Menu</h2>
@@ -151,6 +155,10 @@ class App {
                 <button class="divine-button" id="pauseResumeBtn">Resume</button>
             </div>
         `;
+        const modal = this._pauseOverlay.querySelector('.pause-menu-modal');
+        if (runInfoContent && modal) {
+            modal.insertBefore(runInfoContent, modal.querySelector('.pause-menu-buttons'));
+        }
         this._pauseOverlay.addEventListener('click', (e) => {
             if (e.target === this._pauseOverlay) this.hidePauseMenu();
         });
@@ -164,11 +172,11 @@ class App {
         }
     }
 
-    applySoundSetting(enabled) {
+    applySoundSetting(enabled, musicVolume, sfxVolume) {
         if (this.soundManager) {
             if (enabled) {
-                this.soundManager.setMusicVolume(0.8);
-                this.soundManager.setSfxVolume(0.8);
+                this.soundManager.setMusicVolume(musicVolume ?? 0.6);
+                this.soundManager.setSfxVolume(sfxVolume ?? 0.8);
             } else {
                 this.soundManager.setMusicVolume(0);
                 this.soundManager.setSfxVolume(0);

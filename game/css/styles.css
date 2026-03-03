@@ -190,7 +190,7 @@ body::after {
     align-items: stretch;
 }
 
-/* Shared box styling - thick black border */
+/* Shared box styling - no border */
 .inventory-panel-boons,
 .inventory-panel-consumables {
     position: relative;
@@ -201,7 +201,7 @@ body::after {
     padding: 14px 18px;
     overflow: visible;
     background: transparent;
-    border: 4px solid black;
+    border: none;
     border-radius: 12px;
 }
 
@@ -268,7 +268,7 @@ body::after {
 .joker-slots.card-area-squish .card,
 .inventory-panel-boons .joker-slots.card-area-squish .card {
     flex-shrink: 0;
-    margin-left: -12px;  /* Overlap: cards overlap, right has higher z-index */
+    margin-left: -8px;  /* Overlap: cards overlap less, right has higher z-index */
 }
 
 .joker-slots.card-area-squish .card:first-child,
@@ -301,7 +301,7 @@ body::after {
 .consumable-slots.card-area-squish .card,
 .inventory-panel-consumables .consumable-slots.card-area-squish .card {
     flex-shrink: 0;
-    margin-left: -12px;
+    margin-left: -8px;
 }
 
 .consumable-slots.card-area-squish .card:first-child,
@@ -370,11 +370,44 @@ body::after {
     min-height: 190px !important;
     max-width: 142px !important;
     max-height: 190px !important;
-    margin-left: -24px !important;
+    margin-left: -16px !important;
 }
 
 .inventory-panel-boons .joker-slots.card-area-squish .card:first-child {
     margin-left: 0 !important;
+}
+
+/* Boon drag-to-reorder (Balatro-style) */
+.boon-reorder-hint {
+    position: absolute;
+    bottom: -18px;
+    left: 50%;
+    transform: translateX(-50%);
+    font-size: 0.7rem;
+    color: rgba(255, 255, 255, 0.5);
+    font-family: 'DisneyHeroic', 'VT323', sans-serif;
+    pointer-events: none;
+}
+
+.inventory-panel-boons:not(.has-multiple-boons) .boon-reorder-hint {
+    display: none;
+}
+
+.joker-slots .card.boon-draggable {
+    cursor: grab;
+}
+
+.joker-slots .card.boon-draggable:active {
+    cursor: grabbing;
+}
+
+.joker-slots .card.boon-dragging {
+    opacity: 0.6;
+}
+
+.joker-slots .card.boon-drag-over {
+    outline: 2px dashed rgba(201, 162, 39, 0.8);
+    outline-offset: 2px;
 }
 
 /* Consumables: match shop size (140×187) so cards stay same size when bought */
@@ -385,18 +418,14 @@ body::after {
     min-height: 187px !important;
     max-width: 140px !important;
     max-height: 187px !important;
-    margin-left: -24px !important;
+    margin-left: -16px !important;
 }
 
 .inventory-panel-consumables .consumable-slots.card-area-squish .card:first-child {
     margin-left: 0 !important;
 }
 
-/* Force hide text in boon cards (tooltip shows on hover) */
-.joker-slots .card .card-content .card-name,
-.joker-slots .card .card-content .card-effect,
-.joker-slots .card .card-content .card-rarity,
-.joker-slots .card .card-content .card-god,
+/* Force hide text in consumable cards (tooltip shows on hover); boons show full content like shop */
 .consumable-slots .card .card-content .card-name,
 .consumable-slots .card .card-content .card-effect,
 .consumable-slots .card .card-content .card-rarity,
@@ -955,7 +984,9 @@ body::after {
 }
 
 /* 7. ARTIFACT SECTION - no asset, Balatro-style minimal */
+/* Hidden: artifacts shown in pause menu Current Run Stats instead */
 .artifact-section {
+    display: none;
     flex-shrink: 0;
     margin-top: 16px;
     width: 100%;
@@ -1096,33 +1127,49 @@ body::after {
 .live-score-display.cashout-mode .gnosis-cashout-content.hidden {
     display: none !important;
 }
-/* Cashout: match gnosis-category-name font (DisneyHeroic, same as OFFERING) */
+/* Cashout: larger text, pantheon blue (cashout) and purple (total score) */
+@keyframes cashout-flash-blue {
+    0%, 100% { color: #4A90E2; text-shadow: 0 0 8px rgba(74, 144, 226, 0.6); }
+    50% { color: #6EC1E4; text-shadow: 0 0 16px rgba(110, 193, 228, 0.9); }
+}
+@keyframes pantheon-flash-purple {
+    0%, 100% { color: #9b59b6; text-shadow: 0 0 8px rgba(155, 89, 182, 0.6); }
+    50% { color: #e8b4f0; text-shadow: 0 0 20px rgba(232, 180, 240, 0.9); }
+}
 .live-score-display .gnosis-cashout-title,
 .live-score-display .gnosis-cashout-lines,
 .live-score-display .gnosis-cashout-line {
     font-family: 'DisneyHeroic', sans-serif;
-    font-size: 16px;
+    font-size: 22px;
     font-weight: bold;
-    color: #2F1C10;
     letter-spacing: 1px;
     text-transform: uppercase;
     line-height: 1.3;
 }
 .live-score-display .gnosis-cashout-title {
-    letter-spacing: 2px;
-}
-.live-score-display .gnosis-cashout-line.gnosis-pantheon-value {
-    color: var(--score-green, #2ECC71);
-    text-shadow: 0 1px 4px rgba(0,0,0,0.3);
+    font-size: 26px;
+    letter-spacing: 3px;
+    color: #4A90E2;
+    animation: cashout-flash-blue 1.2s ease-in-out infinite;
 }
 .live-score-display .gnosis-cashout-line {
-    margin: 2px 0;
+    font-size: 20px;
+    color: #4A90E2;
+    margin: 4px 0;
+    animation: cashout-flash-blue 1.2s ease-in-out infinite;
+}
+.live-score-display .gnosis-cashout-line.gnosis-pantheon-value {
+    font-size: 48px;
+    font-family: 'VT323', monospace;
+    color: #9b59b6;
+    text-shadow: 0 2px 8px rgba(0,0,0,0.4);
+    animation: pantheon-flash-purple 1.2s ease-in-out infinite;
 }
 .live-score-display .gnosis-cashout-sub {
     font-family: 'DisneyHeroic', sans-serif;
-    color: rgba(47, 28, 16, 0.7);
-    font-size: 14px;
-    margin: 4px 0 0 0;
+    color: rgba(74, 144, 226, 0.85);
+    font-size: 16px;
+    margin: 6px 0 0 0;
 }
 
 /* Fixed-height cells – lock height so "+ contribution" animation doesn't shift layout */
@@ -1763,16 +1810,32 @@ body::after {
     display: none !important;
 }
 
-/* Additional specificity for inventory cards */
+/* Additional specificity for inventory cards — consumables: hide text; boons: show like shop */
 .consumable-slots .card .card-content .card-name,
 .consumable-slots .card .card-content .card-effect,
 .consumable-slots .card .card-content .card-rarity,
-.consumable-slots .card .card-content .card-god,
-.joker-slots .card .card-content .card-name,
+.consumable-slots .card .card-content .card-god {
+    display: none !important;
+}
+
+/* Boons in boon slots: name via card-type-indicator only; hide effect, god, rarity */
 .joker-slots .card .card-content .card-effect,
 .joker-slots .card .card-content .card-rarity,
 .joker-slots .card .card-content .card-god {
     display: none !important;
+}
+
+/* Hide card-name — use card-type-indicator for name (matches shop) */
+.joker-slots .card.joker-card .card-content .card-name {
+    display: none !important;
+}
+
+/* Show card-type-indicator (name) as in shop — prominent, centered */
+.joker-slots .card.joker-card .card-type-indicator {
+    display: flex !important;
+    visibility: visible !important;
+    align-items: center;
+    justify-content: center;
 }
 
 /* CSS-based frame for boons (white fallback design) */
@@ -1895,6 +1958,16 @@ body::after {
 .joker-slots .card .card-dynamic-stats,
 .consumable-slots .card .card-dynamic-stats {
     display: flex !important;
+}
+
+/* Boon slots: dynamic stats (pips, favour) white like title */
+.joker-slots .card .card-dynamic-stats .dynamic-stat.pips,
+.joker-slots .card .card-dynamic-stats .dynamic-stat.favour,
+.joker-slots .card .card-dynamic-stats .dynamic-stat.mult {
+    color: rgba(255,255,255,0.95) !important;
+    text-shadow: 0 1px 2px rgba(0,0,0,0.5);
+    border-color: rgba(255,255,255,0.4) !important;
+    background: rgba(0,0,0,0.25) !important;
 }
 
 /* Question mark for unrolled dice */
@@ -2525,24 +2598,27 @@ body::after {
 
 /* Worship/libation :not(.has-asset): card-frame provides simple style */
 
-/* Shop & pack: boon card-content by rarity (lowest→highest: brown, green, orange, pink) — no-asset only */
+/* Shop, pack & boon slots: boon card-content by rarity (brown, green, orange, pink) — no-asset only */
 #shopDefaultView .card.joker-card.no-asset.rustic .card-content,
 #packOpeningView .card.joker-card.no-asset.rustic .card-content,
-.pack-cards-grid .card.joker-card.no-asset.rustic .card-content {
+.pack-cards-grid .card.joker-card.no-asset.rustic .card-content,
+.joker-slots .card.joker-card.no-asset.rustic .card-content {
     background: #5D4037 !important;
     border-radius: 8px;
     border: 2px solid rgba(255,255,255,0.3);
 }
 #shopDefaultView .card.joker-card.no-asset.vibrant .card-content,
 #packOpeningView .card.joker-card.no-asset.vibrant .card-content,
-.pack-cards-grid .card.joker-card.no-asset.vibrant .card-content {
+.pack-cards-grid .card.joker-card.no-asset.vibrant .card-content,
+.joker-slots .card.joker-card.no-asset.vibrant .card-content {
     background: #2E7D32 !important;
     border-radius: 8px;
     border: 2px solid rgba(255,255,255,0.3);
 }
 #shopDefaultView .card.joker-card.no-asset.epic .card-content,
 #packOpeningView .card.joker-card.no-asset.epic .card-content,
-.pack-cards-grid .card.joker-card.no-asset.epic .card-content {
+.pack-cards-grid .card.joker-card.no-asset.epic .card-content,
+.joker-slots .card.joker-card.no-asset.epic .card-content {
     background: #E65100 !important;
     border-radius: 8px;
     border: 2px solid rgba(255,255,255,0.3);
@@ -2552,27 +2628,32 @@ body::after {
 #packOpeningView .card.joker-card.no-asset.legendary .card-content,
 #packOpeningView .card.joker-card.no-asset.mythic .card-content,
 .pack-cards-grid .card.joker-card.no-asset.legendary .card-content,
-.pack-cards-grid .card.joker-card.no-asset.mythic .card-content {
+.pack-cards-grid .card.joker-card.no-asset.mythic .card-content,
+.joker-slots .card.joker-card.no-asset.legendary .card-content,
+.joker-slots .card.joker-card.no-asset.mythic .card-content {
     background: #AD1457 !important;
     border-radius: 8px;
     border: 2px solid rgba(255,255,255,0.3);
 }
-/* Shop & pack no-asset boons: fallback-bg matches rarity so whole card is colored */
+/* Shop, pack & boon slots no-asset boons: fallback-bg matches rarity so whole card is colored */
 #shopDefaultView .card.joker-card.no-asset.rustic .card-fallback-bg,
 #packOpeningView .card.joker-card.no-asset.rustic .card-fallback-bg,
-.pack-cards-grid .card.joker-card.no-asset.rustic .card-fallback-bg {
+.pack-cards-grid .card.joker-card.no-asset.rustic .card-fallback-bg,
+.joker-slots .card.joker-card.no-asset.rustic .card-fallback-bg {
     background: #5D4037 !important;
     border-color: rgba(255,255,255,0.3);
 }
 #shopDefaultView .card.joker-card.no-asset.vibrant .card-fallback-bg,
 #packOpeningView .card.joker-card.no-asset.vibrant .card-fallback-bg,
-.pack-cards-grid .card.joker-card.no-asset.vibrant .card-fallback-bg {
+.pack-cards-grid .card.joker-card.no-asset.vibrant .card-fallback-bg,
+.joker-slots .card.joker-card.no-asset.vibrant .card-fallback-bg {
     background: #2E7D32 !important;
     border-color: rgba(255,255,255,0.3);
 }
 #shopDefaultView .card.joker-card.no-asset.epic .card-fallback-bg,
 #packOpeningView .card.joker-card.no-asset.epic .card-fallback-bg,
-.pack-cards-grid .card.joker-card.no-asset.epic .card-fallback-bg {
+.pack-cards-grid .card.joker-card.no-asset.epic .card-fallback-bg,
+.joker-slots .card.joker-card.no-asset.epic .card-fallback-bg {
     background: #E65100 !important;
     border-color: rgba(255,255,255,0.3);
 }
@@ -2581,14 +2662,33 @@ body::after {
 #packOpeningView .card.joker-card.no-asset.legendary .card-fallback-bg,
 #packOpeningView .card.joker-card.no-asset.mythic .card-fallback-bg,
 .pack-cards-grid .card.joker-card.no-asset.legendary .card-fallback-bg,
-.pack-cards-grid .card.joker-card.no-asset.mythic .card-fallback-bg {
+.pack-cards-grid .card.joker-card.no-asset.mythic .card-fallback-bg,
+.joker-slots .card.joker-card.no-asset.legendary .card-fallback-bg,
+.joker-slots .card.joker-card.no-asset.mythic .card-fallback-bg {
     background: #AD1457 !important;
     border-color: rgba(255,255,255,0.3);
 }
-/* White text on colored backgrounds for shop & pack boons */
+/* White text on colored backgrounds for shop, pack & boon slots boons */
 #shopDefaultView .card.joker-card .fallback-name,
 #packOpeningView .card.joker-card .fallback-name,
-.pack-cards-grid .card.joker-card .fallback-name {
+.pack-cards-grid .card.joker-card .fallback-name,
+.joker-slots .card.joker-card .fallback-name {
+    color: rgba(255,255,255,0.95) !important;
+    text-shadow: 0 1px 2px rgba(0,0,0,0.5);
+}
+
+/* Boon slots no-asset: white text on colored card-content (match shop) */
+.joker-slots .card.joker-card.no-asset .card-content .card-name,
+.joker-slots .card.joker-card.no-asset .card-content .card-effect,
+.joker-slots .card.joker-card.no-asset .card-content .card-rarity,
+.joker-slots .card.joker-card.no-asset .card-content .card-god {
+    color: rgba(255,255,255,0.95) !important;
+    text-shadow: 0 1px 2px rgba(0,0,0,0.5);
+    background: rgba(0,0,0,0.2) !important;
+}
+
+/* Boon slots no-asset: name (card-type-indicator) white on colored background */
+.joker-slots .card.joker-card.no-asset .card-type-indicator {
     color: rgba(255,255,255,0.95) !important;
     text-shadow: 0 1px 2px rgba(0,0,0,0.5);
 }
@@ -3596,6 +3696,204 @@ body::after {
 
 .settings-row select:focus {
     outline: 2px solid var(--accent-green);
+}
+
+.settings-row-slider .slider-with-value {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    min-width: 180px;
+}
+
+.settings-row input[type="range"] {
+    flex: 1;
+    min-width: 100px;
+    height: 8px;
+    -webkit-appearance: none;
+    appearance: none;
+    background: rgba(0, 0, 0, 0.4);
+    border-radius: 4px;
+    outline: none;
+}
+
+.settings-row input[type="range"]::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    appearance: none;
+    width: 18px;
+    height: 18px;
+    border-radius: 50%;
+    background: var(--accent-gold, #d4af37);
+    cursor: pointer;
+    border: 2px solid var(--stone-terracotta);
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
+}
+
+.settings-row input[type="range"]::-moz-range-thumb {
+    width: 18px;
+    height: 18px;
+    border-radius: 50%;
+    background: var(--accent-gold, #d4af37);
+    cursor: pointer;
+    border: 2px solid var(--stone-terracotta);
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
+}
+
+.settings-row .slider-value {
+    font-family: 'DisneyHeroic', sans-serif;
+    color: var(--text-light);
+    font-size: 0.95rem;
+    min-width: 42px;
+    text-align: right;
+}
+
+.settings-row input[type="range"]:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+
+.settings-row input[type="range"]:disabled + .slider-value {
+    opacity: 0.6;
+}
+
+/* Run Info tabs (Balatro: G.UIDEF.run_info) */
+.run-info-container {
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+.run-info-tabs {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+    justify-content: center;
+}
+
+.run-info-tab {
+    padding: 6px 12px;
+    font-size: 0.85rem;
+    min-width: auto;
+}
+
+.run-info-tab.active {
+    background: var(--accent-green);
+    color: var(--stone-dark);
+}
+
+.run-info-panels {
+    max-height: 220px;
+    overflow-y: auto;
+    min-height: 100px;
+}
+
+.run-info-panel {
+    display: none;
+}
+
+.run-info-panel.active {
+    display: block;
+}
+
+.run-info-panel-inner {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.run-info-empty {
+    color: var(--stone-terracotta);
+    font-style: italic;
+    margin: 0;
+}
+
+.run-info-ante-card {
+    background: rgba(0, 0, 0, 0.25);
+    border-radius: 8px;
+    padding: 10px 12px;
+    border: 1px solid var(--stone-terracotta);
+}
+
+.run-info-ante-current .run-info-ante-header {
+    color: var(--accent-gold, #d4af37);
+}
+
+.run-info-ante-header {
+    font-weight: bold;
+    font-size: 0.9rem;
+    margin-bottom: 4px;
+}
+
+.run-info-ante-name,
+.run-info-ante-blind {
+    font-size: 0.95rem;
+}
+
+.run-info-ante-effect,
+.run-info-ante-threshold {
+    font-size: 0.85rem;
+    color: var(--stone-terracotta);
+    margin-top: 4px;
+}
+
+.run-info-ante-upcoming {
+    font-size: 0.85rem;
+}
+
+.run-info-ante-row {
+    padding: 2px 0;
+}
+
+.run-info-hands-list,
+.run-info-artifacts-list,
+.run-info-worship-list {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+}
+
+.run-info-hand-row,
+.run-info-artifact-row {
+    display: flex;
+    flex-direction: column;
+    padding: 6px 10px;
+    background: rgba(0, 0, 0, 0.2);
+    border-radius: 6px;
+    font-size: 0.9rem;
+}
+
+.run-info-worship-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    padding: 6px 10px;
+    background: rgba(0, 0, 0, 0.2);
+    border-radius: 6px;
+    font-size: 0.9rem;
+}
+
+.run-info-hand-score,
+.run-info-worship-level {
+    font-weight: bold;
+    color: var(--accent-gold, #d4af37);
+}
+
+.run-info-worship-row.has-level .run-info-worship-god {
+    color: var(--accent-green);
+}
+
+.run-info-artifact-name {
+    font-weight: bold;
+}
+
+.run-info-artifact-effect {
+    font-size: 0.8rem;
+    color: var(--stone-terracotta);
+    margin-top: 2px;
+}
+
+.pause-menu-modal {
+    max-width: 480px;
 }
 
 .pause-menu-buttons {
@@ -5575,6 +5873,32 @@ body::after {
     100% {
         opacity: 0;
         transform: translate(-50%, -65px) scale(0.9);
+    }
+}
+
+/* Boon contribution popup – Balatro-style: shows +pips / +favour under boon when scoring */
+.boon-contrib-popup {
+    font-size: 14px;
+    font-weight: 700;
+    color: #c9a227;
+    text-shadow: 0 0 6px rgba(201, 162, 39, 0.8), 0 1px 2px rgba(0,0,0,0.9);
+    font-family: 'DisneyHeroic', 'VT323', sans-serif;
+    animation: boonContribPop 0.9s ease-out forwards;
+    white-space: nowrap;
+}
+
+@keyframes boonContribPop {
+    0% {
+        opacity: 1;
+        transform: translate(-50%, 0) scale(0.8);
+    }
+    40% {
+        opacity: 1;
+        transform: translate(-50%, 6px) scale(1.05);
+    }
+    100% {
+        opacity: 0;
+        transform: translate(-50%, 18px) scale(1);
     }
 }
 

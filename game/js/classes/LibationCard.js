@@ -371,6 +371,7 @@ class LibationCard extends Card {
                 
                 // Add selection animation
                 option.classList.add('selected');
+                if (window.soundManager) window.soundManager.play('foil1', { pitch: 0.95 + Math.random() * 0.1, volume: 0.55 });
                 
                 // Apply enhancement after brief animation
                 setTimeout(() => {
@@ -399,6 +400,7 @@ class LibationCard extends Card {
         // Cancel button handler
         const cancelButton = modal.querySelector('#cancelEnhancement');
         cancelButton.addEventListener('click', () => {
+            if (window.soundManager) window.soundManager.play('cancel', { volume: 0.45 });
             overlay.style.opacity = '0';
             setTimeout(() => {
                 if (overlay.parentNode) {

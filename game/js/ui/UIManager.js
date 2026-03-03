@@ -460,6 +460,7 @@ class UIManager {
                     const targetFace = gameState.hasRolled ? die.getEffectiveFace() : (die.currentFace || (index % 6) + 1);
                     libation.applyEnhancementToDie(gameState, index, enhancementType, targetFace, game);
                     libation.use();
+                    if (window.soundManager) window.soundManager.play('foil1', { pitch: 0.95 + Math.random() * 0.1, volume: 0.55 });
                     const idx = gameState.consumables.findIndex(c => c.id === libation.id);
                     if (idx !== -1) gameState.consumables.splice(idx, 1);
                     game.state.libationTargetingMode = null;
@@ -874,21 +875,37 @@ class UIManager {
 
         cardEl.addEventListener(revealOn, (e) => {
             e.preventDefault();
+            e.stopPropagation();
             toggleActionLabels(e);
         });
+
+        // Click outside: hide sell label when clicking away from cards
+        if (!container._sellLabelClickOutsideHandler) {
+            container._sellLabelClickOutsideHandler = (e) => {
+                if (!e.target.closest('.card') || !e.target.closest(container)) {
+                    container.querySelectorAll('.card').forEach(el => el.classList.remove('sell-label-visible'));
+                }
+            };
+            document.addEventListener('click', container._sellLabelClickOutsideHandler);
+        }
 
         container.appendChild(cardEl);
     }
 
     updateJokerUI(gameState, gameEngine) {
         const container = this.dom.jokerSlots;
+        const boonsPanel = container?.closest('.inventory-panel-boons');
         if (!container) {
             Logger.warn('jokerSlots element not found');
             return;
         }
         container.innerHTML = '';
         const jokers = gameState.jokers || [];
-        if (jokers.length === 0) return;
+        if (jokers.length === 0) {
+            if (boonsPanel) boonsPanel.classList.remove('has-multiple-boons');
+            return;
+        }
+        if (boonsPanel) boonsPanel.classList.toggle('has-multiple-boons', jokers.length >= 2);
 
         jokers.forEach(joker => {
             this.appendInventoryCard(joker, container, {
@@ -896,6 +913,86 @@ class UIManager {
                 revealOn: 'click'
             });
         });
+
+        this.setupBoonDragAndDrop(container, gameState, gameEngine);
+    }
+
+    /**
+     * Setup drag-and-drop for boon reordering (Balatro-style: placement matters for abilities)
+     * @param {HTMLElement} container - jokerSlots element
+     * @param {Object} gameState - Game state
+     * @param {Object} gameEngine - GameEngine instance
+     */
+    setupBoonDragAndDrop(container, gameState, gameEngine) {
+        const cards = container.querySelectorAll('.card[data-id]');
+        if (cards.length < 2) return;
+
+        let draggedId = null;
+
+        cards.forEach((cardEl) => {
+            cardEl.draggable = true;
+            cardEl.classList.add('boon-draggable');
+
+            cardEl.addEventListener('dragstart', (e) => {
+                draggedId = cardEl.dataset.id;
+                e.dataTransfer.effectAllowed = 'move';
+                e.dataTransfer.setData('text/plain', draggedId);
+                e.dataTransfer.setDragImage(cardEl, cardEl.offsetWidth / 2, cardEl.offsetHeight / 2);
+                cardEl.classList.add('boon-dragging');
+            });
+
+            cardEl.addEventListener('dragend', () => {
+                cardEl.classList.remove('boon-dragging');
+                container.querySelectorAll('.card').forEach(c => c.classList.remove('boon-drag-over'));
+                container._boonDidDrag = true;
+                setTimeout(() => { container._boonDidDrag = false; }, 100);
+            });
+
+            cardEl.addEventListener('dragover', (e) => {
+                e.preventDefault();
+                e.dataTransfer.dropEffect = 'move';
+                if (draggedId && cardEl.dataset.id !== draggedId) {
+                    cardEl.classList.add('boon-drag-over');
+                }
+            });
+
+            cardEl.addEventListener('dragleave', () => {
+                cardEl.classList.remove('boon-drag-over');
+            });
+
+            cardEl.addEventListener('drop', (e) => {
+                e.preventDefault();
+                cardEl.classList.remove('boon-drag-over');
+                const targetId = cardEl.dataset.id;
+                if (!draggedId || !targetId || draggedId === targetId) return;
+
+                const jokers = gameState.jokers || [];
+                const fromIndex = jokers.findIndex(j => j.id === draggedId);
+                const toIndex = jokers.findIndex(j => j.id === targetId);
+                if (fromIndex === -1 || toIndex === -1) return;
+
+                const card = jokers[fromIndex];
+                jokers.splice(fromIndex, 1);
+                const insertIndex = fromIndex < toIndex ? toIndex - 1 : toIndex;
+                jokers.splice(insertIndex, 0, card);
+
+                if (gameEngine) {
+                    gameEngine.updateAllUI();
+                    if (window.soundManager) window.soundManager.play('button', { volume: 0.4 });
+                }
+            });
+        });
+
+        // Prevent click (toggle labels) from firing when we completed a drag (add once per container)
+        if (!container._boonDragClickHandler) {
+            container._boonDragClickHandler = (e) => {
+                if (container._boonDidDrag && e.target.closest('.card')) {
+                    e.stopPropagation();
+                }
+            };
+            container.addEventListener('click', container._boonDragClickHandler, true);
+        }
+        container._boonDidDrag = false;
     }
 
     updateConsumableUI(gameState, gameEngine) {
@@ -922,33 +1019,14 @@ class UIManager {
         });
     }
 
+    /**
+     * Artifact display removed from play area.
+     * Artifacts will be shown in the pause menu Current Run Stats page.
+     */
     updateArtifactUI(gameState) {
         const container = this.dom.artifactSlots;
-        
-        if (!container) {
-            Logger.warn('artifactSlots element not found');
-            return;
-        }
-        
+        if (!container) return;
         container.innerHTML = '';
-        const artifacts = gameState.artifacts || [];
-        
-        if (artifacts.length === 0) {
-            return;
-        }
-        
-        artifacts.forEach(artifact => {
-            const el = document.createElement('div');
-            el.className = 'card';
-            el.style.width = 'auto';
-            el.style.minWidth = '120px';
-            el.setAttribute('data-tooltip', JSON.stringify({
-                title: artifact.name,
-                description: artifact.effect
-            }));
-            el.innerHTML = '';
-            container.appendChild(el);
-        });
     }
 
     // Ensure shop DOM elements are properly bound
@@ -1216,7 +1294,7 @@ class UIManager {
             } else {
                 packData = { type: 'libation', name: 'Libation Pack', cost: 5, description: 'Reveals 3 Libations - choose one to claim.' };
             }
-            
+            packData = { ...packData, baseCost: packData.cost, cost: this.getShopPrice(packData.cost, gameState) };
             const packElement = this.createPackElement(packData, gameState, gameEngine);
             
             // Add slide-in animation
@@ -1233,10 +1311,13 @@ class UIManager {
         let cardInstance;
         let cardEl;
         
+        const displayData = (type === 'direct' || type === 'artifact') && gameState
+            ? { ...cardData, baseCost: cardData.cost ?? 0, cost: this.getShopPrice(cardData.cost ?? 0, gameState) }
+            : cardData;
         // Create proper card instance based on type
         if (type === 'artifact') {
             // Use Artifact class for artifacts (like Balatro vouchers)
-            cardInstance = new Artifact(cardData);
+            cardInstance = new Artifact(displayData);
             cardEl = cardInstance.render(true, true); // isShopItem, isDirectSale
         } else {
             // For other types, create appropriate instances
@@ -1246,12 +1327,12 @@ class UIManager {
                 type: type 
             });
             
-            if (cardData.rarity === 'worship') {
-                cardInstance = new WorshipCard(cardData);
-            } else if (cardData.rarity === 'libation') {
-                cardInstance = new LibationCard(cardData);
+            if (displayData.rarity === 'worship') {
+                cardInstance = new WorshipCard(displayData);
+            } else if (displayData.rarity === 'libation') {
+                cardInstance = new LibationCard(displayData);
             } else {
-                cardInstance = new Joker(cardData);
+                cardInstance = new Joker(displayData);
             }
             
             const isShopItem = true;
@@ -1266,7 +1347,7 @@ class UIManager {
                 buyLabel.addEventListener('click', (e) => {
                     e.stopPropagation();
                     if (type === 'artifact') {
-                        this.buyArtifact(cardData, gameState, gameEngine, cardEl);
+                        this.buyArtifact(displayData, gameState, gameEngine, cardEl);
                     } else {
                         this.buyCard(cardInstance, gameState, gameEngine, cardEl);
                     }
@@ -1287,6 +1368,7 @@ class UIManager {
         if (type === 'pack') {
             const claimPackCard = (e) => {
                 e.stopPropagation();
+                if (window.soundManager) window.soundManager.play(cardInstance instanceof Joker ? 'card1' : 'tarot1', { pitch: 0.92 + Math.random() * 0.1, volume: 0.55 });
                 this.claimCard(cardInstance, gameState, gameEngine, cardEl);
             };
             const takeLabel = cardEl.querySelector('.buy-sell-label.take');
@@ -1345,6 +1427,7 @@ class UIManager {
         });
         element.classList.toggle('shop-item-selected');
         if (element.classList.contains('shop-item-selected')) {
+            if (window.soundManager) window.soundManager.play('highlight1', { volume: 0.35 });
             const close = (e) => {
                 if (!element.contains(e.target) && !e.target.closest('.buy-sell-label')) {
                     element.classList.remove('shop-item-selected');
@@ -1353,6 +1436,12 @@ class UIManager {
             };
             setTimeout(() => document.addEventListener('click', close), 0);
         }
+    }
+
+    /** Merchant Arrival: effective shop price (baseCost * shopPriceMultiplier) */
+    getShopPrice(baseCost, gameState) {
+        const mult = gameState?.shopPriceMultiplier ?? 1;
+        return Math.max(1, Math.floor(baseCost * mult));
     }
 
     getPackName(packType) {
@@ -1405,12 +1494,15 @@ class UIManager {
     }
 
     purchasePack(packData, gameState, gameEngine, packElement) {
-        if (gameState.gold < packData.cost) {
+        const effectiveCost = this.getShopPrice(packData.baseCost ?? packData.cost, gameState);
+        if (gameState.gold < effectiveCost) {
+            if (window.soundManager) window.soundManager.play('cancel', { volume: 0.55 });
             gameEngine.showMessage("Not enough gold!");
             return;
         }
         
-        gameEngine.updateGoldAnimated(-packData.cost, "pack purchase");
+        if (window.soundManager) window.soundManager.play('crumple2', { pitch: 0.95, volume: 0.5 });
+        gameEngine.updateGoldAnimated(-effectiveCost, "pack purchase");
         
         if (!this.shopState.openedPacks) this.shopState.openedPacks = new Set();
         this.shopState.openedPacks.add(packData.type);
@@ -1424,7 +1516,10 @@ class UIManager {
         window.balatroEffects?.hideAllTooltips();
         if (this.dom.shopDefaultView) this.dom.shopDefaultView.classList.add('hidden');
         if (this.dom.packOpeningView) this.dom.packOpeningView.classList.remove('hidden');
-        if (window.soundManager) window.soundManager.setMusicContext('pack');
+        if (window.soundManager) {
+            window.soundManager.setMusicContext('pack');
+            window.soundManager.play('cardFan2', { pitch: 0.9, volume: 0.45 });
+        }
 
         // Generate pack contents
         const packContents = this.generatePackContents(packData, gameState, gameEngine);
@@ -1830,7 +1925,9 @@ class UIManager {
             return;
         }
         
-        if (gameState.gold < artifactData.cost) {
+        const effectiveCost = this.getShopPrice(artifactData.baseCost ?? artifactData.cost ?? 10, gameState);
+        if (gameState.gold < effectiveCost) {
+            if (window.soundManager) window.soundManager.play('cancel', { volume: 0.55 });
             gameEngine.showMessage("Not enough gold for this artifact!");
             Logger.debug('Artifact purchase blocked: insufficient gold');
             return;
@@ -1843,7 +1940,7 @@ class UIManager {
         
         Logger.debug('Deducting gold and adding artifact to state...');
         if (window.soundManager) window.soundManager.play('card1', { pitch: 0.9, volume: 0.6 });
-        gameEngine.updateGoldAnimated(-artifactData.cost, "artifact purchase");
+        gameEngine.updateGoldAnimated(-effectiveCost, "artifact purchase");
         gameState.artifacts.push(artifactData);
         gameEngine.showMessage(`Acquired: ${artifactData.name}!`);
         
@@ -1873,20 +1970,23 @@ class UIManager {
         // Tantalus' Curse: Cannot spend gold while active
         const hasTantalusCurse = gameState.jokers?.some(j => j.id === 'tantalus_curse');
         if (hasTantalusCurse) {
+            if (window.soundManager) window.soundManager.play('cancel', { volume: 0.55 });
             gameEngine.showMessage("💰 Tantalus' Curse: Cannot spend gold!");
             Logger.debug('Purchase blocked by Tantalus Curse');
             return;
         }
         
-        if (gameState.gold < card.cost) {
+        const effectiveCost = window.uiManager?.getShopPrice(card.baseCost ?? card.cost, gameState) ?? card.cost;
+        if (gameState.gold < effectiveCost) {
+            if (window.soundManager) window.soundManager.play('cancel', { volume: 0.55 });
             gameEngine.showMessage("Not enough gold!");
             Logger.debug('Purchase blocked: insufficient gold');
             return;
         }
         
         Logger.debug('Deducting gold...');
-        if (window.soundManager) window.soundManager.play('tarot1', { pitch: 0.95, volume: 0.5 });
-        gameEngine.updateGoldAnimated(-card.cost, "card purchase");
+        if (window.soundManager) window.soundManager.play('coin3', { pitch: 0.95 + Math.random() * 0.1, volume: 0.6 });
+        gameEngine.updateGoldAnimated(-effectiveCost, "card purchase");
 
         // Add Balatro-style purchase effect
         if (window.balatroEffects && element) {
@@ -1922,7 +2022,7 @@ class UIManager {
             const inventory = card instanceof Joker ? gameState.jokers : gameState.consumables;
             if (inventory.length === 0) return;
             this.enterExpulsionMode(card, gameState, gameEngine, element, {
-                refundGold: isDirectPurchase ? (card.cost || 0) : undefined,
+                refundGold: isDirectPurchase ? (window.uiManager?.getShopPrice(card.baseCost ?? card.cost, gameState) ?? card.cost) : undefined,
                 packContainer: packContainer || undefined,
                 packType: packContainer?.dataset?.packType || undefined
             });
@@ -1986,6 +2086,7 @@ class UIManager {
         }
         
         if (success) {
+            if (window.soundManager) window.soundManager.play('magic_crumple', { pitch: 0.95 + Math.random() * 0.1, volume: 0.55 });
             gameEngine.showMessage(message);
             
             // Remove the card from consumables
@@ -1998,6 +2099,7 @@ class UIManager {
             // Clear any tooltips orphaned by consumable slot rebuild (belt-and-suspenders)
             window.balatroEffects?.hideAllTooltips();
         } else {
+            if (window.soundManager) window.soundManager.play('cancel', { volume: 0.5 });
             gameEngine.showMessage(message || "Failed to use libation.");
         }
     }
@@ -2007,16 +2109,19 @@ class UIManager {
         
         if (hasChronosHourglass && !gameState.usedFreeReroll) {
             gameState.usedFreeReroll = true;
+            if (window.soundManager) window.soundManager.play('whoosh', { pitch: 0.95, volume: 0.5 });
             gameEngine.showMessage("Used your free reroll from Chronos' Hourglass!");
             this.generateShopStock(gameState, gameEngine);
             return;
         }
         
         if (gameState.gold < GAME_BALANCE.SHOP_REROLL_COST) {
+            if (window.soundManager) window.soundManager.play('cancel', { volume: 0.55 });
             gameEngine.showMessage("Not enough gold to reroll!");
             return;
         }
         
+        if (window.soundManager) window.soundManager.play('whoosh', { pitch: 0.9 + Math.random() * 0.1, volume: 0.5 });
         // Balatro-style reroll: flip cards before regenerating (ONLY direct sales, NOT packs or artifacts)
         const directSalesContainer = document.getElementById('shopDirectSales');
         const directSalesItems = directSalesContainer?.querySelectorAll('.card') || [];
@@ -2055,6 +2160,7 @@ class UIManager {
                 }
             });
             
+            if (window.soundManager) window.soundManager.play('crumple1', { pitch: 0.9 + Math.random() * 0.1, volume: 0.5 });
             gameEngine.updateGoldAnimated(totalGold, "card sale");
             gameEngine.showMessage(`Sold ${soldCard.name} for ${totalGold} Gold.`);
             
@@ -2124,6 +2230,7 @@ class UIManager {
         const p = this.expulsionPending;
         if (!p) return;
 
+        if (window.soundManager) window.soundManager.play('cancel', { volume: 0.5 });
         if (p.refundGold && p.gameEngine) {
             p.gameEngine.updateGoldAnimated(p.refundGold, 'refund');
             p.gameEngine.showMessage('Cancelled.');
@@ -2336,6 +2443,7 @@ class UIManager {
                         }
                         selectedCard = cardWrapper;
                         cardWrapper.classList.add('selected');
+                        if (window.soundManager) window.soundManager.play('highlight1', { volume: 0.35 });
                         
                         // Reset click count after delay
                         clickTimer = setTimeout(() => {
@@ -2348,6 +2456,7 @@ class UIManager {
                         clickCount = 0;
                         
                         cardWrapper.classList.add('claiming');
+                        if (window.soundManager) window.soundManager.play(card instanceof Joker ? 'card1' : 'tarot1', { pitch: 0.92 + Math.random() * 0.1, volume: 0.55 });
                         
                         // Claim the card after animation
                         setTimeout(() => {
@@ -2547,6 +2656,7 @@ class UIManager {
             cardEl.addEventListener('dblclick', (e) => {
                 e.stopPropagation();
                 Logger.debug(`Double-clicked pack card: ${card.name}`);
+                if (window.soundManager) window.soundManager.play(card instanceof Joker ? 'card1' : 'tarot1', { pitch: 0.92 + Math.random() * 0.1, volume: 0.55 });
         
                 // Disable all card interactions
                 packCards.forEach(p => {
@@ -2643,12 +2753,14 @@ class UIManager {
                 // Select this card
                 selectedCard = cardEl;
                 cardEl.classList.add('selected');
+                if (window.soundManager) window.soundManager.play('highlight1', { volume: 0.35 });
             });
             
             // Add double-click functionality for chaos pack cards
             cardEl.addEventListener('dblclick', (e) => {
                 e.stopPropagation();
                 Logger.debug(`Double-clicked chaos pack card: ${card.name}`);
+                if (window.soundManager) window.soundManager.play(card instanceof Joker ? 'card1' : 'tarot1', { pitch: 0.92 + Math.random() * 0.1, volume: 0.55 });
         
                 // Disable all card interactions
                 packCards.forEach(p => {

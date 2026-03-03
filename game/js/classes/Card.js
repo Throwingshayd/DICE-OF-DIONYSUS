@@ -26,6 +26,7 @@ class Card {
         this.name = data.name;
         this.rarity = data.rarity || 'common';
         this.cost = data.cost || 0;
+        this.baseCost = data.baseCost ?? data.cost ?? 0; // For shop: base before Merchant Arrival
         this.sellValue = data.sellValue || Math.floor(this.cost * 0.75);
         this.effect = data.effect || '';
         this.type = data.type || 'card';
@@ -134,11 +135,12 @@ class Card {
 
         // Determine if we should show text or use tooltip
         const isInShop = isShopItem;
-        const showText = isInShop; // Show text in shop, use tooltip outside shop
+        // Boons in boon slots: show full content (name, effect, god) like shop
+        const showText = isInShop || this.type === 'joker';
         
         let cardContent = '';
         if (showText) {
-            // Show text content for shop cards
+            // Show text content for shop cards and boons in play area
             cardContent = `
                 <div class="card-rarity">${this.rarity}</div>
                 ${usesHtml}
@@ -147,8 +149,8 @@ class Card {
                 ${this.god ? `<div class="card-god">- ${this.god}</div>` : ''}
             `;
         } else {
-            // Use tooltip for inventory cards - minimal text. Boon/worship/libation: omit card-name (type indicator shows it, larger)
-            const showNameInContent = !['joker', 'worship', 'libation'].includes(this.type);
+            // Use tooltip for inventory cards - minimal text. Worship/libation: omit card-name (type indicator shows it)
+            const showNameInContent = !['worship', 'libation'].includes(this.type);
             cardContent = `
                 <div class="card-rarity">${this.rarity}</div>
                 ${usesHtml}

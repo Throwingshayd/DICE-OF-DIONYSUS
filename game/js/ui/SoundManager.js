@@ -15,7 +15,7 @@ const MUSIC_TRACKS = {
 
 class SoundManager {
     constructor() {
-        this.soundBase = 'Balatro CODE/resources/sounds/';  // SFX only (if present)
+        this.soundBase = 'sounds/';  // SFX from game/public/sounds/ (Vite serves public at root)
         this.musicVolume = 0.6;
         this.sfxVolume = 0.8;
         this.audioContext = null;
@@ -126,7 +126,7 @@ class SoundManager {
                 src.buffer = buffer;
                 src.playbackRate.value = pitch;
                 const gain = this.audioContext.createGain();
-                gain.gain.value = this.sfxVolume * volume;
+                gain.gain.value = volume;  // Per-sound; master SFX = sfxGain (setSfxVolume)
                 src.connect(gain);
                 gain.connect(this.sfxGain);
                 src.start(0);
@@ -273,7 +273,7 @@ class SoundManager {
     }
 
     setMusicVolume(v) { this.musicVolume = Math.max(0, Math.min(1, v)); if (this.musicGain) this.musicGain.gain.value = this.musicVolume; }
-    setSfxVolume(v) { this.sfxVolume = Math.max(0, Math.min(1, v)); }
+    setSfxVolume(v) { this.sfxVolume = Math.max(0, Math.min(1, v)); if (this.sfxGain) this.sfxGain.gain.value = this.sfxVolume; }
 
     /** Convenience: trigger on user interaction (e.g. first click) */
     startOnInteraction() {

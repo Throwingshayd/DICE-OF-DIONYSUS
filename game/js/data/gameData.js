@@ -113,7 +113,7 @@ const CardData = {
             cost: 8, 
             sellValue: 2, 
             effect: "Gain +1 Favour for each Worship card you have used this run.",
-            timing: { after_score: true }
+            timing: { before_score: true }
         },
         
         // === EPIC TIER - Game Changers ===
@@ -491,15 +491,15 @@ const CardData = {
             timing: { sell: true }
         },
         { 
-            id: "proteus_disguise", 
-            name: "Proteus' Disguise", 
-            rarity: "vibrant", 
-            cost: 5, 
-            sellValue: 1, 
-            effect: "Each turn, this Boon mimics the effect of a random other Boon you own (cannot repeat).",
-            description: "The shape-shifter takes many forms - never the same twice.",
+            id: "proteus_disguise",
+            name: "Proteus' Disguise",
+            rarity: "vibrant",
+            cost: 5,
+            sellValue: 1,
+            effect: "Copies the effect of the Boon to its left (Blueprint-style).",
+            description: "The shape-shifter takes the form of its neighbour.",
             god: "Proteus",
-            timing: { turn_start: true }
+            timing: { before_score: true, after_score: true, turn_start: true, turn_end: true }
         },
         { 
             id: "cornucopia_of_ploutos", 

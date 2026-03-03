@@ -87,6 +87,8 @@ class GameEngine {
             usedFreeReroll: false,
             /** Scores this round (since last shop) - gold awarded at cashout (Balatro-style) */
             scoresThisRound: 0,
+            /** Merchant Arrival: 0.75 = 25% off; default 1.0 */
+            shopPriceMultiplier: 1,
             
             // Special effects and abilities
             diceEffects: {},
@@ -134,16 +136,36 @@ class GameEngine {
             this.state.winningTestMode = true; // Skips mid-ante shop for playtests
         }
         this.updateMaxTurns();
-        // ?test=boon:boonid - inject boon for playtesting
+        // ?test=boon:boonid or ?test=boon:id1,id2 - inject boon(s) for playtesting
         if (testMode && testMode.startsWith('boon:')) {
-            const boonId = testMode.replace('boon:', '').trim();
-            this.applyBoonTestMode(boonId);
+            const boonIds = testMode.replace('boon:', '').trim().split(',').map(s => s.trim()).filter(Boolean);
+            boonIds.forEach(id => this.applyBoonTestMode(id));
         }
         // ?test=libation:libationid - inject libation for playtesting
         if (testMode && testMode.startsWith('libation:')) {
             const libId = testMode.replace('libation:', '').trim();
             this.applyLibationTestMode(libId);
         }
+        // ?enhance=iron (or parchment, gold) - add enhancements to dice for playtesting
+        const enhanceParam = urlParams.get('enhance');
+        if (enhanceParam) {
+            this.applyEnhancementTestMode(enhanceParam);
+        }
+    }
+
+    /**
+     * Test mode: Add enhancements to dice for playtesting (e.g. ?enhance=iron)
+     * @param {string} enhancement - 'iron', 'parchment', or 'gold'
+     */
+    applyEnhancementTestMode(enhancement) {
+        const valid = ['iron', 'parchment', 'gold'];
+        if (!valid.includes(enhancement)) return;
+        const dice = this.state.dice || [];
+        if (dice.length < 2) return;
+        dice[0].addFaceEnhancement(6, enhancement);
+        dice[1].addFaceEnhancement(5, enhancement);
+        if (dice.length >= 3) dice[2].addFaceEnhancement(4, enhancement);
+        if (typeof Logger !== 'undefined') Logger.info(`🧪 TEST MODE: Added ${enhancement} to dice faces 6,5,4`);
     }
 
     /**
@@ -397,6 +419,7 @@ class GameEngine {
     cancelTargetingMode() {
         if (this.state.libationTargetingMode) {
             this.state.libationTargetingMode = null;
+            if (window.soundManager) window.soundManager.play('cancel', { volume: 0.45 });
             this.showMessage('Libation targeting cancelled.');
             if (window.uiManager && this.dom.diceContainer) {
                 this.dom.diceContainer.classList.remove('libation-targeting');
@@ -570,6 +593,7 @@ class GameEngine {
         // Begin button handler
         const beginButton = modal.querySelector('#anteBeginButton');
         beginButton.addEventListener('click', () => {
+            if (window.soundManager) window.soundManager.play('button', { volume: 0.5 });
             // Fade out
             overlay.style.opacity = '0';
             setTimeout(() => {
@@ -729,6 +753,7 @@ class GameEngine {
         // Reckless Abandon: cannot hold dice
         const hasRecklessAbandon = this.state.jokers?.some(j => j.id === 'reckless_abandon');
         if (hasRecklessAbandon) {
+            if (window.soundManager) window.soundManager.play('cancel', { volume: 0.5 });
             this.showMessage("Reckless Abandon: You cannot hold dice!");
             return;
         }
@@ -742,11 +767,13 @@ class GameEngine {
         const effectiveMaxHeld = maxHeld + extraHoldCapacity;
         
         if (!this.state.held[index] && currentHeldCount >= effectiveMaxHeld) {
+            if (window.soundManager) window.soundManager.play('cancel', { volume: 0.5 });
             this.showMessage(`You can only hold ${effectiveMaxHeld} dice.`);
             return;
         }
         
         this.state.held[index] = !this.state.held[index];
+        if (window.soundManager) window.soundManager.play('highlight1', { pitch: 0.95 + Math.random() * 0.1, volume: 0.5 });
         
         if (this.domReady) {
             this.updateAllUI();
@@ -762,6 +789,7 @@ class GameEngine {
         if (hasRecklessAbandon) return;
         if (this.state.held.every(h => !h)) return;
         this.state.held.fill(false);
+        if (window.soundManager) window.soundManager.play('whoosh', { pitch: 0.9, volume: 0.4 });
         if (this.domReady) this.updateAllUI();
     }
 
@@ -871,9 +899,11 @@ class GameEngine {
         if (this.isScoring) return;
         if (this.state.scorecard[category] !== undefined || this.state.isAwaitingApi) return;
         if (!this.state.hasRolled) {
+            if (window.soundManager) window.soundManager.play('cancel', { volume: 0.5 });
             this.showMessage("You must roll the dice first!");
             return;
         }
+        if (window.soundManager) window.soundManager.play('highlight2', { pitch: 0.95, volume: 0.45 });
         this.isScoring = true;
         this.state.pendingCategory = category;
         // Score directly without confirmation overlay
@@ -1052,13 +1082,20 @@ class GameEngine {
         up({ pips: '0', pipsAdd: false, favour: this.formatFavour(categoryBaseFavour), favourAdd: false, showEquals: false, scorePreview: '' });
         liveScoreEl.classList.add('visible');
 
-        // Step 1: Dice adding pips — show accumulation only (e.g. 2, 4, 8, 13, 17)
+        // Step 1: Dice adding pips — stacked: base+iron+pearl combined per die; gold shown as +1G on die
         diceContributions.forEach((contrib) => {
             delay += this.scaleDelay(180);
             setTimeout(() => {
                 currentPips += contrib.pips;
                 this.jiggleDie(contrib.dieIndex);
-                this.showPipPopupOnDie(contrib.dieIndex, contrib.pips, contrib.label);
+                this.showPipPopupOnDie(contrib.dieIndex, contrib.pips);
+                if (contrib.gold) {
+                    setTimeout(() => {
+                        this.showGoldPopupOnDie(contrib.dieIndex, contrib.gold);
+                        if (window.soundManager) window.soundManager.play('coin3', { pitch: 0.95, volume: 0.5 });
+                    }, 120);
+                }
+                if (window.soundManager) window.soundManager.play('chips1', { pitch: 0.9 + this.prng.random() * 0.15, volume: 0.45 });
 
                 up({ pips: String(currentPips), pipsAdd: false, pipsPulse: true, favour: this.formatFavour(currentFavour), favourAdd: false });
             }, delay);
@@ -1071,6 +1108,7 @@ class GameEngine {
             delay += this.scaleDelay(220);
             setTimeout(() => {
                 currentPips += categoryBonus;
+                if (window.soundManager) window.soundManager.play('paper1', { pitch: 0.95, volume: 0.5 });
                 up({ pips: String(currentPips), pipsAdd: false, pipsPulse: true, favour: this.formatFavour(currentFavour), favourAdd: false });
             }, delay);
         }
@@ -1084,11 +1122,46 @@ class GameEngine {
                 if (contrib.pips > 0) currentPips += contrib.pips;
                 if (contrib.favour > 0) currentFavour += contrib.favour;
                 this.jiggleBoon(contrib.boonId);
+                this.showBoonPopup(contrib.boonId, contrib);
+                // Pegasus Flight: show ×0.5 favour popup only above dice that contributed (staggered)
+                if (contrib.dieIndices?.length && contrib.favourLabel) {
+                    contrib.dieIndices.forEach((di, idx) => {
+                        setTimeout(() => {
+                            this.showFavourPopupOnDie(di, contrib.favourLabel);
+                            if (window.soundManager) window.soundManager.play('foil1', { pitch: 0.92 + idx * 0.02, volume: 0.4 });
+                        }, idx * this.scaleDelay(100));
+                    });
+                }
+                // Cerberus Watch: show +3 pips on each held die (staggered like dice pips)
+                if (contrib.dieIndices?.length && contrib.pipsLabel) {
+                    contrib.dieIndices.forEach((di, idx) => {
+                        setTimeout(() => {
+                            this.showPipPopupOnDie(di, 3, '');
+                            if (window.soundManager) window.soundManager.play('chips1', { pitch: 0.9 + idx * 0.03, volume: 0.4 });
+                        }, idx * this.scaleDelay(100));
+                    });
+                }
+                // Pip joker: satisfying stamp; mult joker: sparkly foil
+                if (window.soundManager) {
+                    if (contrib.pips > 0 && contrib.favour > 0) {
+                        window.soundManager.play('paper1', { pitch: 0.92 + this.prng.random() * 0.1, volume: 0.5 });
+                        window.soundManager.play('foil1', { pitch: 0.95 + this.prng.random() * 0.1, volume: 0.45 });
+                    } else if (contrib.pips > 0) {
+                        window.soundManager.play('paper1', { pitch: 0.9 + this.prng.random() * 0.15, volume: 0.55 });
+                    } else if (contrib.favour > 0) {
+                        window.soundManager.play('foil1', { pitch: 0.92 + this.prng.random() * 0.12, volume: 0.5 });
+                    }
+                }
 
-                if (contrib.pips > 0) {
+                if (contrib.pips > 0 && contrib.favour > 0) {
+                    up({ pips: String(Math.floor(currentPips)), pipsAdd: true, pipsContrib: String(contrib.pips), pipsPulse: true, favour: this.formatFavour(prevFavour), favourAdd: true, favourContrib: this.formatFavourContrib(contrib.favour) });
+                    setTimeout(() => {
+                        up({ pips: String(Math.floor(currentPips)), pipsAdd: false, favour: this.formatFavour(currentFavour), favourAdd: false, favourPulse: true });
+                    }, this.scaleDelay(140));
+                } else if (contrib.pips > 0) {
                     up({ pips: String(Math.floor(currentPips)), pipsAdd: false, pipsPulse: true, favour: this.formatFavour(currentFavour), favourAdd: false });
                 } else if (contrib.favour > 0) {
-                    up({ pips: String(Math.floor(currentPips)), pipsAdd: false, favour: this.formatFavour(prevFavour), favourAdd: true, favourContrib: this.formatFavour(contrib.favour) });
+                    up({ pips: String(Math.floor(currentPips)), pipsAdd: false, favour: this.formatFavour(prevFavour), favourAdd: true, favourContrib: this.formatFavourContrib(contrib.favour) });
                     setTimeout(() => {
                         up({ pips: String(Math.floor(currentPips)), pipsAdd: false, favour: this.formatFavour(currentFavour), favourAdd: false, favourPulse: true });
                     }, this.scaleDelay(140));
@@ -1110,9 +1183,9 @@ class GameEngine {
                 this.state.totalScore += finalScore;
                 this.lastScoredBreakdown = { category, pips, favour, finalScore };
 
-                // Balatro SFX: score placed (multhit1/multhit2)
+                // Balatro SFX: score placed — gold_seal for satisfying stamp/completion
                 if (window.soundManager) {
-                    window.soundManager.play(finalScore >= 100 ? 'multhit2' : 'multhit1', { pitch: 0.9 + Math.random() * 0.2, volume: 0.7 });
+                    window.soundManager.play('gold_seal', { pitch: 0.95 + Math.random() * 0.1, volume: 0.7 });
                 }
                 // Particles only for big scores; screen shake only for rolling Eurekas (see executeRoll)
                 if (finalScore >= 200 && window.balatroEffects && scorecardEl) {
@@ -1215,9 +1288,9 @@ class GameEngine {
     
     /**
      * Get individual dice contributions to score
-     * Includes base pips AND enhancement bonuses
+     * Combines base pips + iron + pearl into one total per die (stacked like dice pips)
      * @param {string} category - Scoring category
-     * @returns {Array} Array of {pips, dieIndex, source} objects
+     * @returns {Array} Array of {pips, dieIndex, source, gold?} objects
      */
     getDiceContributions(category) {
         const contributions = [];
@@ -1225,40 +1298,33 @@ class GameEngine {
         
         this.state.dice.forEach((die, index) => {
             const face = die.getEffectiveFace();
-            let basePips = 0;
+            let totalPips = 0;
             
             // For upper sanctum, only count matching dice
             if (num && face === num) {
-                basePips = face;
+                totalPips = face;
             }
             // For lower sanctum, count all dice
             else if (!num && face > 0) {
-                basePips = face;
+                totalPips = face;
             }
             
-            // Add base die contribution
-            if (basePips > 0) {
-                contributions.push({ pips: basePips, dieIndex: index, source: 'die' });
-                
-                // Check for enhancement bonuses (lower sanctum only)
+            if (totalPips > 0) {
+                // Add iron bonus to total (combined into single popup)
                 if (die.hasEnhancementForCurrentFace && die.hasEnhancementForCurrentFace('iron')) {
-                    contributions.push({ 
-                        pips: ENHANCEMENT_BONUSES.IRON_PIPS, 
-                        dieIndex: index, 
-                        source: 'iron',
-                        label: 'Iron'
-                    });
+                    totalPips += ENHANCEMENT_BONUSES.IRON_PIPS;
+                }
+                // Add Mother of Pearl bonus to total
+                if (die.hasEnhancementForCurrentFace && die.hasEnhancementForCurrentFace('mother_of_pearl') && die.motherOfPearlBonus) {
+                    totalPips += die.motherOfPearlBonus;
                 }
                 
-                // Mother of Pearl bonus
-                if (die.hasEnhancementForCurrentFace && die.hasEnhancementForCurrentFace('mother_of_pearl') && die.motherOfPearlBonus) {
-                    contributions.push({ 
-                        pips: die.motherOfPearlBonus, 
-                        dieIndex: index, 
-                        source: 'mother_of_pearl',
-                        label: 'Pearl'
-                    });
+                const contrib = { pips: totalPips, dieIndex: index, source: 'die' };
+                // Gold enhancement: show +1G on die when scored
+                if (die.hasEnhancementForCurrentFace && die.hasEnhancementForCurrentFace('gold')) {
+                    contrib.gold = ENHANCEMENT_BONUSES.GOLD_COINS;
                 }
+                contributions.push(contrib);
             }
         });
         
@@ -1289,7 +1355,9 @@ class GameEngine {
                         pips: 0,
                         favour: ENHANCEMENT_BONUSES.PARCHMENT_FAVOUR,
                         source: 'enhancement',
-                        dieIndex: index
+                        dieIndex: index,
+                        dieIndices: [index],
+                        favourLabel: '+1 favour'
                     });
                 }
             }
@@ -1307,13 +1375,24 @@ class GameEngine {
             const favourAdded = (resultData.favour || 0) - baseFavour;
             
             if (pipsAdded !== 0 || favourAdded !== 0) {
-                contributions.push({
+                const contrib = {
                     boonId: joker.id,
                     boonName: joker.name,
                     pips: pipsAdded,
                     favour: favourAdded,
                     source: 'boon'
-                });
+                };
+                // Pegasus Flight: show ×0.5 favour popup only on dice that contributed
+                if (joker.id === 'pegasus_flight' && resultData._pegasusDieIndices?.length) {
+                    contrib.dieIndices = resultData._pegasusDieIndices;
+                    contrib.favourLabel = '×0.5 favour';
+                }
+                // Cerberus Watch: show +3 pips on each held die
+                if (joker.id === 'cerberus_watch' && resultData._cerberusDieIndices?.length) {
+                    contrib.dieIndices = resultData._cerberusDieIndices;
+                    contrib.pipsLabel = '+3 pips';
+                }
+                contributions.push(contrib);
             }
         });
         
@@ -1334,10 +1413,7 @@ class GameEngine {
 
         switch (boonId) {
             case 'pegasus_flight':
-                state.dice.forEach((die, i) => {
-                    const face = die.getEffectiveFace ? die.getEffectiveFace() : die.face;
-                    if (face >= 6) result.push({ dieIndex: i, label: '×0.5 favour' });
-                });
+                // Popup only when scored — we don't have category at hover, so no preview
                 break;
             case 'cerberus_watch':
                 state.dice.forEach((die, i) => {
@@ -1426,6 +1502,55 @@ class GameEngine {
     }
     
     /**
+     * Show favour bonus popup over a die (e.g. Pegasus Flight ×0.5 favour)
+     * @param {number} dieIndex - Index of die
+     * @param {string} label - Label to show (e.g. '×0.5 favour')
+     */
+    showFavourPopupOnDie(dieIndex, label) {
+        const dieElements = document.querySelectorAll('.die');
+        const dieElement = dieElements[dieIndex];
+        if (!dieElement) return;
+        
+        const rect = dieElement.getBoundingClientRect();
+        const popup = document.createElement('div');
+        popup.className = 'die-pip-popup boon-dice-favour';
+        popup.textContent = label;
+        popup.style.position = 'fixed';
+        popup.style.left = `${rect.left + rect.width / 2}px`;
+        popup.style.top = `${rect.top - 8}px`;
+        popup.style.transform = 'translate(-50%, 0)';
+        popup.style.zIndex = '10000';
+        popup.style.pointerEvents = 'none';
+        document.body.appendChild(popup);
+        setTimeout(() => popup.remove(), 900);
+    }
+    
+    /**
+     * Show gold popup over a die when gold enhancement triggers on score
+     * @param {number} dieIndex - Index of die
+     * @param {number} gold - Gold amount (e.g. 1)
+     */
+    showGoldPopupOnDie(dieIndex, gold) {
+        const dieElements = document.querySelectorAll('.die');
+        const dieElement = dieElements[dieIndex];
+        if (!dieElement) return;
+        
+        const rect = dieElement.getBoundingClientRect();
+        const popup = document.createElement('div');
+        popup.className = 'die-pip-popup die-gold-popup';
+        popup.textContent = `+${gold}G`;
+        popup.style.position = 'fixed';
+        popup.style.left = `${rect.left + rect.width / 2}px`;
+        popup.style.top = `${rect.top - 24}px`;
+        popup.style.transform = 'translate(-50%, 0)';
+        popup.style.zIndex = '10000';
+        popup.style.pointerEvents = 'none';
+        popup.style.color = '#FFD700';
+        document.body.appendChild(popup);
+        setTimeout(() => popup.remove(), 900);
+    }
+    
+    /**
      * Jiggle a boon card with animation
      * @param {string} boonId - ID of boon to jiggle
      */
@@ -1446,6 +1571,45 @@ class GameEngine {
                 }, 600);
             }
         });
+    }
+
+    /**
+     * Show contribution popup under a boon card (Balatro-style: Joker shows what it added)
+     * @param {string} boonId - ID of boon
+     * @param {{pips: number, favour: number, boonName?: string}} contrib - Contribution from boon
+     */
+    showBoonPopup(boonId, contrib) {
+        const boonCards = document.querySelectorAll('.joker-slots .card');
+        let cardEl = null;
+        for (const card of boonCards) {
+            const cardData = card.dataset;
+            if (cardData.id === boonId || card.querySelector(`[data-id="${boonId}"]`)) {
+                cardEl = card;
+                break;
+            }
+        }
+        if (!cardEl) return;
+
+        const rect = cardEl.getBoundingClientRect();
+        const centerX = rect.left + rect.width / 2;
+        const bottomY = rect.bottom + 8;
+
+        const parts = [];
+        if (contrib.pips > 0) parts.push(`+${contrib.pips} pips`);
+        if (contrib.favour > 0) parts.push(`+${this.formatFavourContrib(contrib.favour)} favour`);
+        if (parts.length === 0) return;
+
+        const popup = document.createElement('div');
+        popup.className = 'boon-contrib-popup';
+        popup.textContent = parts.join('  ');
+        popup.style.position = 'fixed';
+        popup.style.left = `${centerX}px`;
+        popup.style.top = `${bottomY}px`;
+        popup.style.transform = 'translate(-50%, 0)';
+        popup.style.zIndex = '10000';
+        popup.style.pointerEvents = 'none';
+        document.body.appendChild(popup);
+        setTimeout(() => popup.remove(), 900);
     }
     
     /**
@@ -2259,7 +2423,7 @@ class GameEngine {
             // FIXED: Only handle capacity bonuses - NO ROLL MODIFICATIONS
             let boonSlots = GAME_BALANCE.STARTING_BOON_SLOTS;
             let consumableSlots = GAME_BALANCE.STARTING_LIBATION_SLOTS;
-            
+            this.state.shopPriceMultiplier = 1; // Reset; artifact_clearance_sale sets to 0.75
             this.state.artifacts.forEach(artifact => {
                 switch (artifact.id) {
                     case 'faded_map_plus':
@@ -2285,6 +2449,18 @@ class GameEngine {
                         } else {
                             this.state.boonMultiplier = 1;
                         }
+                        break;
+                    case 'artifact_antimatter':
+                        // Antikythera: +1 Boon slot (Divine Artifact)
+                        boonSlots += 1;
+                        break;
+                    case 'artifact_clearance_sale':
+                        // Merchant Arrival: All shop prices -25% (Divine Artifact)
+                        this.state.shopPriceMultiplier = 0.75;
+                        break;
+                    case 'artifact_crystal_ball':
+                        // Crystal Ball: +1 Libation slot (Divine Artifact)
+                        consumableSlots += 1;
                         break;
                 }
             });
@@ -2646,6 +2822,7 @@ class GameEngine {
 
         const advance = () => {
             if (i >= steps.length) {
+                if (window.soundManager) window.soundManager.play('cardSlide1', { pitch: 0.95, volume: 0.5 });
                 setTimeout(() => {
                     liveEl.classList.remove('cashout-mode');
                     cashoutContent.classList.add('hidden');
@@ -2676,6 +2853,7 @@ class GameEngine {
     }
 
     closeShop() {
+        if (window.soundManager) window.soundManager.play('cardSlide2', { pitch: 0.95, volume: 0.45 });
         if (window.shopManager) {
             window.shopManager.closeShop();
         } else if (window.uiManager) {
@@ -2937,6 +3115,7 @@ class GameEngine {
         this.state = this.rehydrateState(saved.gameState, saved.prngState);
         this.state.resumePhase = saved.resumePhase ?? this.state.resumePhase ?? 'play';
         this.updateMaxTurns(); // Recompute for unlocked Sevens/Eights/Nines
+        this.applyArtifactEffects(); // Recompute boonSlots, shopPriceMultiplier from artifacts
         this.updateAllUI(true); // Immediate: restore from save
         if (this.state.resumePhase === 'shop' && window.uiManager) {
             // Return to shop: show shop stage and regenerate stock (PRNG restored = same stock)
@@ -2955,5 +3134,17 @@ class GameEngine {
         const n = Number(favour);
         if (Number.isNaN(n) || n <= 0) return '1';
         return String(Math.round(n));
+    }
+
+    /**
+     * Format favour contribution for display – shows actual value (0.5, 1.5, etc.).
+     * Used when showing what a boon added (e.g. "+0.5 favour" in popup or live score).
+     * @param {number} favour - Favour contribution value
+     * @returns {string} Formatted favour string (preserves decimals)
+     */
+    formatFavourContrib(favour) {
+        const n = Number(favour);
+        if (Number.isNaN(n) || n <= 0) return '0';
+        return n === Math.floor(n) ? String(n) : (Math.round(n * 10) / 10).toFixed(1);
     }
 }

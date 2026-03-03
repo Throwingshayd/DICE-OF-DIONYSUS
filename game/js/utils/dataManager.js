@@ -59,6 +59,8 @@ class DataManager {
     getSettings() {
         const defaults = {
             soundEnabled: true,
+            musicVolume: 0.6,
+            sfxVolume: 0.8,
             animationsEnabled: true,
             autoSave: true,
             showTutorial: true,
@@ -72,6 +74,8 @@ class DataManager {
             const s = JSON.parse(raw);
             if (s.gameSpeed === undefined) s.gameSpeed = 2;
             if (![0.5, 1, 2, 4].includes(s.gameSpeed)) s.gameSpeed = 2;
+            if (s.musicVolume === undefined) s.musicVolume = 0.6;
+            if (s.sfxVolume === undefined) s.sfxVolume = 0.8;
             return { ...defaults, ...s };
         } catch {
             return { ...defaults };

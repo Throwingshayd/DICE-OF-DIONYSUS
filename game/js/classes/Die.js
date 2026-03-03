@@ -232,8 +232,11 @@ class Die {
         // Start with the face's modified value, ensuring it's never below 1
         let effectiveFace = Math.max(1, currentFaceData.modifiedValue || currentFaceData.value);
         
-        // Apply wild enhancement if set
-        if (this.wildValue !== undefined && this.hasEnhancementForCurrentFace('wild')) {
+        // Apply wild enhancement if set (check face directly to avoid circular call with hasEnhancementForCurrentFace)
+        const baseFace = effectiveFace;
+        const faceToCheckForWild = (baseFace >= 7 && this.faces[baseFace]) ? baseFace : this.currentFace;
+        const hasWild = this.faces[faceToCheckForWild]?.enhancements.has('wild') ?? false;
+        if (this.wildValue !== undefined && hasWild) {
             effectiveFace = this.wildValue;
         }
         

@@ -45,6 +45,20 @@ class SettingsOverlay {
                         <label for="settingSound">Sound</label>
                         <input type="checkbox" id="settingSound" ${s.soundEnabled !== false ? 'checked' : ''}>
                     </div>
+                    <div class="settings-row settings-row-slider">
+                        <label for="settingMusicVolume">Music</label>
+                        <div class="slider-with-value">
+                            <input type="range" id="settingMusicVolume" min="0" max="100" value="${Math.round((s.musicVolume ?? 0.6) * 100)}">
+                            <span class="slider-value" id="settingMusicVolumeValue">${Math.round((s.musicVolume ?? 0.6) * 100)}%</span>
+                        </div>
+                    </div>
+                    <div class="settings-row settings-row-slider">
+                        <label for="settingSfxVolume">SFX</label>
+                        <div class="slider-with-value">
+                            <input type="range" id="settingSfxVolume" min="0" max="100" value="${Math.round((s.sfxVolume ?? 0.8) * 100)}">
+                            <span class="slider-value" id="settingSfxVolumeValue">${Math.round((s.sfxVolume ?? 0.8) * 100)}%</span>
+                        </div>
+                    </div>
                     <div class="settings-row">
                         <label for="settingAnimations">Animations</label>
                         <input type="checkbox" id="settingAnimations" ${s.animationsEnabled !== false ? 'checked' : ''}>
@@ -83,12 +97,39 @@ class SettingsOverlay {
             if (el) el.addEventListener('change', () => this._applySettings(overlay));
         });
 
+        // When Sound is toggled, enable/disable volume sliders
+        const soundCheck = overlay.querySelector('#settingSound');
+        const updateSliderState = () => {
+            const enabled = soundCheck?.checked ?? true;
+            overlay.querySelector('#settingMusicVolume')?.toggleAttribute('disabled', !enabled);
+            overlay.querySelector('#settingSfxVolume')?.toggleAttribute('disabled', !enabled);
+        };
+        if (soundCheck) soundCheck.addEventListener('change', updateSliderState);
+        updateSliderState();
+
+        // Sliders: 'input' for live feedback, 'change' to persist
+        ['settingMusicVolume', 'settingSfxVolume'].forEach(id => {
+            const el = overlay.querySelector(`#${id}`);
+            if (el) {
+                el.addEventListener('input', () => {
+                    const valEl = overlay.querySelector(`#${id}Value`);
+                    if (valEl) valEl.textContent = el.value + '%';
+                    this._applySettings(overlay);
+                });
+                el.addEventListener('change', () => this._applySettings(overlay));
+            }
+        });
+
         return overlay;
     }
 
     _applySettings(overlay) {
+        const musicVal = parseInt(overlay.querySelector('#settingMusicVolume')?.value || '60', 10);
+        const sfxVal = parseInt(overlay.querySelector('#settingSfxVolume')?.value || '80', 10);
         const settings = {
             soundEnabled: overlay.querySelector('#settingSound')?.checked ?? true,
+            musicVolume: Math.max(0, Math.min(1, musicVal / 100)),
+            sfxVolume: Math.max(0, Math.min(1, sfxVal / 100)),
             animationsEnabled: overlay.querySelector('#settingAnimations')?.checked ?? true,
             autoSave: overlay.querySelector('#settingAutoSave')?.checked ?? true,
             showTutorial: overlay.querySelector('#settingTutorial')?.checked ?? true,
@@ -98,7 +139,7 @@ class SettingsOverlay {
         if (![0.5, 1, 2, 4].includes(settings.gameSpeed)) settings.gameSpeed = 2;
         window.dataManager?.saveSettings?.(settings);
         if (window.app) {
-            window.app.applySoundSetting?.(settings.soundEnabled);
+            window.app.applySoundSetting?.(settings.soundEnabled, settings.musicVolume, settings.sfxVolume);
             window.app.applyAutoSaveSetting?.(settings.autoSave);
         }
     }

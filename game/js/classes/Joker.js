@@ -373,24 +373,19 @@ class Joker extends Card {
         return result;
     }
     
-    // Special handler for Proteus - mimics other boons
+    // Special handler for Proteus - Blueprint-style: copies the boon to its LEFT
     applyProteusEffect(timingEvent, gameState, eventData) {
-        // Get the boon to mimic this turn
-        if (!gameState.proteusMimicId) {
-            return eventData; // No mimic selected yet
-        }
+        const jokers = gameState.jokers || [];
+        const proteusIndex = jokers.findIndex(j => j === this);
+        if (proteusIndex <= 0) return eventData; // No boon to the left
         
-        // Find the boon to mimic
-        const mimickedBoon = gameState.jokers?.find(b => b.id === gameState.proteusMimicId);
-        if (!mimickedBoon || !mimickedBoon.timing[timingEvent]) {
-            return eventData; // Boon not found or doesn't have this timing
-        }
+        const leftBoon = jokers[proteusIndex - 1];
+        if (!leftBoon || !leftBoon.timing?.[timingEvent]) return eventData;
         
-        // Execute the mimicked boon's timing effect
         try {
-            return mimickedBoon.applyTimingEffect(timingEvent, gameState, eventData);
+            return leftBoon.applyTimingEffect(timingEvent, gameState, eventData);
         } catch (error) {
-            Logger.error(`Proteus failed to mimic ${gameState.proteusMimicId}:`, error);
+            Logger.error(`Proteus failed to mimic ${leftBoon.name}:`, error);
             return eventData;
         }
     }
@@ -507,8 +502,8 @@ class Joker extends Card {
                 break;
             
             case 'mt_olympus':
-                // +1 Favour for each Worship card used this run
-                const worshipUsed = gameState.worshipCardsUsed || 0;
+                // +1 Favour for each Worship card used this run (sum of worship levels)
+                const worshipUsed = Object.values(gameState.worshipLevels || {}).reduce((sum, level) => sum + level, 0);
                 if (worshipUsed > 0) {
                     result.favour += worshipUsed;
                     this.dynamicStats.favour = worshipUsed;
@@ -563,24 +558,43 @@ class Joker extends Card {
                 // Gold blocking handled in shop
                 break;
             
-            case 'pegasus_flight':
-                // Dice with values 6+ give ×0.5 extra Favour
-                const highDice = gameState.dice.filter(d => d.face >= 6).length;
-                if (highDice > 0) {
-                    result.favour += highDice * 0.5;
-                    window.game?.showMessage?.(`Pegasus' Flight: +${highDice * 0.5} Favour from high dice!`);
+            case 'pegasus_flight': {
+                // Dice with values 6+ give ×0.5 extra Favour when scored (only dice IN the score count)
+                const category = result.category;
+                const num = typeof CATEGORY_TO_NUMBER !== 'undefined' ? CATEGORY_TO_NUMBER[category] : null;
+                let highDiceInScore = 0;
+                const pegasusDieIndices = [];
+                (gameState.dice || []).forEach((d, i) => {
+                    const face = typeof d.getEffectiveFace === 'function' ? d.getEffectiveFace() : (d.face ?? d.currentFace ?? 0);
+                    const inScore = num != null ? (face === num) : (face > 0);
+                    if (inScore && face >= 6) {
+                        highDiceInScore++;
+                        pegasusDieIndices.push(i);
+                    }
+                });
+                if (highDiceInScore > 0) {
+                    const favourBonus = highDiceInScore * 0.5;
+                    result.favour += favourBonus;
+                    result._pegasusDieIndices = pegasusDieIndices; // For scoring animation popups
+                    window.game?.showMessage?.(`Pegasus' Flight: +${favourBonus} Favour from ${highDiceInScore} high dice!`);
                 }
                 break;
+            }
             
-            case 'cerberus_watch':
+            case 'cerberus_watch': {
                 // The first 3 dice you hold each turn gain +3 Pips each
-                const heldDice = gameState.dice.filter(d => d.held).slice(0, 3);
-                const cerberusBonus = heldDice.length * 3;
+                const cerberusDieIndices = [];
+                (gameState.dice || []).forEach((d, i) => {
+                    if (d.held && cerberusDieIndices.length < 3) cerberusDieIndices.push(i);
+                });
+                const cerberusBonus = cerberusDieIndices.length * 3;
                 result.pips += cerberusBonus;
                 if (cerberusBonus > 0) {
+                    result._cerberusDieIndices = cerberusDieIndices;
                     window.game?.showMessage?.(`Cerberus' Watch: +${cerberusBonus} Pips for held dice!`);
                 }
                 break;
+            }
             
             case 'apollos_oracle':
                 // Apollo's Oracle: reduce score by 20%
@@ -1246,25 +1260,7 @@ class Joker extends Card {
                 break;
             
             case 'proteus_disguise':
-                // Pick a random boon to mimic (cannot repeat last turn's choice)
-                const proteusOtherBoons = (gameState.jokers || []).filter(b => 
-                    b.id !== 'proteus_disguise' && b.id !== gameState.proteusLastMimicId
-                );
-                
-                if (proteusOtherBoons.length > 0) {
-                    const randomBoon = proteusOtherBoons[this._randomInt(proteusOtherBoons.length)];
-                    gameState.proteusLastMimicId = gameState.proteusMimicId; // Store last for next turn
-                    gameState.proteusMimicId = randomBoon.id;
-                    
-                    window.game?.showMessage?.(`🎭 Proteus' Disguise: Transforming into ${randomBoon.name}!`, 3500);
-                    Logger.info(`Proteus mimicking: ${randomBoon.name}`);
-                    
-                    // Update dynamic display
-                    this.dynamicStats.other = `→${randomBoon.name}`;
-                } else {
-                    gameState.proteusMimicId = null;
-                    this.dynamicStats.other = 'No target';
-                }
+                // Blueprint-style: copies boon to the left (no turn_start action needed)
                 break;
             
             case 'reflection_of_narcissus':
@@ -1644,11 +1640,11 @@ class Joker extends Card {
             stats.push({ value: `+${this.dynamicStats.pips}`, type: 'pips' });
         }
         
-        if (this.dynamicStats.favour > 0) {
+        if (this.id !== 'mt_olympus' && this.dynamicStats.favour > 0) {
             const f = this.dynamicStats.favour;
             const fmt = f === Math.floor(f) ? f : (Math.round(f * 10) / 10).toFixed(1);
             stats.push({ value: `x${fmt}`, type: 'favour' });
-        } else {
+        } else if (this.id !== 'mt_olympus') {
             // Check for favour from getCurrentFavourValue() for backwards compatibility
             const favour = this.getCurrentFavourValue(gameState);
             if (favour > 0) {
@@ -1667,6 +1663,13 @@ class Joker extends Card {
         
         // Boon-specific dynamic displays (examples from your creative ideas)
         switch (this.id) {
+            case 'mt_olympus':
+                // Live counter: current favour bonus from worship cards used this run
+                const worshipUsed = Object.values(gameState.worshipLevels || {}).reduce((sum, level) => sum + level, 0);
+                if (worshipUsed > 0) {
+                    stats.push({ value: `+${worshipUsed} favour`, type: 'favour' });
+                }
+                break;
             case 'experience_points':
                 // Example: "Experience Points" boon that gains pips per 100 score
                 const totalScore = Object.values(gameState.scorecard || {})
@@ -1698,6 +1701,18 @@ class Joker extends Card {
                 // Example: Shows charges (e.g., "3/5")
                 if (this.maxUses > 0) {
                     stats.push({ value: `${this.usesLeft}/${this.maxUses}`, type: 'other' });
+                }
+                break;
+                
+            case 'proteus_disguise':
+                // Blueprint-style: show boon to the left
+                const jokers = gameState.jokers || [];
+                const idx = jokers.findIndex(j => j === this);
+                const leftBoon = idx > 0 ? jokers[idx - 1] : null;
+                if (leftBoon) {
+                    stats.push({ value: `→${leftBoon.name}`, type: 'other' });
+                } else {
+                    stats.push({ value: 'No target', type: 'other' });
                 }
                 break;
         }
