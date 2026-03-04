@@ -131,6 +131,9 @@ class GameEngine {
         if (testMode === 'highfaces') {
             this.applyHighFacesTestMode();
         }
+        if (testMode === 'seven_sided') {
+            this.applySevenSidedTestMode();
+        }
         if (testMode === 'winning') {
             this.applyWinningHandsTestMode();
             this.state.winningTestMode = true; // Skips mid-ante shop for playtests
@@ -247,6 +250,18 @@ class GameEngine {
         Logger.info('  - Die 5: Face 4 = 8');
         Logger.info('  - Categories Sevens, Eights, Nines unlocked');
         Logger.info('  - Starting gold: 50');
+    }
+
+    /**
+     * Test mode: 7-sided dice (bonus Yahtzee unlocked). First roll forced to [7,1,2,3,4].
+     * ?test=seven_sided
+     */
+    applySevenSidedTestMode() {
+        if (typeof Logger !== 'undefined') Logger.info('🧪 TEST MODE: 7-sided dice');
+        this.state.bonusYahtzees = 1;
+        this.state.unlockedCategories.Sevens = true;
+        this.state.forcedDiceValues = this.state.forcedDiceValues || {};
+        this.state.forcedDiceValues.sevenSidedFirstRoll = [7, 1, 2, 3, 4];
     }
 
     /**
@@ -635,6 +650,14 @@ class GameEngine {
     }
     
     /**
+     * Max face value dice can roll (6 + bonus Yahtzees, capped at 9).
+     * After 1st/2nd/3rd bonus Yahtzee, dice become 7/8/9-sided.
+     */
+    getMaxDieFace() {
+        return 6 + Math.min(this.state.bonusYahtzees || 0, 3);
+    }
+
+    /**
      * Execute the actual dice roll (called after pre-roll animation)
      * RNG + effects, then update UI with bounce on rolled dice.
      */
@@ -661,6 +684,11 @@ class GameEngine {
 
         let finalFaces = null;
         if (anyToRoll) {
+            const sevenSidedRoll = this.state.forcedDiceValues?.sevenSidedFirstRoll;
+            if (sevenSidedRoll && sevenSidedRoll.length >= 5 && this.state.turn === 1) {
+                this.state.dice.forEach((die, i) => die.setFace(sevenSidedRoll[i] ?? 1));
+                delete this.state.forcedDiceValues.sevenSidedFirstRoll;
+            } else {
             const seq = this.state.forcedDiceValues?.winningSequence;
             if (seq && seq.length > 0) {
                 const idx = (this.state.turn - 1) % seq.length;
@@ -668,19 +696,22 @@ class GameEngine {
                 if (faces && faces.length >= 5) {
                     this.state.dice.forEach((die, i) => die.setFace(faces[i] ?? 1));
                 } else {
+                    const maxFace = this.getMaxDieFace();
                     this.state.dice.forEach((die, index) => {
-                        if (!held[index]) die.roll(this.prng);
+                        if (!held[index]) die.roll(this.prng, maxFace);
                     });
                 }
             } else if (this.state.forcedDiceValues?.allThrees && this.state.rollsLeft === 2) {
                 this.state.dice.forEach(die => die.setFace(3));
             } else {
+                const maxFace = this.getMaxDieFace();
                 this.state.dice.forEach((die, index) => {
                     if (!held[index]) {
-                        die.roll(this.prng);
+                        die.roll(this.prng, maxFace);
                         if (this.state.diceTransformations?.onesBecomeSixes && die.face === 1) die.setFace(6);
                     }
                 });
+            }
             }
             this.state.dice.forEach((die, index) => die.processMotherOfPearl(this.state.dice, index, this.prng));
             this.state.jokers.forEach(joker => {
@@ -1964,7 +1995,8 @@ class GameEngine {
             if (!this.state.unlockedCategories[category]) {
                 this.state.unlockedCategories[category] = true;
                 this.updateMaxTurns();
-                this.showMessage(`${category} category unlocked!`, 4000);
+                const sides = 7 + i;
+                this.showMessage(`${category} unlocked! Dice upgraded to ${sides}-sided!`, 4000);
                 
                 // Update UI to show the new category
                 if (this.domReady) {

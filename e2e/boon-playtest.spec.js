@@ -24,6 +24,12 @@ function buildTestUrl(boonIds, options = {}) {
   return `/?${params.toString()}`;
 }
 
+function buildSevenSidedTestUrl() {
+  const params = new URLSearchParams();
+  params.set('test', 'seven_sided');
+  return `/?${params.toString()}`;
+}
+
 async function startGame(page, boonIds, options = {}) {
   await page.setViewportSize(VIEWPORT);
   await page.goto(buildTestUrl(boonIds, options));
@@ -516,5 +522,23 @@ test.describe('Boon Playtests', () => {
     await expect(page.locator('.joker-slots [data-card-id="journey_of_perseus"]')).toBeVisible();
     await rollAndScore(page, 'Chance');
     await expect(page.locator('#turnDisplay')).toContainText(/2/);
+  });
+
+  // --- 7-SIDED DICE: bonus Yahtzee unlocks Sevens ---
+  test("7-sided dice - roll produces face 7 after bonus Yahtzee unlock", async ({ page }) => {
+    await page.setViewportSize(VIEWPORT);
+    await page.goto(buildSevenSidedTestUrl());
+    await page.getByPlaceholder(/seed/i).fill('seven_sided_test');
+    await page.locator('#playButton').evaluate((el) => el.click());
+    await expect(page.locator('#gameContainerWrapper')).toBeVisible({ timeout: 8000 });
+    await page.waitForTimeout(600);
+    await page.getByRole('button', { name: /cast the bones/i }).click();
+    await page.waitForTimeout(ROLL_WAIT);
+    const hasSeven = await page.evaluate(() => {
+      const dice = window.game?.state?.dice;
+      if (!dice) return false;
+      return dice.some((d) => (typeof d.getEffectiveFace === 'function' ? d.getEffectiveFace() : d.face) === 7);
+    });
+    expect(hasSeven).toBe(true);
   });
 });

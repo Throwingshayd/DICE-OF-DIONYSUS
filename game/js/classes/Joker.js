@@ -1045,7 +1045,8 @@ class Joker extends Card {
                 // After scoring 'Fours' all other dice in your hand are re-rolled. Add their new values as bonus Pips
                 if (result.category === 'Fours') {
                     const nonFours = gameState.dice.filter(d => d.face !== 4);
-                    const rerollBonus = nonFours.reduce((sum, die) => sum + this._randomIntInclusive(1, 6), 0);
+                    const maxFace = 6 + Math.min(gameState.bonusYahtzees || 0, 3);
+                    const rerollBonus = nonFours.reduce((sum, die) => sum + this._randomIntInclusive(1, maxFace), 0);
                     result.pips += rerollBonus;
                     window.game?.showMessage?.(`Queen's Authority: +${rerollBonus} Pips!`);
                 }
@@ -1243,7 +1244,8 @@ class Joker extends Card {
                 
                 // Pick one random die and randomly enhance one of its faces for this turn
                 const parmenidesDie = gameState.dice[this._randomInt(gameState.dice.length)];
-                const parmenidesFaceKey = this._randomIntInclusive(1, 6);
+                const parmenidesMaxFace = 6 + Math.min(gameState.bonusYahtzees || 0, 3);
+                const parmenidesFaceKey = this._randomIntInclusive(1, parmenidesMaxFace);
                 
                 // Mark which die and face is enhanced
                 parmenidesDie.parmenideEnhanced = true;
@@ -1253,7 +1255,7 @@ class Joker extends Card {
                 const enhancementTypes = ['parchment', 'iron', 'gold', 'mother_of_pearl', 'wild'];
                 const randomEnhancement = enhancementTypes[this._randomInt(enhancementTypes.length)];
                 
-                parmenidesDie.faces[parmenidesFaceKey].enhancements.add(randomEnhancement);
+                parmenidesDie.addFaceEnhancement(parmenidesFaceKey, randomEnhancement);
                 
                 window.game?.showMessage?.(`Parmenides Die: Face ${parmenidesFaceKey} enhanced with ${randomEnhancement} for this turn!`, 4000);
                 Logger.info(`Parmenides activated: Enhanced face ${parmenidesFaceKey} with ${randomEnhancement}`);

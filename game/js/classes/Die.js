@@ -41,22 +41,24 @@ class Die {
      * Roll the die to generate a random face value
      * @param {Object} prng - Seeded random number generator
      * @param {Function} prng.random - Returns random number 0-1
+     * @param {number} [maxFace] - Max face value (1-maxFace). Default GAME_BALANCE.MAX_DIE_FACE. Use 7/8/9 after bonus Yahtzees.
      */
-    roll(prng) {
+    roll(prng, maxFace = GAME_BALANCE.MAX_DIE_FACE) {
         if (!this.isLocked) {
             // Clear wild value when rolling to new face
             this.wildValue = undefined;
             this.motherOfPearlBonus = undefined;
             
-            this.currentFace = Math.floor(prng.random() * GAME_BALANCE.MAX_DIE_FACE) + GAME_BALANCE.MIN_DIE_FACE;
+            this.currentFace = Math.floor(prng.random() * maxFace) + GAME_BALANCE.MIN_DIE_FACE;
+            this._ensureFaceExists(this.currentFace);
             
             // If the rolled face has wild enhancement, automatically randomize the value
             if (this.hasEnhancementForCurrentFace('wild')) {
                 // Randomly choose -1, 0, or +1 modifier
                 const wildModifier = Math.floor(prng.random() * 3) - 1; // Generates -1, 0, or 1
                 const baseValue = this.currentFace;
-                // Clamp to valid range (1-6)
-                this.wildValue = Math.max(1, Math.min(6, baseValue + wildModifier));
+                // Clamp to valid range (1-maxFace)
+                this.wildValue = Math.max(1, Math.min(maxFace, baseValue + wildModifier));
                 Logger.trace(`Wild die: face ${baseValue} → ${this.wildValue}`);
             }
             
@@ -352,9 +354,15 @@ class Die {
         this.isLocked = false;
     }
 
-    // Set the current face value
-    setFace(value) {
-        this.currentFace = Math.max(GAME_BALANCE.MIN_DIE_FACE, Math.min(GAME_BALANCE.MAX_DIE_FACE, value));
+    /**
+     * Set the current face value
+     * @param {number} value - Face to show (1-9 when bonus categories unlocked)
+     * @param {number} [maxFace] - Max allowed face. Default MAX_DIE_FACE_WITH_ENHANCEMENTS (9).
+     */
+    setFace(value, maxFace = GAME_BALANCE.MAX_DIE_FACE_WITH_ENHANCEMENTS) {
+        const clamped = Math.max(GAME_BALANCE.MIN_DIE_FACE, Math.min(maxFace, value));
+        this._ensureFaceExists(clamped);
+        this.currentFace = clamped;
     }
 
     /**
@@ -372,11 +380,12 @@ class Die {
      * Set wild enhancement value manually (override auto-random from roll).
      * Used when UI allows player to choose; auto-set in roll() by default.
      * @param {number} value - The chosen value (+1 or -1 from rolled face)
+     * @param {number} [maxFace] - Max allowed face. Default MAX_DIE_FACE_WITH_ENHANCEMENTS (9).
      */
-    setWildValue(value) {
+    setWildValue(value, maxFace = GAME_BALANCE.MAX_DIE_FACE_WITH_ENHANCEMENTS) {
         if (this.hasEnhancementForCurrentFace('wild')) {
             const baseFace = this.currentFace;
-            const newValue = Math.max(1, Math.min(6, baseFace + value));
+            const newValue = Math.max(1, Math.min(maxFace, baseFace + value));
             this.wildValue = newValue;
             Logger.debug(`Wild die ${this.dieId}: face ${baseFace} → ${newValue}`);
         }
