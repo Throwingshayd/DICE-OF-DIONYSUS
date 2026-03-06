@@ -17,6 +17,7 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=IM+Fell+English+SC&family=VT323&display=swap" rel="stylesheet">
     <link rel="icon" href="ART/Title art.png" type="image/png">
+    <link rel="manifest" href="manifest.json">
 </head>
 <body>
     <!-- Start Screen (Balatro-style: bar below centre) -->
@@ -54,8 +55,10 @@
         </div>
     </div>
 
-    <!-- Game Container: template content injected by Main.loadGameUI() -->
-    <div class="game-container hidden" id="gameContainerWrapper"></div>
+    <!-- Game viewport: scales game to fit any window size -->
+    <div id="gameViewport" class="game-viewport hidden">
+        <div class="game-container" id="gameContainerWrapper"></div>
+    </div>
     
     <!-- Game UI Template -->
     <template id="gameUITemplate">
@@ -93,17 +96,17 @@
                             <span class="gnosis-objective-label">Required offerings</span>
                             <span class="gnosis-objective-value" id="scoreThresholdDisplay">500</span>
                         </div>
-                        <div class="gnosis-score-panel">
+                        <div class="gnosis-score-panel" id="gnosisScorePanel">
                             <span class="gnosis-score-label">Total score</span>
                             <span class="gnosis-score-value" id="totalScore">0</span>
-                        </div>
-                        <div id="liveScoreDisplay" class="live-score-display visible" data-live-root>
-                            <span class="gnosis-category-name" data-live="category">Offering</span>
                             <div class="gnosis-cashout-content hidden" id="gnosisCashoutContent">
                                 <span class="gnosis-cashout-title" id="gnosisCashoutTitle"></span>
                                 <div class="gnosis-cashout-lines" id="gnosisCashoutLines" role="region" aria-live="polite"></div>
                                 <p class="gnosis-cashout-sub">— Off to the shop —</p>
                             </div>
+                        </div>
+                        <div id="liveScoreDisplay" class="live-score-display visible" data-live-root>
+                            <span class="gnosis-category-name" data-live="category">Offering</span>
                             <div class="gnosis-row" data-live="row">
                                 <span class="pips-cell">
                                     <span class="pips-line">
@@ -385,6 +388,10 @@
     <script defer src="js/engine/ScoringEngine.js"></script>
     <script defer src="js/engine/GameStateManager.js"></script>
     <script defer src="js/game/GameEngine.js"></script>
+    <script defer src="js/ui/renderers/InfoBarRenderer.js"></script>
+    <script defer src="js/ui/renderers/DiceRenderer.js"></script>
+    <script defer src="js/ui/renderers/ScorecardRenderer.js"></script>
+    <script defer src="js/ui/renderers/PlayAreaRenderer.js"></script>
     <script defer src="js/ui/UIManager.js"></script>
     <script defer src="js/ui/BalatroEffects.js"></script>
     <script defer src="js/ui/SoundManager.js"></script>
