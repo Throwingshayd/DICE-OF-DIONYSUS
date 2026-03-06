@@ -29,8 +29,16 @@ const BOON_EFFECTS = {
     },
     
     PARMENIDES_DIE: {
-        // Quantum dual-value: 1↔6, 2↔5, 3↔4
-        OPPOSITE_VALUE: 7  // opposite = 7 - value
+        // Pantheon swap: upper ↔ lower by position (Ones↔3oK, Twos↔Small Straight, etc.)
+        SWAP_MAP: {
+            'Ones': 'Three of a Kind', 'Three of a Kind': 'Ones',
+            'Twos': 'Small Straight', 'Small Straight': 'Twos',
+            'Threes': 'Full House', 'Full House': 'Threes',
+            'Fours': 'Four of a Kind', 'Four of a Kind': 'Fours',
+            'Fives': 'Large Straight', 'Large Straight': 'Fives',
+            'Sixes': 'Chance', 'Chance': 'Sixes',
+            'Sevens': 'Yahtzee', 'Yahtzee': 'Sevens'
+        }
     },
     
     ASCETICS_VOW: {
@@ -119,10 +127,6 @@ const BOON_EFFECTS = {
         TARGET_VALUES: [2, 4]
     },
     
-    THE_ZEALOT: {
-        WORSHIP_MATCH_FAVOUR: 1
-    },
-    
     MORTAL_VINEYARD: {
         // Selling boon → random libation
     },
@@ -141,6 +145,10 @@ const BOON_EFFECTS = {
     
     MESSAGE_IN_A_BOTTLE: {
         SOLO_ANTE_BONUS: 0.5  // 50% of threshold
+    },
+
+    THE_ZEALOT: {
+        WORSHIP_MATCH_FAVOUR: 1
     },
     
     BETRAYAL_BY_PARIS: {
@@ -277,10 +285,6 @@ const BOON_EFFECTS = {
         LATE_GAME_TURN: 12,
         PIPS_BONUS: 24,
         ROLL_PENALTY: 1
-    },
-    
-    THE_ZEALOT: {
-        WORSHIP_MATCH_FAVOUR: 1
     },
     
     NYXIAN_SEDUCTION: {

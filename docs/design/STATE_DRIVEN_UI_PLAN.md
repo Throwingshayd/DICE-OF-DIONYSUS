@@ -1,6 +1,6 @@
 # State-Driven UI Plan (Balatro Reference)
 
-**Reference:** Balatro CODE (G.STATE, G.shop_jokers, cardarea.lua, UI_definitions.lua)
+**Reference:** reference/balatro (G.STATE, G.shop_jokers, cardarea.lua, UI_definitions.lua)
 
 ## Current Implementation (Phase 1)
 

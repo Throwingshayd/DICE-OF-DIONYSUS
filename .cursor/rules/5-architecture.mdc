@@ -10,7 +10,7 @@ alwaysApply: false
 
 ## Directory Hierarchy
 
-- Strictly follow `.cursor/context/ARCHITECTURE.md` and `.cursor/context/ai_context.yaml`. Do not create new top-level folders.
+- Strictly follow `.cursor/context/ARCHITECTURE.md` and `.cursor/context/ai_context.yaml`. Canonical top-level: `game/`, `tools/`, `docs/`, `reference/`, `tests/`, `tracking/`, `.cursor/`. Do not create new top-level folders.
 - **Map:** `game/js/data/` + `game/js/config/` (data) → `game/js/engine/` + `game/js/game/` (logic) → `game/js/ui/` (UI)
 
 ## Dependency Loop

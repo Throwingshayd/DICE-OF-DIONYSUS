@@ -5,6 +5,7 @@ const AssetMapping = {
     jokers: {
         'hestias_hearth': 'hestias hearth.png',
         'charons_ferry_fare': 'charon ferry fare.png',
+        'the_gambler': 'the gambler.png',
         'achilles_heel': 'achiles heel.png',
         'midas_touch': 'midas touch.png',
         'icarus_wings': 'icarus wings.png',
@@ -16,7 +17,7 @@ const AssetMapping = {
         'persephone_common': 'Persephones gift.png',
         'persephone_uncommon': 'queens authority (1).png',
         'morpheus_common': 'morpheus dream.png',
-        'heracles_rare': 'Mt oplymus.png',
+        'mt_olympus': 'Mt Olympus.png',
         'hera_uncommon': 'queens authority (1).png',
         'athena_common': 'athena shield .png',
         'athena_uncommon': 'athena shield .png',
@@ -127,19 +128,35 @@ const AssetMapping = {
         'artifactUndecided': 'artifact undecided.png'
     },
 
-    // God-specific Assets
+    // God-specific Assets (symbol/icon per god)
     gods: {
+        // Upper Sanctum (1–6)
         'Artemis': 'artemis bow.png',
-        'Hera': 'heras peacock.png',
+        'Persephone': 'persephone pomegranate.png',
         'Morpheus': 'morpheus poppy.png',
-        'Persephone': 'persephone pomegranate.png'
+        'Hera': 'heras peacock.png',
+        'Athena': 'athena owl.png',
+        'Heracles': 'heracles lionskin club.png',
+        // Lower Sanctum (combinations)
+        'Hephaestus': 'hephaestus hammer anvil.png',
+        'Ares': 'ares spear helm.png',
+        'Dionysus': 'dionysus grapevine thyrsus.png',
+        'Hermes': 'hermes caduceus winged sandals.png',
+        'Apollo': 'apollo lyre laurel.png',
+        'Zeus': 'zeus thunderbolt eagle.png',
+        'Nyx': 'nyx starry night cloak.png',
+        // High Sanctum (7–9)
+        'The Pleiades': 'pleiades star cluster.png',
+        'Poseidon': 'poseidon octopus trident.png',
+        'The Nine Muses': 'muses three masks.png',
+        "Pandora's Box": 'pandora pithos jar.png'
     },
 
     // Helper function to get asset path for a card
     getCardAsset(cardId, cardType) {
-        // Boons (jokers) use fallback white design - no assets
+        // Boons (jokers): use asset if mapped, otherwise fallback white design
         if (cardType === 'joker') {
-            return null;
+            return this.jokers[cardId] || null;
         }
         
         // Map card types to the correct mapping keys
@@ -184,9 +201,9 @@ const AssetMapping = {
         return null;
     },
 
-    // Helper function to get boon asset (always returns null for white fallback)
+    // Helper function to get boon asset (returns mapped asset or null for white fallback)
     getBoonAsset(boonId) {
-        return null; // All boons use white fallback design
+        return this.jokers[boonId] || null;
     },
 
     // Helper function to get pack asset

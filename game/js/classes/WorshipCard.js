@@ -33,9 +33,10 @@ class WorshipCard extends Card {
 
         // Reset The Heretic stacks when worship is used
         if (gameState.hereticStacks && gameState.hereticStacks > 0) {
-            const hasHeretic = gameState.jokers?.some(j => j.id === 'the_heretic');
-            if (hasHeretic) {
+            const heretic = gameState.jokers?.find(j => j.id === 'the_heretic');
+            if (heretic) {
                 gameState.hereticStacks = 0;
+                heretic.dynamicStats = { ...heretic.dynamicStats, pips: 0, other: 'Reset' };
                 window.game?.showMessage?.("The Heretic: Stacks reset by worship!");
             }
         }

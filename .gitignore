@@ -3,8 +3,17 @@ node_modules/
 
 # Build artifacts
 dist/
+dist-app/
 .parcel-cache/
 .cache/
+
+# Electron/EXE port outputs (use DICE of Dionysus port folder instead)
+build-output/
+dist-electron/
+final-build/
+out/
+release/
+release-build/
 
 # Windows system files
 desktop.ini
@@ -15,6 +24,10 @@ Thumbs.db
 ._.DS_Store
 **/.DS_Store
 **/._.DS_Store
+
+# Boon exports (dev tool output)
+boon-export*.json
+tools/exports/*.json
 
 # Temporary session files
 SESSION_STATE.json
@@ -39,3 +52,6 @@ debug-logs/
 # Backup directories (use git for version control instead)
 BACKUP_*/
 MODERNIZED_BACKUP_*/
+
+# Distribution builds (exceeds GitHub 100MB limit)
+DiceOfDionysus-itchio.zip

@@ -8,7 +8,7 @@ alwaysApply: false
 
 **Identity:** Authority on dev workflow — commands, verification, self-healing. Tester identity: `.cursor/tester/SOUL.md`.
 
-**Tester identity:** See `.cursor/tester/SOUL.md` for full testing orientation (tests/, e2e/, tracking/, commands).
+**Tester identity:** See `.cursor/tester/SOUL.md` for full testing orientation (tests/unit/, tests/e2e/, tracking/, commands).
 
 ## Terminal Commands
 
@@ -52,4 +52,4 @@ When implementing a feature (e.g. new boon):
 
 ## Playtest (E2E)
 
-Tests removed for fresh start. Add new E2E specs in `e2e/` as needed.
+Tests removed for fresh start. Add new E2E specs in `tests/e2e/` as needed.

@@ -395,7 +395,7 @@ test.describe('Boon Playtests', () => {
     await rollAndScore(page, 'Chance');
     await expect(page.locator('#turnDisplay')).toContainText(/2/);
   });
-  test("Parmenides Die - random enhanced face per turn", async ({ page }) => {
+  test("Parmenides Die - pantheon swap (scores go to corresponding slot)", async ({ page }) => {
     await startGame(page, 'parmenides_die');
     await expect(page.locator('.joker-slots [data-card-id="parmenides_die"]')).toBeVisible();
     await rollAndScore(page, 'Chance');

@@ -100,13 +100,29 @@ const ScoringEngine = {
         }
 
         if (isValid && state.dice) {
-            state.dice.forEach((die) => {
+            const upperSection = ['Ones', 'Twos', 'Threes', 'Fours', 'Fives', 'Sixes', 'Sevens', 'Eights', 'Nines'];
+            state.dice.forEach((die, i) => {
                 if (die && die.hasEnhancementForCurrentFace) {
                     if (die.hasEnhancementForCurrentFace('iron')) {
                         pips += (typeof ENHANCEMENT_BONUSES !== 'undefined' ? ENHANCEMENT_BONUSES.IRON_PIPS : 5);
                     }
                     if (die.hasEnhancementForCurrentFace('mother_of_pearl') && die.motherOfPearlBonus !== undefined) {
                         pips += die.motherOfPearlBonus;
+                    }
+                    // Mirror (Balatro Red Seal): die scores twice, including enhancements
+                    if (die.hasEnhancementForCurrentFace('mirror')) {
+                        const faceVal = faces[i] || 0;
+                        const contributes = !upperSection.includes(category) ||
+                            (typeof CATEGORY_TO_NUMBER !== 'undefined' && faceVal === CATEGORY_TO_NUMBER[category]);
+                        if (contributes) {
+                            pips += faceVal;
+                            if (die.hasEnhancementForCurrentFace('iron')) {
+                                pips += (typeof ENHANCEMENT_BONUSES !== 'undefined' ? ENHANCEMENT_BONUSES.IRON_PIPS : 5);
+                            }
+                            if (die.hasEnhancementForCurrentFace('mother_of_pearl') && die.motherOfPearlBonus !== undefined) {
+                                pips += die.motherOfPearlBonus;
+                            }
+                        }
                     }
                     // Wild: getEffectiveFace() already returns wildValue, so basePips includes it - no extra pips
                 }

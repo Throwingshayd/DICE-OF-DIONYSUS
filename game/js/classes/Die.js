@@ -116,7 +116,7 @@ class Die {
      */
     getValidatedFaceKey(faceValue) {
         if (!this.isValidFace(faceValue)) {
-            console.warn(`Invalid face value: ${faceValue}. Must be between 1 and ${GAME_BALANCE.MAX_DIE_FACE_WITH_ENHANCEMENTS}.`);
+            Logger.warn('Invalid face value', { faceValue, max: GAME_BALANCE.MAX_DIE_FACE_WITH_ENHANCEMENTS });
             return null;
         }
         return parseInt(faceValue, 10);
@@ -143,13 +143,13 @@ class Die {
     addFaceEnhancement(faceValue, enhancement) {
         const faceKey = this.getValidatedFaceKey(faceValue);
         if (faceKey === null) {
-            console.error(`Cannot add enhancement to invalid face: ${faceValue}`);
+            Logger.error('Cannot add enhancement to invalid face', { faceValue });
             return false;
         }
         
         this._ensureFaceExists(faceKey);
         if (!this.faces[faceKey]) {
-            console.error(`Face ${faceKey} does not exist in die structure`);
+            Logger.error('Face does not exist in die structure', { faceKey });
             return false;
         }
         
@@ -181,7 +181,7 @@ class Die {
     modifyFaceValue(faceValue, delta) {
         const targetKey = this.getValidatedFaceKey(faceValue);
         if (targetKey === null) {
-            console.error(`Cannot modify invalid face: ${faceValue}`);
+            Logger.error('Cannot modify invalid face', { faceValue });
             return false;
         }
         
@@ -196,7 +196,7 @@ class Die {
         }
         
         if (!this.faces[faceKey]) {
-            console.error(`Face ${faceKey} does not exist in die structure`);
+            Logger.error('Face does not exist in die structure', { faceKey });
             return false;
         }
         
@@ -336,7 +336,7 @@ class Die {
             'gold': '+1 Gold when scored',
             'mother_of_pearl': 'Adds value of left or right adjacent die (50/50)',
             'wild': 'Randomly becomes -1, 0, or +1 of rolled value',
-            'mirror': 'Copies the value of an adjacent die when scored',
+            'mirror': 'Scores twice (like Balatro Red Seal), including enhancements',
             'lucky': 'Has a 20% chance to count as 6',
             'cursed': 'Subtracts 1 from its value (minimum 1)',
             'divine': 'Always counts as 6',

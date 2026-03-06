@@ -1,0 +1,612 @@
+[
+  {
+    "id": "hestias_hearth",
+    "name": "Hestia's Hearth",
+    "rarity": "vibrant",
+    "cost": 5,
+    "sellValue": 1,
+    "effect": "If all 5 of your dice are odd or all 5 are even the hand gains +3 Favour.",
+    "description": "",
+    "god": ""
+  },
+  {
+    "id": "charons_ferry_fare",
+    "name": "Charon's Ferry Fare",
+    "rarity": "vibrant",
+    "cost": 5,
+    "sellValue": 1,
+    "effect": "Gain +1 Gold after scoring any hand (does not trigger on a scratch).",
+    "description": "",
+    "god": ""
+  },
+  {
+    "id": "the_gambler",
+    "name": "The Gambler",
+    "rarity": "rustic",
+    "cost": 3,
+    "sellValue": 1,
+    "effect": "+10 Chips for every re-roll remaining.",
+    "description": "",
+    "god": ""
+  },
+  {
+    "id": "achilles_heel",
+    "name": "Achilles' Heel",
+    "rarity": "rustic",
+    "cost": 3,
+    "sellValue": 1,
+    "effect": "All scores gain +15 Pips but you lose 1 Gold at the start of each roll.",
+    "description": "",
+    "god": ""
+  },
+  {
+    "id": "midas_touch",
+    "name": "Midas Touch",
+    "rarity": "rustic",
+    "cost": 4,
+    "sellValue": 2,
+    "effect": "Gain +1 pip for every 5 Gold you have when scoring.",
+    "description": "",
+    "god": ""
+  },
+  {
+    "id": "icarus_wings",
+    "name": "Icarus' Wings",
+    "rarity": "vibrant",
+    "cost": 5,
+    "sellValue": 1,
+    "effect": "Each unused re-roll at the end of a turn gives +10 Pips to the score. Chance to break after turn 1 in 8.",
+    "description": "",
+    "god": ""
+  },
+  {
+    "id": "lethe_waters",
+    "name": "Lethe Waters",
+    "rarity": "rustic",
+    "cost": 4,
+    "sellValue": 2,
+    "effect": "All dice with a value of 2 or less are not counted for scoring but your final score gains +25 Pips.",
+    "description": "",
+    "god": ""
+  },
+  {
+    "id": "forge_of_hephaestus",
+    "name": "Forge of Hephaestus",
+    "rarity": "vibrant",
+    "cost": 5,
+    "sellValue": 1,
+    "effect": "Gain x0.5 Favour for each unused re-roll you have at the end of the turn (Max x1.5).",
+    "description": "",
+    "god": ""
+  },
+  {
+    "id": "prometheus_gift",
+    "name": "Prometheus' Gift",
+    "rarity": "vibrant",
+    "cost": 5,
+    "sellValue": 1,
+    "effect": "Gives +3 Favour to all hands but you have one less re-roll each turn.",
+    "description": "",
+    "god": ""
+  },
+  {
+    "id": "chaos_primordial",
+    "name": "Chaos Primordial",
+    "rarity": "legendary",
+    "cost": 8,
+    "sellValue": 2,
+    "effect": "Doubles all Favour gains but you have one less re-roll each turn.",
+    "description": "",
+    "god": ""
+  },
+  {
+    "id": "mt_olympus",
+    "name": "Mt Olympus",
+    "rarity": "epic",
+    "cost": 8,
+    "sellValue": 2,
+    "effect": "Gain +1 Favour for each Worship card you have used this run.",
+    "description": "",
+    "god": ""
+  },
+  {
+    "id": "sisyphus_boulder",
+    "name": "Sisyphus' Boulder",
+    "rarity": "vibrant",
+    "cost": 8,
+    "sellValue": 2,
+    "effect": "+5 Pips for every time you've rerolled this turn. Resets each turn.",
+    "description": "",
+    "god": "Sisyphus"
+  },
+  {
+    "id": "kronos_hourglass",
+    "name": "Kronos' Hourglass",
+    "rarity": "epic",
+    "cost": 9,
+    "sellValue": 2,
+    "effect": "Each turn, gain a random number of rolls (1-5). Time is unpredictable.",
+    "description": "",
+    "god": "Kronos"
+  },
+  {
+    "id": "pandoras_jar",
+    "name": "Pandora's Jar",
+    "rarity": "epic",
+    "cost": 8,
+    "sellValue": 2,
+    "effect": "Every 3rd turn, randomly destroy a Boon and gain +2 Favour (stacks permanently).",
+    "description": "",
+    "god": "Pandora"
+  },
+  {
+    "id": "demeters_harvest",
+    "name": "Demeter's Harvest",
+    "rarity": "vibrant",
+    "cost": 5,
+    "sellValue": 1,
+    "effect": "Each turn, one random die permanently gains +1 to its value (max 9).",
+    "description": "",
+    "god": "Demeter"
+  },
+  {
+    "id": "medusas_gaze",
+    "name": "Medusa's Gaze",
+    "rarity": "vibrant",
+    "cost": 5,
+    "sellValue": 1,
+    "effect": "Any die showing 6 cannot be rerolled (acts as automatic hold). Lower sanctum scores give ×0.5 favour bonus.",
+    "description": "",
+    "god": "Medusa"
+  },
+  {
+    "id": "dionysus_revelry",
+    "name": "Dionysus' Revelry",
+    "rarity": "vibrant",
+    "cost": 5,
+    "sellValue": 1,
+    "effect": "Dice showing 2 pairs can be scored as Full House.",
+    "description": "The god of revelry bends the rules for celebration.",
+    "god": "Dionysus"
+  },
+  {
+    "id": "apollos_oracle",
+    "name": "Apollo's Oracle",
+    "rarity": "vibrant",
+    "cost": 5,
+    "sellValue": 1,
+    "effect": "+1 reroll per turn, reduce score input by 20%.",
+    "description": "More chances but weakened results.",
+    "god": "Apollo"
+  },
+  {
+    "id": "hydras_heads",
+    "name": "Hydra's Heads",
+    "rarity": "vibrant",
+    "cost": 5,
+    "sellValue": 1,
+    "effect": "Whenever you score with exactly 2 pairs (e.g. 2-2-3-3-5), gain +3 Favour.",
+    "description": "",
+    "god": "Hydra"
+  },
+  {
+    "id": "tantalus_curse",
+    "name": "Tantalus' Curse",
+    "rarity": "vibrant",
+    "cost": 5,
+    "sellValue": 1,
+    "effect": "+0.1 Favour for each gold you have, but cannot spend gold while active.",
+    "description": "Punishment eternal: wealth you cannot touch.",
+    "god": "Tantalus"
+  },
+  {
+    "id": "pegasus_flight",
+    "name": "Pegasus' Flight",
+    "rarity": "vibrant",
+    "cost": 5,
+    "sellValue": 1,
+    "effect": "Dice with values 6+ give ×0.5 extra Favour when scored.",
+    "description": "",
+    "god": "Pegasus"
+  },
+  {
+    "id": "cerberus_watch",
+    "name": "Cerberus' Watch",
+    "rarity": "vibrant",
+    "cost": 5,
+    "sellValue": 1,
+    "effect": "The first 3 dice you hold each turn gain +3 Pips each when scored.",
+    "description": "The three-headed guardian blesses what you protect.",
+    "god": "Cerberus"
+  },
+  {
+    "id": "trojan_horse",
+    "name": "The Trojan Horse",
+    "rarity": "legendary",
+    "cost": 12,
+    "sellValue": 3,
+    "effect": "After Turn 10, all your Boons give ×2 their normal effect.",
+    "description": "Hidden power revealed when the time is right.",
+    "god": ""
+  },
+  {
+    "id": "lucky_dice_bag",
+    "name": "Lucky Dice Bag",
+    "rarity": "rustic",
+    "cost": 3,
+    "sellValue": 1,
+    "effect": "Whenever you roll a 1, reroll that die automatically (once per die per turn).",
+    "description": "",
+    "god": ""
+  },
+  {
+    "id": "gamblers_charm",
+    "name": "Gambler's Charm",
+    "rarity": "rustic",
+    "cost": 3,
+    "sellValue": 1,
+    "effect": "50% chance to gain +2 Gold when scoring, 50% chance to lose 1 gold.",
+    "description": "",
+    "god": ""
+  },
+  {
+    "id": "marathon_runner",
+    "name": "Marathon Runner",
+    "rarity": "rustic",
+    "cost": 3,
+    "sellValue": 1,
+    "effect": "Gain +1 Pips per roll taken (stacks, destroyed when scratched or reaches 42+ pips).",
+    "description": "Named for Pheidippides - the longer the journey, the greater the exhaustion.",
+    "god": ""
+  },
+  {
+    "id": "golden_touch",
+    "name": "Golden Touch",
+    "rarity": "vibrant",
+    "cost": 5,
+    "sellValue": 1,
+    "effect": "Interest is calculated at 1 gold per 3 saved (instead of 5).",
+    "description": "Better interest rate on saved gold.",
+    "god": "Midas"
+  },
+  {
+    "id": "mathematicians_compass",
+    "name": "Mathematician's Compass",
+    "rarity": "rustic",
+    "cost": 3,
+    "sellValue": 1,
+    "effect": "+10 Pips if your dice sum is divisible by 10.",
+    "description": "Precision in perfect tens.",
+    "god": ""
+  },
+  {
+    "id": "prime_time",
+    "name": "Prime Time",
+    "rarity": "rustic",
+    "cost": 3,
+    "sellValue": 1,
+    "effect": "Prime dice (2,3,5,7) give bonus: 1 prime=+1, 2=+2, 3=+3, 4=+5, 5=+7 pips.",
+    "description": "Primes scored on primes - the more primes, the higher the prime bonus!",
+    "god": ""
+  },
+  {
+    "id": "the_locksmith",
+    "name": "The Locksmith",
+    "rarity": "rustic",
+    "cost": 3,
+    "sellValue": 1,
+    "effect": "Held dice gain +1 pips for each roll they were held, when scoring.",
+    "description": "The longer they're locked, the more valuable they become.",
+    "god": ""
+  },
+  {
+    "id": "the_merchant",
+    "name": "The Merchant",
+    "rarity": "rustic",
+    "cost": 3,
+    "sellValue": 1,
+    "effect": "Selling libation and worship cards gives +1 extra gold.",
+    "description": "A keen trader in sacred goods.",
+    "god": ""
+  },
+  {
+    "id": "the_heretic",
+    "name": "The Heretic",
+    "rarity": "rustic",
+    "cost": 3,
+    "sellValue": 1,
+    "effect": "Each turn gain +2 pips (stacks, resets at end of ante or when worship card is used).",
+    "description": "Growing stronger without divine intervention.",
+    "god": ""
+  },
+  {
+    "id": "reckless_abandon",
+    "name": "Reckless Abandon",
+    "rarity": "rustic",
+    "cost": 3,
+    "sellValue": 1,
+    "effect": "+50 Pips but you cannot hold dice.",
+    "description": "Pure chaos, no strategy - YOLO mode.",
+    "god": ""
+  },
+  {
+    "id": "typhon",
+    "name": "Typhon",
+    "rarity": "rustic",
+    "cost": 3,
+    "sellValue": 1,
+    "effect": "Rolling all 1s on the first roll gives +90% of score threshold.",
+    "description": "The father of monsters - catastrophic luck!",
+    "god": "Typhon"
+  },
+  {
+    "id": "early_bird",
+    "name": "Early Bird Gets the Worm",
+    "rarity": "rustic",
+    "cost": 3,
+    "sellValue": 1,
+    "effect": "Turns 1-3: +20 Pips, turns 4-5 gain 2 gold, Turns 6-13: -5 Pips.",
+    "description": "Front-loaded power that fades over time.",
+    "god": ""
+  },
+  {
+    "id": "the_symposium",
+    "name": "The Symposium",
+    "rarity": "vibrant",
+    "cost": 5,
+    "sellValue": 1,
+    "effect": "Each time you score 4+ matching dice, gain +0.05 Favour (stacks permanently).",
+    "description": "A gathering of equals - celebrations accumulate.",
+    "god": ""
+  },
+  {
+    "id": "assembly_of_heroes",
+    "name": "Assembly of Heroes",
+    "rarity": "rustic",
+    "cost": 3,
+    "sellValue": 1,
+    "effect": "If all boon slots are full, gain +15 Pips when scoring.",
+    "description": "United heroes stand stronger together.",
+    "god": ""
+  },
+  {
+    "id": "divine_synergy",
+    "name": "Divine Synergy",
+    "rarity": "rustic",
+    "cost": 3,
+    "sellValue": 1,
+    "effect": "Boons of the same rarity amplify each other (+5 Pips per matching rarity).",
+    "description": "Similar rarities harmonize together.",
+    "god": ""
+  },
+  {
+    "id": "first_blood",
+    "name": "First Blood",
+    "rarity": "rustic",
+    "cost": 3,
+    "sellValue": 1,
+    "effect": "Your first score each Ante gives +50 Pips.",
+    "description": "Strike first, strike hard.",
+    "god": ""
+  },
+  {
+    "id": "midnight_oil",
+    "name": "Midnight Oil",
+    "rarity": "rustic",
+    "cost": 5,
+    "sellValue": 1,
+    "effect": "Turn 12+ gives +24 Pips but you lose 1 roll each turn.",
+    "description": "Burning the midnight oil - working harder at the end.",
+    "god": ""
+  },
+  {
+    "id": "parmenides_die",
+    "name": "Parmenides Die",
+    "rarity": "epic",
+    "cost": 8,
+    "sellValue": 2,
+    "effect": "One random die face becomes randomly enhanced for that turn.",
+    "description": "The philosopher of change - fate shifts with each turn.",
+    "god": "Parmenides"
+  },
+  {
+    "id": "doubling_season",
+    "name": "Doubling Season",
+    "rarity": "vibrant",
+    "cost": 5,
+    "sellValue": 1,
+    "effect": "All even numbers give +2 pips, odd numbers give -1 pip.",
+    "description": "Growth and decay in balance - evens flourish, odds wither.",
+    "god": ""
+  },
+  {
+    "id": "symmetry",
+    "name": "Symmetry",
+    "rarity": "vibrant",
+    "cost": 5,
+    "sellValue": 1,
+    "effect": "Each time you roll a palindrome, this card permanently gains +0.5 Favour (stacks).",
+    "description": "Divine harmony accumulates with each perfect pattern.",
+    "god": ""
+  },
+  {
+    "id": "misery",
+    "name": "Misery",
+    "rarity": "vibrant",
+    "cost": 5,
+    "sellValue": 1,
+    "effect": "If you have 0 gold, gain ×2 Favour.",
+    "description": "Poverty grants divine favor - suffering brings blessing.",
+    "god": ""
+  },
+  {
+    "id": "smog_of_morpheus",
+    "name": "Smog of Morpheus",
+    "rarity": "vibrant",
+    "cost": 5,
+    "sellValue": 1,
+    "effect": "After your final roll, all dice showing 2 or 4 become 3s.",
+    "description": "The god of dreams shapes your final reality.",
+    "god": "Morpheus"
+  },
+  {
+    "id": "the_zealot",
+    "name": "The Zealot",
+    "rarity": "rustic",
+    "cost": 3,
+    "sellValue": 1,
+    "effect": "Gives +×1 favour of the most recently scored Worship card, to that score this Ante.",
+    "description": "Zealous devotion to the last worshipped god.",
+    "god": ""
+  },
+  {
+    "id": "mortal_vineyard",
+    "name": "Mortal Vineyard",
+    "rarity": "vibrant",
+    "cost": 5,
+    "sellValue": 1,
+    "effect": "Selling a Boon gives you a random Libation.",
+    "description": "Transform the divine into sacred wine - alchemical conversion.",
+    "god": ""
+  },
+  {
+    "id": "proteus_disguise",
+    "name": "Proteus' Disguise",
+    "rarity": "vibrant",
+    "cost": 5,
+    "sellValue": 1,
+    "effect": "Copies the effect of the Boon to its left (Blueprint-style).",
+    "description": "The shape-shifter takes the form of its neighbour.",
+    "god": "Proteus"
+  },
+  {
+    "id": "cornucopia_of_ploutos",
+    "name": "Cornucopia of Ploutos",
+    "rarity": "vibrant",
+    "cost": 5,
+    "sellValue": 1,
+    "effect": "At end of Ante, gold ×1.5 (rounded down).",
+    "description": "The horn of plenty - wealth multiplies for the patient.",
+    "god": "Ploutos"
+  },
+  {
+    "id": "the_odyssey",
+    "name": "The Odyssey",
+    "rarity": "vibrant",
+    "cost": 5,
+    "sellValue": 1,
+    "effect": "At end of Ante, if ALL categories filled with NO scratches, gain (total categories)² pips.",
+    "description": "Complete the perfect journey - 13² = 169, 14² = 196, 15² = 225, 16² = 256 pips.",
+    "god": "Odysseus"
+  },
+  {
+    "id": "message_in_a_bottle",
+    "name": "Message in a Bottle",
+    "rarity": "vibrant",
+    "cost": 5,
+    "sellValue": 1,
+    "effect": "If you complete Ante with no other boons for entire ante gain +50% of score threshold.",
+    "description": "A solo journey - isolation brings great reward.",
+    "god": ""
+  },
+  {
+    "id": "betrayal_by_paris",
+    "name": "Betrayal by Paris",
+    "rarity": "vibrant",
+    "cost": 5,
+    "sellValue": 1,
+    "effect": "Destroy a random Boon at end of each Ante, gain +10 Gold.",
+    "description": "The betrayer of Troy - your boons fear you.",
+    "god": "Paris"
+  },
+  {
+    "id": "eruption_of_etna",
+    "name": "Eruption of Etna",
+    "rarity": "vibrant",
+    "cost": 5,
+    "sellValue": 1,
+    "effect": "If 3+ Boons trigger on same turn, +×1 Favour (stacks, doesn't reset).",
+    "description": "Volcanic eruption - when many boons align, explosive power!",
+    "god": ""
+  },
+  {
+    "id": "cycle_of_seasons",
+    "name": "The Cycle of Seasons",
+    "rarity": "vibrant",
+    "cost": 5,
+    "sellValue": 1,
+    "effect": "When a Worship card triggers, also trigger +1 favour to another god.",
+    "description": "The seasons cycle - worship spreads to other gods.",
+    "god": ""
+  },
+  {
+    "id": "ascetics_vow",
+    "name": "Ascetic's Vow",
+    "rarity": "epic",
+    "cost": 8,
+    "sellValue": 2,
+    "effect": "If you have empty other Boon slots, gain +×1 Favour for each.",
+    "description": "Less is more - the ascetic finds power in emptiness.",
+    "god": ""
+  },
+  {
+    "id": "bellows_of_war",
+    "name": "Bellows of War",
+    "rarity": "epic",
+    "cost": 8,
+    "sellValue": 2,
+    "effect": "Three/Four of Kind categories score as if you had one more matching die.",
+    "description": "The forge's bellows create phantom duplicates - virtual power.",
+    "god": "Hephaestus"
+  },
+  {
+    "id": "nyxian_seduction",
+    "name": "Nyxian Seduction",
+    "rarity": "rustic",
+    "cost": 3,
+    "sellValue": 1,
+    "effect": "Chance category gives +69 Pips, reduce a random god's favour by 1 level (male gods preferred).",
+    "description": "Seductive night - weakens male gods through temptation.",
+    "god": "Nyx"
+  },
+  {
+    "id": "gold_standard",
+    "name": "Gold Standard",
+    "rarity": "vibrant",
+    "cost": 8,
+    "sellValue": 2,
+    "effect": "All gold enhancements also give +3 Pips.",
+    "description": "The gold standard - premium enhancements for premium value.",
+    "god": ""
+  },
+  {
+    "id": "carillon_of_the_muses",
+    "name": "Carillon of the Muses",
+    "rarity": "epic",
+    "cost": 10,
+    "sellValue": 3,
+    "effect": "If all 5 dice have enhancements, gain +3 Favour (secret: if all same enhancement, ×2.5 favour!).",
+    "description": "Perfect harmony - the bells ring when all are enhanced. Secret bonus is multiplicative ×favour!",
+    "god": "The Nine Muses"
+  },
+  {
+    "id": "reflection_of_narcissus",
+    "name": "Reflection of Narcissus",
+    "rarity": "epic",
+    "cost": 11,
+    "sellValue": 3,
+    "effect": "Boons trigger twice, but you have -2 rolls per turn.",
+    "description": "The reflection doubles all - but limits your chances.",
+    "god": "Narcissus"
+  },
+  {
+    "id": "journey_of_perseus",
+    "name": "Journey of Perseus",
+    "rarity": "rustic",
+    "cost": 3,
+    "sellValue": 1,
+    "effect": "Every 100 total score, this Boon gains +10 Pips.",
+    "description": "The hero's journey - power accumulates with achievement.",
+    "god": "Perseus"
+  }
+]

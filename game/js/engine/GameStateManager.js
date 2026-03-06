@@ -1,7 +1,7 @@
 /**
  * GameStateManager - State-driven UI for Balatro-style layout
  * Maps: MENU | ROUND | SHOP | BLIND_SELECT
- * Reference: Balatro CODE (G.STATE, G.STATES)
+ * Reference: reference/balatro (G.STATE, G.STATES)
  * Per 6-translator: Use GameEngine.state, not global G
  * @module GameStateManager
  */

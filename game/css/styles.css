@@ -36,18 +36,15 @@ body {
     font-family: 'DisneyHeroic', 'VT323', monospace;
     background: #1a1a1a;
     color: var(--text-light);
-    height: 100vh;
-    width: 100vw;
-    overflow: hidden;
+    min-height: 100vh;
+    width: 100%;
+    overflow: auto;
     font-size: 16px;
     display: flex;
     align-items: center;
     justify-content: center;
     margin: 0;
     padding: 0;
-    /* Fixed 1920x1080 resolution */
-    min-width: 1920px;
-    min-height: 1080px;
     box-sizing: border-box;
 }
 
@@ -66,10 +63,24 @@ body::after {
     z-index: 10000;
 }
 
-/* Game Container - Fixed 1920x1080 */
+/* Game viewport: scales game to fit any window size */
+.game-viewport {
+    position: fixed;
+    inset: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    overflow: hidden;
+    background: #1a1a1a;
+}
+
+/* Game container - fixed design size, scaled by viewport */
 .game-container {
     width: 1920px;
     height: 1080px;
+    flex-shrink: 0;
+    transform-origin: center center;
+    transform: scale(min(100vw / 1920, 100vh / 1080));
     background-image: url('/ART/background swirl.png');
     background-size: cover;
     background-position: center;
@@ -80,7 +91,6 @@ body::after {
     position: relative;
     border: 3px solid #8B4513;
     box-sizing: border-box;
-    margin: 0 auto;
 }
 
 /* Ensure game container wrapper doesn't clip content */
@@ -1136,6 +1146,11 @@ body::after {
     0%, 100% { color: #9b59b6; text-shadow: 0 0 8px rgba(155, 89, 182, 0.6); }
     50% { color: #e8b4f0; text-shadow: 0 0 20px rgba(232, 180, 240, 0.9); }
 }
+/* Success: total exceeds required — blue and green alternating */
+@keyframes pantheon-success-flash {
+    0%, 100% { color: #4A90E2; text-shadow: 0 0 12px rgba(74, 144, 226, 0.8); }
+    50% { color: #2ecc71; text-shadow: 0 0 16px rgba(46, 204, 113, 0.9); }
+}
 .live-score-display .gnosis-cashout-title,
 .live-score-display .gnosis-cashout-lines,
 .live-score-display .gnosis-cashout-line {
@@ -1165,7 +1180,79 @@ body::after {
     text-shadow: 0 2px 8px rgba(0,0,0,0.4);
     animation: pantheon-flash-purple 1.2s ease-in-out infinite;
 }
+.live-score-display .gnosis-cashout-line.gnosis-pantheon-value.pantheon-success-flash {
+    animation: pantheon-success-flash 0.8s ease-in-out infinite;
+}
 .live-score-display .gnosis-cashout-sub {
+    font-family: 'DisneyHeroic', sans-serif;
+    color: rgba(74, 144, 226, 0.85);
+    font-size: 16px;
+    margin: 6px 0 0 0;
+}
+
+/* Cashout in score panel: hide Total score, show pantheon/cashout with flash */
+.gnosis-score-panel.cashout-mode .gnosis-score-label,
+.gnosis-score-panel.cashout-mode .gnosis-score-value {
+    display: none;
+}
+.gnosis-score-panel .gnosis-cashout-content {
+    display: none;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    text-align: center;
+    padding: 4px 0;
+    overflow: visible;
+    min-height: 100px;
+}
+.gnosis-score-panel .gnosis-cashout-content.hidden {
+    display: none !important;
+}
+.gnosis-score-panel.cashout-mode .gnosis-cashout-content {
+    display: flex !important;
+}
+.gnosis-score-panel.cashout-mode .gnosis-cashout-content.hidden {
+    display: none !important;
+}
+.gnosis-score-panel .gnosis-cashout-title,
+.gnosis-score-panel .gnosis-cashout-lines,
+.gnosis-score-panel .gnosis-cashout-line {
+    font-family: 'DisneyHeroic', sans-serif;
+    font-size: 22px;
+    font-weight: bold;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+    line-height: 1.3;
+    overflow: visible;
+}
+.gnosis-score-panel .gnosis-cashout-lines {
+    overflow: visible;
+    padding: 4px 0;
+}
+.gnosis-score-panel .gnosis-cashout-title {
+    font-size: 26px;
+    letter-spacing: 3px;
+    color: #4A90E2;
+    animation: cashout-flash-blue 1.2s ease-in-out infinite;
+}
+.gnosis-score-panel .gnosis-cashout-line {
+    font-size: 20px;
+    color: #4A90E2;
+    margin: 4px 0;
+    animation: cashout-flash-blue 1.2s ease-in-out infinite;
+}
+.gnosis-score-panel .gnosis-cashout-line.gnosis-pantheon-value {
+    font-size: 42px;
+    font-family: 'DisneyHeroic', sans-serif;
+    color: #9b59b6;
+    text-shadow: 0 2px 8px rgba(0,0,0,0.4);
+    animation: pantheon-flash-purple 1.2s ease-in-out infinite;
+}
+.gnosis-score-panel .gnosis-cashout-line.gnosis-pantheon-value.pantheon-success-flash {
+    animation: pantheon-success-flash 0.8s ease-in-out infinite;
+}
+.gnosis-score-panel .gnosis-cashout-sub {
     font-family: 'DisneyHeroic', sans-serif;
     color: rgba(74, 144, 226, 0.85);
     font-size: 16px;
@@ -1252,6 +1339,7 @@ body::after {
     flex-direction: column;
     align-items: center;
     gap: 6px;
+    flex-shrink: 0;
 }
 
 .gnosis-objective-panel {
@@ -1260,6 +1348,9 @@ body::after {
 
 .gnosis-score-panel {
     margin-top: 10px;
+    min-height: 120px;
+    overflow: visible;
+    flex-shrink: 0;
 }
 
 .gnosis-objective-label {
@@ -3927,8 +4018,7 @@ body::after {
     color: #8B7355;
 }
 
-/* ===== RESPONSIVE BEHAVIOR COMPLETELY DISABLED ===== */
-/* Game maintains exact 1920x1080 dimensions regardless of browser window size */
+/* Game scales to fit viewport via .game-viewport transform */
 
 .bonus-yahtzee-indicator {
     background: rgba(106, 170, 154, 0.1);

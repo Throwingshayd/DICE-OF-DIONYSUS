@@ -2,7 +2,7 @@
  * SoundManager - Balatro-style SFX and context music using resources/sounds
  * Music: reversed, 2x slowed, reverb. Context-based tracks with smooth crossfade.
  * Balatro: music1=play, music2=pack, music4=shop, music5=boss
- * @see Balatro CODE/functions/misc_functions.lua (desired_track)
+ * @see reference/balatro/functions/misc_functions.lua (desired_track)
  */
 /** Track ID → project music file (game/public/ART/Music/) */
 const MUSIC_TRACKS = {
@@ -266,7 +266,7 @@ class SoundManager {
     stopMusic() {
         this._musicPlaying = false;
         if (this.musicSource) {
-            try { this.musicSource.stop(); } catch (_) {}
+            try { this.musicSource.stop(); } catch (_) { /* ignore stop errors */ }
             this.musicSource = null;
         }
         this._musicSourceGain = null;

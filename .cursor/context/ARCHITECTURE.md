@@ -27,6 +27,8 @@ Dice of Dionysus is a single-page application (SPA) built with vanilla JavaScrip
 DICE-OF-DIONYSUS-WORKING/
 ├── game/                      # Game application (Vite root)
 │   ├── index.html            # Main entry point
+│   ├── dev/                   # Dev-only tools
+│   │   └── boon-factory.html # Boon Card Factory (AI image gen, export)
 │   ├── css/                  # Stylesheets
 │   │   ├── styles.css        # Main game styles
 │   │   ├── balatro-effects.css   # Visual effects
@@ -83,13 +85,19 @@ DICE-OF-DIONYSUS-WORKING/
 │           └── Music/
 │               └── [5 .wav files]
 │
-├── e2e/                        # E2E tests (Playwright)
-├── tests/                      # Unit tests (Vitest)
+├── tools/                      # Dev tooling
+│   ├── extract-boons.cjs      # Extract jokers → boon-data.json
+│   ├── image-gen-server.cjs  # DALL-E 3 image generation (npm run image-gen)
+│   ├── import-boon-to-game.cjs # Import boon export into gameData
+│   └── exports/              # Boon export files (default save location)
+├── tests/                      # Unified test suite
+│   ├── unit/                   # Vitest unit tests
+│   └── e2e/                    # Playwright E2E
 ├── docs/                       # Documentation
-├── design/                     # Design docs
-├── archive/                    # Historical docs
+│   ├── design/                 # Design docs
+│   └── archive/                # Historical docs
 ├── tracking/                   # Bug logs, playtest reports
-├── Balatro CODE/               # Balatro Lua reference
+├── reference/balatro/          # Balatro Lua reference
 ├── package.json
 ├── vite.config.js
 └── SOUL.md

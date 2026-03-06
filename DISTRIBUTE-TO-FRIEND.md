@@ -1,33 +1,31 @@
 # Share Dice of Dionysus with a Friend
 
-## Quick steps
+## Quick steps (Web build)
 
 1. **Build** (if not already done):
    ```bash
    npm run build
-   npm run dist
    ```
 
-2. **Folder to send**: `dist/win-unpacked/`
+2. **Folder to send**: `dist/`
 
-3. **Zip it** for easy transfer (close the game first if it's running):
-   - Right-click `win-unpacked` → Send to → Compressed (zipped) folder
-   - Or: `Compress-Archive -Path "dist\win-unpacked" -DestinationPath "DiceOfDionysus-v1.4.zip"`
+3. **Zip it** for easy transfer:
+   - Right-click `dist` → Send to → Compressed (zipped) folder
+   - Or: `Compress-Archive -Path "dist" -DestinationPath "DiceOfDionysus-v1.4.zip"`
 
 4. **Your friend**:
    - Unzip the folder
-   - Double-click `Dice of Dionysus.exe`
-   - No install needed — it runs portably
+   - Open `index.html` in a browser (Chrome, Firefox, Edge)
+   - Or host the folder on any static web server (e.g. `npx serve dist`)
 
-## Contents of win-unpacked
+## Contents of dist/
 
-- `Dice of Dionysus.exe` — main launcher (run this)
-- `resources/` — game assets (required)
-- `*.dll` — required runtime libraries
-- `locales/` — language packs (can be deleted to shrink if needed)
+- `index.html` — main entry point
+- `assets/` — JS, CSS, fonts
+- `ART/` — images, sounds
 
 ## Minimum requirements
 
-- Windows 10/11 (64-bit)
-- ~200 MB disk space
-- No admin rights needed
+- Modern browser (Chrome, Firefox, Edge, Safari)
+- JavaScript enabled
+- No install needed — runs in browser

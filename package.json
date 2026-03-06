@@ -2,21 +2,22 @@
   "name": "dice-of-dionysus",
   "version": "1.4.0",
   "description": "An elegant dice strategy game of pips, favour, and devotion",
-  "main": "electron-main.js",
   "type": "module",
   "scripts": {
     "dev": "vite",
+    "dev:all": "concurrently \"npm run dev\" \"npm run image-gen\"",
+    "extract-boons": "node tools/extract-boons.cjs",
+    "import-boon": "node tools/import-boon-to-game.cjs",
+    "image-gen": "node tools/image-gen-server.cjs",
     "build": "vite build",
+    "clean": "node tools/clean-builds.cjs",
     "preview": "vite preview",
     "test": "vitest",
     "test:ui": "vitest --ui",
-    "playtest:boons": "playwright test e2e/boon-playtest.spec.js",
+    "playtest:boons": "playwright test tests/e2e/boon-playtest.spec.js",
     "lint": "eslint game/js/**/*.js",
     "lint:fix": "eslint game/js/**/*.js --fix",
-    "type-check": "tsc --noEmit",
-    "start": "electron .",
-    "build:electron": "electron-builder",
-    "dist": "electron-builder --publish=never"
+    "type-check": "tsc --noEmit"
   },
   "keywords": [
     "dice",
@@ -35,8 +36,7 @@
     "@vitejs/plugin-legacy": "^5.0.0",
     "@vitest/ui": "^1.0.0",
     "baseline-browser-mapping": "^2.10.0",
-    "electron": "^28.0.0",
-    "electron-builder": "^24.9.1",
+    "concurrently": "^8.2.2",
     "eslint": "^8.0.0",
     "typescript": "^5.0.0",
     "vite": "^5.0.0",
@@ -44,24 +44,5 @@
   },
   "dependencies": {
     "workbox-window": "^7.0.0"
-  },
-  "build": {
-    "appId": "com.diceofdionysus.game",
-    "productName": "Dice of Dionysus",
-    "directories": {
-      "output": "dist"
-    },
-    "files": [
-      "electron-main.js",
-      "dist/**/*",
-      "!node_modules/**/*"
-    ],
-    "win": {
-      "target": "portable",
-      "icon": "game/public/ART/Title art.png"
-    },
-    "portable": {
-      "artifactName": "DiceOfDionysus-v1.4-Portable.exe"
-    }
   }
 }

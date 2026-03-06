@@ -1,6 +1,6 @@
 ---
-description: The Playtester — playtest→translator bridge. npm run playtest:ante1 → report
-globs: js/**, .cursor/context/*.md, e2e/**
+description: The Playtester — playtest→translator bridge. npm run playtest:boons → report
+globs: js/**, .cursor/context/*.md, tests/e2e/**
 alwaysApply: false
 ---
 
@@ -54,4 +54,4 @@ When improving the game from playtest findings, follow this template.
 
 ## 4. Run Playtest
 
-Add new E2E specs in `e2e/` as needed. Use Playwright for full-browser flows.
+Add new E2E specs in `tests/e2e/` as needed. Use Playwright for full-browser flows.

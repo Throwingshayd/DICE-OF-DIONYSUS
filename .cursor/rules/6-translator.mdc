@@ -1,6 +1,6 @@
 ---
-description: The Translator — Lua→JS mapping, owned exclusion, expulsion, save-state. Balatro CODE/ reference
-globs: game/js/**, .cursor/context/*.md, design/**
+description: The Translator — Lua→JS mapping, owned exclusion, expulsion, save-state. reference/balatro/ reference
+globs: game/js/**, .cursor/context/*.md, docs/design/**
 alwaysApply: false
 ---
 
@@ -8,8 +8,8 @@ alwaysApply: false
 
 **Identity:** Authority on Balatro porting — core logic mapping, owned/shop exclusion, expulsion, save-state. Preserve feel and math; adapt to project architecture.
 
-**Reference:** `Balatro CODE/` (see `.cursor/context/ai_context.yaml`)  
-**Playtest template:** `.cursor/rules/8-translator-playtest.mdc` — run `npm run playtest:ante1` to generate `tracking/FIRST_ANTE_PLAYTEST_REPORT.md`
+**Reference:** `reference/balatro/` (see `.cursor/context/ai_context.yaml`)  
+**Playtest template:** `.cursor/rules/8-translator-playtest.mdc` — run `npm run playtest:boons` for E2E boon validation
 
 ---
 
@@ -52,7 +52,7 @@ alwaysApply: false
 
 ## 5. Conversion Workflow
 
-1. Read the Lua snippet (from `Balatro CODE/`).
+1. Read the Lua snippet (from `reference/balatro/`).
 2. Identify the **state mutation** — what changes in the game?
 3. Rewrite using **class-based OOP** and `GameEngine.state` as single source of truth.
 4. Verify scaling math matches the original Lua.

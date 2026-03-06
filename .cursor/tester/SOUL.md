@@ -18,8 +18,8 @@
 
 | Folder | Purpose | Ephemeral? |
 |--------|---------|------------|
-| `tests/` | Vitest unit tests. Engine logic, scoring, economy, edge cases. | No |
-| `e2e/` | Playwright E2E. Full browser, real game flow. | No |
+| `tests/unit/` | Vitest unit tests. Engine logic, scoring, economy, edge cases. | No |
+| `tests/e2e/` | Playwright E2E. Full browser, real game flow. | No |
 | `tracking/` | Canonical data. See `tracking/README.md` | No |
 | `test-results/` | Playwright output (screenshots, traces). | Yes (gitignored) |
 

@@ -52,6 +52,9 @@ class App {
         this.applySoundSetting(s.soundEnabled !== false, s.musicVolume, s.sfxVolume);
         if (s.autoSave === false) this.stopAutoSave();
         
+        // Register PWA ServiceWorker (HTTPS or localhost only)
+        this.registerServiceWorker();
+        
         // Show start screen
         this.showStartScreen();
         
@@ -62,7 +65,7 @@ class App {
         this.screens = {
             start: document.getElementById('startScreen'),
             collection: document.getElementById('collectionScreen'),
-            game: document.getElementById('gameContainerWrapper')
+            game: document.getElementById('gameViewport')
         };
         
         // Ensure all screens start hidden except start
@@ -121,6 +124,24 @@ class App {
 
     hideSettings() {
         if (window.settingsOverlay) window.settingsOverlay.hide();
+    }
+
+    /** Register PWA ServiceWorker for offline support (HTTPS or localhost only) */
+    registerServiceWorker() {
+        if (!('serviceWorker' in navigator)) return;
+        const isSecure = location.protocol === 'https:' || location.hostname === 'localhost';
+        if (!isSecure) return;
+        try {
+            navigator.serviceWorker.register('js/pwa/ServiceWorker.js', { scope: './' })
+                .then((reg) => {
+                    if (typeof Logger !== 'undefined') Logger.info('ServiceWorker registered');
+                })
+                .catch((err) => {
+                    if (typeof Logger !== 'undefined') Logger.warn('ServiceWorker registration failed:', err);
+                });
+        } catch (e) {
+            if (typeof Logger !== 'undefined') Logger.warn('ServiceWorker registration error:', e);
+        }
     }
 
     /**
@@ -303,6 +324,41 @@ class App {
         // Auto-save every 30 seconds during gameplay (if enabled in settings)
         const s = this.dataManager?.getSettings?.() || {};
         if (s.autoSave !== false) this.startAutoSave();
+
+        // First-run tutorial overlay (when showTutorial enabled)
+        if (s.showTutorial !== false) this.maybeShowTutorialOverlay();
+    }
+
+    /** Show tutorial overlay on first run when showTutorial is enabled */
+    maybeShowTutorialOverlay() {
+        const key = (this.dataManager?.prefix || 'diceOfDionysus_') + 'tutorialShown';
+        if (localStorage.getItem(key) === '1') return;
+        const overlay = document.createElement('div');
+        overlay.className = 'overlay settings-overlay-created';
+        overlay.style.cssText = 'z-index: 10003;';
+        overlay.innerHTML = `
+            <div class="modal-content settings-modal" style="max-width: 480px;">
+                <h2 class="shop-title">Quick Start</h2>
+                <div class="settings-content" style="text-align: left; line-height: 1.6;">
+                    <p><strong>Roll:</strong> Press R or click "Cast the Bones"</p>
+                    <p><strong>Hold:</strong> Click dice or press 1–5</p>
+                    <p><strong>Score:</strong> Click a category on the pantheon (right). Hover to preview.</p>
+                    <p><strong>Formula:</strong> Pips × Favour = final score</p>
+                </div>
+                <button class="divine-button" id="tutorialCloseBtn">Got it</button>
+            </div>
+        `;
+        overlay.addEventListener('click', (e) => {
+            if (e.target === overlay) {
+                overlay.remove();
+                localStorage.setItem(key, '1');
+            }
+        });
+        overlay.querySelector('#tutorialCloseBtn')?.addEventListener('click', () => {
+            overlay.remove();
+            localStorage.setItem(key, '1');
+        });
+        document.body.appendChild(overlay);
     }
 
     /** Initialize effect systems only when needed (on game start). Not called for start screen or collection. */
@@ -316,7 +372,7 @@ class App {
     }
 
     loadGameUI() {
-        const gameContainer = this.screens.game;
+        const gameContainer = document.getElementById('gameContainerWrapper');
         const template = document.getElementById('gameUITemplate');
         
         if (!template || !template.content) {
@@ -326,9 +382,11 @@ class App {
         
         Logger.debug('Loading game UI from template');
         
-        // Clear and load the game UI template
-        gameContainer.innerHTML = '';
-        gameContainer.appendChild(template.content.cloneNode(true));
+        // Clear and load the game UI template into the inner game container
+        if (gameContainer) {
+            gameContainer.innerHTML = '';
+            gameContainer.appendChild(template.content.cloneNode(true));
+        }
         
         // Note: Shop overlay verification happens in UIManager.bindDOMElements()
         // UIManager will restore if missing - no need to verify here
@@ -500,7 +558,7 @@ class App {
     }
 
     handleError(e) {
-        console.error('Game Error:', e.error);
+        Logger.error('Game Error', e.error);
         this.showMessage('An error occurred. Check the console for details.', 5000);
         
         // Log error for debugging
@@ -512,7 +570,7 @@ class App {
                 screen: this.currentScreen,
                 userAgent: navigator.userAgent
             };
-            console.log('Error log:', errorLog);
+            Logger.debug('Error log', errorLog);
         }
     }
 
@@ -521,11 +579,11 @@ class App {
         const reasonText = typeof reason === 'string' ? reason : (reason?.message || '');
         // Ignore wallet/extension connection errors (e.g., MetaMask not installed)
         if (/metamask|wallet|ethereum/i.test(reasonText)) {
-            console.warn('Ignored wallet extension error:', reasonText);
+            Logger.warn('Ignored wallet extension error', { reason: reasonText });
             if (typeof e.preventDefault === 'function') e.preventDefault();
             return;
         }
-        console.error('Unhandled Promise Rejection:', reason);
+        Logger.error('Unhandled Promise Rejection', reason);
         this.showMessage('A promise was rejected. Check the console for details.', 5000);
     }
 
@@ -697,5 +755,5 @@ const app = new App();
 
 // Development mode detection
 if (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1') {
-    console.log('Development mode detected');
+    Logger.debug('Development mode detected');
 }

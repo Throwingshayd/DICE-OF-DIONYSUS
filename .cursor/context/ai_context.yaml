@@ -37,6 +37,8 @@ aiLearningFiles:
 # - Performance change → Update performance_notes.md
 # PRIMARY: Use .cursor/rules/ (0-8) as the way forward. Cursor rules override scattered docs.
 
+referencePath: "reference/balatro/"  # Balatro Lua source for porting
+
 architecture:
   pattern: "Class-based OOP with separation of concerns"
   stateManagement: "Single source of truth in GameEngine.state"
@@ -233,8 +235,7 @@ debugging:
 technicalDebt:
   knownIssues:
     - "UIManager.js too large (1900 lines) - split deferred"
-    - "Some console.log remain - migrating to Logger"
-    - "Limited automated tests - manual browser testing"
+    - "Limited automated tests - 1 unit + 1 E2E; manual browser primary"
   futureConsiderations:
     - "Event system (pub/sub)"
     - "TypeScript migration (not now)"

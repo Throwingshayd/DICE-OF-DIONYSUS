@@ -29,7 +29,7 @@ class LibationCard extends Card {
                 consumed = this.applyLibationEffect(gameState, gameEngine);
                 break;
             default:
-                console.warn(`Unknown rule type: ${this.ruleType} - this libation may not function correctly`);
+                Logger.warn('Unknown rule type - libation may not function correctly', { ruleType: this.ruleType });
                 return false;
         }
 
@@ -273,7 +273,7 @@ class LibationCard extends Card {
             'iron': 'x1.5 Favour if not selected',
             'gold': '+3 Gold when scored',
             'mother_of_pearl': 'Adds left or right die value (50/50)',
-            'mirror': 'Counts as all numbers',
+            'mirror': 'Scores twice (like Balatro Red Seal), including enhancements',
             'wild': 'Randomly becomes -1, 0, or +1 of rolled value',
             'permanent_reduce': 'Permanently decrease face value',
             'permanent_increase': 'Permanently increase face value'
@@ -420,13 +420,13 @@ class LibationCard extends Card {
         if (!die) {
             const engine = gameEngine || window.game;
             engine?.showMessage?.('Invalid die selected!');
-            console.error(`Invalid die index: ${dieIndex}`);
+            Logger.error('Invalid die index', { dieIndex });
             return;
         }
 
         // Validate die has required methods
         if (typeof die.isValidFace !== 'function') {
-            console.error('Die object missing validation methods');
+            Logger.error('Die object missing validation methods');
             const engine = gameEngine || window.game;
             engine?.showMessage?.('Die validation error!');
             return;
@@ -441,7 +441,7 @@ class LibationCard extends Card {
             const engine = gameEngine || window.game;
             const errorMsg = `Invalid face value: ${targetFaceValue}. Must be 1-9.`;
             engine?.showMessage?.(errorMsg);
-            console.warn(errorMsg);
+            Logger.warn('Invalid face value', { targetFaceValue });
             return;
         }
 
@@ -479,7 +479,7 @@ class LibationCard extends Card {
             case 'mirror':
                 if (die.addFaceEnhancement(targetFace, 'mirror')) {
             
-                    message = `Die ${dieNumber} face ${targetFace} enhanced with Mirror (Copies the value of adjacent dice).`;
+                    message = `Die ${dieNumber} face ${targetFace} enhanced with Mirror (scores twice, including enhancements).`;
                 } else {
                     message = 'Failed to apply mirror enhancement!';
                 }

@@ -63,6 +63,13 @@ An elegant dice strategy game of pips, favour, and devotion. Cast the bones, cou
 - `npm run build` — Builds to `dist/` for production.
 - `npm run preview` — Serves the production build locally.
 
+### Platform support
+- **Responsive:** Game scales to fit any window size (design size 1920×1080, scales down/up to viewport).
+- **Desktop & mobile:** Works in different window sizes; PWA install available when served over HTTPS.
+
+### Settings
+See [docs/SETTINGS.md](docs/SETTINGS.md) for all options (sound, animations, speed, etc.).
+
 ### Debugging
 - The in-game console is the primary debugging surface.
 - Development helpers can be enabled in `game/js/Main.js` (debug mode).
@@ -97,10 +104,11 @@ If you wish to license, adapt, or distribute this work, please contact the autho
 
 ### Project structure
 - `game/` — Game application (Vite root: index.html, js/, css/, public/ART/)
-- `e2e/` — Playwright E2E tests
-- `tests/` — Vitest unit tests
-- `docs/`, `design/`, `archive/`, `tracking/` — Documentation and meta
-- `Balatro CODE/` — Balatro Lua reference for porting
+- `tools/` — Dev scripts (extract-boons, image-gen, import-boon, clean)
+- `tests/unit/` — Vitest unit tests
+- `tests/e2e/` — Playwright E2E tests
+- `docs/` (design/, archive/), `tracking/` — Documentation and meta
+- `reference/balatro/` — Balatro Lua reference for porting
 
 ### Contact
 For licensing, collaboration, or questions, please reach out via DiceofDionysus@gmail.com 

@@ -14,6 +14,13 @@ class GameEngine {
         return Math.max(1, Math.round(ms / speed));
     }
 
+    /** Parmenides Die: get target category for pantheon swap (upper↔lower by position) */
+    getParmenidesTargetCategory(category) {
+        if (!this.state.jokers?.some(j => j.id === 'parmenides_die')) return null;
+        const map = typeof BOON_EFFECTS !== 'undefined' && BOON_EFFECTS.PARMENIDES_DIE?.SWAP_MAP;
+        return map ? map[category] || null : null;
+    }
+
     initializeGameState(seed) {
         // Check for test mode in URL
         const urlParams = new URLSearchParams(window.location.search);
@@ -113,6 +120,7 @@ class GameEngine {
             // Bonus Yahtzee system
             bonusYahtzees: 0,
             rolledBonusYahtzees: 0,
+            yahtzeesRolledThisRun: 0,
             upperBonusAwarded: false,
             lowerBonusAwarded: false,
             unlockedCategories: {
@@ -133,6 +141,10 @@ class GameEngine {
         }
         if (testMode === 'seven_sided') {
             this.applySevenSidedTestMode();
+        }
+        // Seed 42067: roll Yahtzee 1–9 in sequence to test dice mechanics
+        if (seed === '42067') {
+            this.applyYahtzeeTestMode();
         }
         if (testMode === 'winning') {
             this.applyWinningHandsTestMode();
@@ -265,6 +277,20 @@ class GameEngine {
     }
 
     /**
+     * Test mode: Roll Yahtzee (all 5 same) for faces 1–9 to verify dice mechanics.
+     * Use seed 42067 + ?test=yahtzee in URL.
+     */
+    applyYahtzeeTestMode() {
+        if (typeof Logger !== 'undefined') Logger.info('🧪 TEST MODE: Yahtzee 1–9 — dice forced to [1,1,1,1,1] through [9,9,9,9,9]; 7/8/9 locked like normal');
+        this.state.forcedDiceValues = this.state.forcedDiceValues || {};
+        this.state.forcedDiceValues.winningSequence = [
+            [1, 1, 1, 1, 1], [2, 2, 2, 2, 2], [3, 3, 3, 3, 3], [4, 4, 4, 4, 4],
+            [5, 5, 5, 5, 5], [6, 6, 6, 6, 6], [7, 7, 7, 7, 7], [8, 8, 8, 8, 8], [9, 9, 9, 9, 9]
+        ];
+        this.state.winningTestMode = true;
+    }
+
+    /**
      * Test mode: Force dice to produce valid hands for each category in order.
      * Enables playtesting with guaranteed ante passes. ?test=winning
      */
@@ -301,6 +327,7 @@ class GameEngine {
             diceRollZone: document.getElementById('diceRollZone'),
             rollButton: document.getElementById('rollButton'),
             liveScoreDisplay: document.getElementById('liveScoreDisplay'),
+            gnosisScorePanel: document.getElementById('gnosisScorePanel'),
             gnosisCashoutContent: document.getElementById('gnosisCashoutContent'),
             gnosisCashoutTitle: document.getElementById('gnosisCashoutTitle'),
             gnosisCashoutLines: document.getElementById('gnosisCashoutLines'),
@@ -880,44 +907,20 @@ class GameEngine {
         }
     }
 
-    // Preview-unlock bonus categories when rolling a bonus Heureka, so the rows
-    // appear as soon as the second Yahtzee is rolled. Does not change bonus count.
+    // Bonus Yahtzee unlocks 7s/8s/9s on roll — 2nd/3rd/4th Yahtzee rolled unlocks 7s/8s/9s.
+    // No need to score in Yahtzee slot; just rolling five of a kind counts.
     previewUnlockBonusCategoriesOnRoll() {
-        // Only relevant if Yahtzee category has already been scored once
-        const yahtzeeAlreadyScored = this.state.scorecard && this.state.scorecard['Yahtzee'] !== undefined;
-        if (!yahtzeeAlreadyScored) return;
-
-        // Determine if current dice show a Yahtzee
-        const faces = this.state.dice.map(d => d.getEffectiveFace());
-        const counts = faces.reduce((acc, val) => {
-            acc[val] = (acc[val] || 0) + 1;
-            return acc;
-        }, {});
+        const faces = this.state.dice.map(d => (typeof d.getEffectiveFace === 'function' ? d.getEffectiveFace() : d.face) ?? 1);
+        const counts = faces.reduce((acc, val) => { acc[val] = (acc[val] || 0) + 1; return acc; }, {});
         const rolledYahtzee = Object.values(counts).some(c => c >= 5);
         if (!rolledYahtzee) return;
 
-        // Count this as a newly rolled bonus Yahtzee for preview purposes
-        this.state.rolledBonusYahtzees = Math.min(3, (this.state.rolledBonusYahtzees || 0) + 1);
-
-        // Determine how many categories should be visible:
-        // 1st preview unlocks Sevens, 2nd unlocks Eights, 3rd unlocks Nines
-        const unlockOrder = ['Sevens', 'Eights', 'Nines'];
-        const shouldUnlockCount = Math.min(
-            unlockOrder.length,
-            (this.state.bonusYahtzees || 0) + (this.state.rolledBonusYahtzees || 0)
-        );
-
-        let changed = false;
-        for (let i = 0; i < shouldUnlockCount; i++) {
-            const cat = unlockOrder[i];
-            if (!this.state.unlockedCategories[cat]) {
-                this.state.unlockedCategories[cat] = true;
-                changed = true;
-            }
-        }
-        if (changed) {
-            this.updateMaxTurns();
-            if (this.domReady) this.updateAllUI();
+        this.state.yahtzeesRolledThisRun = (this.state.yahtzeesRolledThisRun || 0) + 1;
+        this.state.bonusYahtzees = Math.min(3, this.state.yahtzeesRolledThisRun - 1);
+        this.state.rolledBonusYahtzees = 0;
+        if (this.state.bonusYahtzees > 0) {
+            this.unlockBonusCategories();
+            this.showMessage(`Bonus Heureka! (${this.state.bonusYahtzees} total)`, 3000);
         }
     }
 
@@ -948,6 +951,10 @@ class GameEngine {
     confirmScore() {
         const category = this.state.pendingCategory;
         if (!category) return;
+
+        // Parmenides Die: scores swap to corresponding upper↔lower slot
+        const targetCategory = this.getParmenidesTargetCategory(category) || category;
+        const isSwap = targetCategory !== category;
         
         // Track streaks
         const isUpper = ["Ones", "Twos", "Threes", "Fours", "Fives", "Sixes"].includes(category);
@@ -981,26 +988,23 @@ class GameEngine {
             }
             finalScore = Math.floor(pips * favour);
             
-            // Check for bonus Yahtzee and unlock categories
-            if (category === 'Yahtzee' && this.state.scorecard['Yahtzee'] !== undefined) {
-                this.state.bonusYahtzees++;
-                // Consuming any previewed rolls
-                this.state.rolledBonusYahtzees = 0;
-                this.unlockBonusCategories();
-                this.showMessage(`Bonus Heureka! (${this.state.bonusYahtzees} total)`, 3000);
-            }
-            
             // BALATRO-STYLE ANIMATED SCORING
             // Show pips × favour breakdown, count up, particles, enhanced shake
-            this.animateScoreUpdate(category, pips, favour, finalScore, () => {
+            this.animateScoreUpdate(category, pips, favour, finalScore, targetCategory, () => {
                 // Callback after animation completes
-                this.finalizeScoring(category, pips, favour, finalScore);
+                this.finalizeScoring(category, pips, favour, finalScore, targetCategory);
             });
             
         } else {
-            this.state.scorecard[category] = 0;
+            // Scratch: with Parmenides, result goes to target slot; mark source as used
+            if (isSwap) {
+                this.state.scorecard[targetCategory] = 0;
+                this.state.scorecard[category] = 0;
+            } else {
+                this.state.scorecard[category] = 0;
+            }
             // Still finalize for zero score
-            this.finalizeScoring(category, pips, favour, 0);
+            this.finalizeScoring(category, pips, favour, 0, targetCategory);
         }
     }
     
@@ -1008,7 +1012,7 @@ class GameEngine {
      * Finalize scoring after animation completes
      * Runs bonuses, effects, and advances turn
      */
-    finalizeScoring(category, pips, favour, finalScore) {
+    finalizeScoring(category, pips, favour, finalScore, targetCategory) {
         // Check and award Upper Sanctum bonus (Yahtzee rule):
         // If sum of Ones..Sixes >= 63 and not yet awarded, grant +35 points
         this.checkAndAwardUpperBonus();
@@ -1051,8 +1055,9 @@ class GameEngine {
      * @param {number} finalScore - Final calculated score
      * @param {Function} callback - Called when animation completes
      */
-    animateScoreUpdate(category, pips, favour, finalScore, callback) {
-        const row = document.querySelector(`[data-category="${category}"]`);
+    animateScoreUpdate(category, pips, favour, finalScore, targetCategory, callback) {
+        const displayCategory = targetCategory || category;
+        const row = document.querySelector(`[data-category="${displayCategory}"]`);
         const scoreDisplay = row?.querySelector('.potential-score');
         
         // SUSPENSEFUL CALCULATION IN GNOSIS!
@@ -1060,7 +1065,12 @@ class GameEngine {
         if (!this.domReady || !this.dom.liveScoreDisplay) {
             // Fallback if no Gnosis display
             if (scoreDisplay) scoreDisplay.innerHTML = finalScore;
-            this.state.scorecard[category] = finalScore;
+            if (targetCategory && targetCategory !== category) {
+                this.state.scorecard[targetCategory] = finalScore;
+                this.state.scorecard[category] = 0;
+            } else {
+                this.state.scorecard[category] = finalScore;
+            }
             this.state.totalScore += finalScore;
             callback();
             return;
@@ -1074,7 +1084,7 @@ class GameEngine {
         // 3. Show final multiplication
         // 4. Count up to final score
         
-        this.animateSequentialScoring(category, pips, favour, finalScore, el, scoreDisplay, callback);
+        this.animateSequentialScoring(category, pips, favour, finalScore, targetCategory, el, scoreDisplay, callback);
     }
     
     /**
@@ -1088,7 +1098,7 @@ class GameEngine {
      * @param {HTMLElement} scorecardEl - Scorecard cell element
      * @param {Function} callback - Called when complete
      */
-    animateSequentialScoring(category, pips, favour, finalScore, liveScoreEl, scorecardEl, callback) {
+    animateSequentialScoring(category, pips, favour, finalScore, targetCategory, liveScoreEl, scorecardEl, callback) {
         this.isScoring = true;
         const god = this.getGodForCategory(category);
         const offeringName = category === 'Yahtzee' ? 'Heureka' : category;
@@ -1209,8 +1219,14 @@ class GameEngine {
 
             // Step 4: Count up
             this.animateNumberCount(finalSpan, 0, finalScore, this.scaleDelay(900), () => {
-                // Step 5: Update game state
-                this.state.scorecard[category] = finalScore;
+                // Step 5: Update game state (Parmenides: store in target, mark source used)
+                const storeCategory = targetCategory || category;
+                if (storeCategory !== category) {
+                    this.state.scorecard[storeCategory] = finalScore;
+                    this.state.scorecard[category] = 0;
+                } else {
+                    this.state.scorecard[category] = finalScore;
+                }
                 this.state.totalScore += finalScore;
                 this.lastScoredBreakdown = { category, pips, favour, finalScore };
 
@@ -2027,24 +2043,24 @@ class GameEngine {
         
         // Validate category exists
         if (!category || typeof category !== 'string') {
-            console.error('Invalid category provided to calculateScore:', category);
+            Logger.error('Invalid category provided to calculateScore', { category });
             return { pips: 0, favour: 0, isValid: false };
         }
         
         // Validate game state exists
         if (!this.state) {
-            console.error('Game state is undefined');
+            Logger.error('Game state is undefined');
             return { pips: 0, favour: 0, isValid: false };
         }
         
         // Validate dice array
         if (!Array.isArray(this.state.dice)) {
-            console.error('Dice array is not an array:', this.state.dice);
+            Logger.error('Dice array is not an array', { dice: this.state.dice });
             return { pips: 0, favour: 0, isValid: false };
         }
         
         if (this.state.dice.length !== GAME_BALANCE.STARTING_DICE_COUNT) {
-            console.error(`Invalid dice count: ${this.state.dice.length}. Expected ${GAME_BALANCE.STARTING_DICE_COUNT}.`);
+            Logger.error('Invalid dice count', { actual: this.state.dice.length, expected: GAME_BALANCE.STARTING_DICE_COUNT });
             return { pips: 0, favour: 0, isValid: false };
         }
         
@@ -2052,7 +2068,7 @@ class GameEngine {
         for (let i = 0; i < this.state.dice.length; i++) {
             const die = this.state.dice[i];
             if (!die || typeof die.getEffectiveFace !== 'function') {
-                console.error(`Invalid die at index ${i}:`, die);
+                Logger.error('Invalid die at index', { index: i, die });
                 return { pips: 0, favour: 0, isValid: false };
             }
         }
@@ -2181,6 +2197,7 @@ class GameEngine {
         // When using runPipeline, iron/mop/wild are already included; only run parchment favour + side-effect messages
         const usePipeline = typeof ScoringEngine !== 'undefined' && typeof ScoringEngine.runPipeline === 'function';
         if (isValid) {
+            const upperSection = ['Ones', 'Twos', 'Threes', 'Fours', 'Fives', 'Sixes', 'Sevens', 'Eights', 'Nines'];
             this.state.dice.forEach((die, index) => {
                 if (!usePipeline) {
                     if (die.hasEnhancementForCurrentFace && die.hasEnhancementForCurrentFace('iron')) {
@@ -2189,6 +2206,17 @@ class GameEngine {
                     }
                     if (die.hasEnhancementForCurrentFace && die.hasEnhancementForCurrentFace('mother_of_pearl') && die.motherOfPearlBonus !== undefined) {
                         pips += die.motherOfPearlBonus;
+                    }
+                    // Mirror (Balatro Red Seal): die scores twice, including enhancements
+                    if (die.hasEnhancementForCurrentFace && die.hasEnhancementForCurrentFace('mirror')) {
+                        const faceVal = faces[index] || 0;
+                        const contributes = !upperSection.includes(category) ||
+                            (typeof CATEGORY_TO_NUMBER !== 'undefined' && faceVal === CATEGORY_TO_NUMBER[category]);
+                        if (contributes) {
+                            pips += faceVal;
+                            if (die.hasEnhancementForCurrentFace('iron')) pips += ENHANCEMENT_BONUSES.IRON_PIPS;
+                            if (die.hasEnhancementForCurrentFace('mother_of_pearl') && die.motherOfPearlBonus !== undefined) pips += die.motherOfPearlBonus;
+                        }
                     }
                     // Wild: getEffectiveFace() already includes wildValue in base pips - no extra pips
                 }
@@ -2384,7 +2412,8 @@ class GameEngine {
     // Show pantheon total + interest/cashout overlay, then open shop (end of ante)
     runEndOfAnteTallyThenOpenShop({ sumUpper, sumLower, upperBonus, lowerBonus }) {
         const totalPantheon = (sumUpper + sumLower) + (upperBonus + lowerBonus);
-        this.finishAnteAndOpenShop({ pantheonTotal: totalPantheon });
+        const thresholdBeat = this.state.scoreThreshold;
+        this.finishAnteAndOpenShop({ pantheonTotal: totalPantheon, pantheonThreshold: thresholdBeat });
     }
 
     // Reset state for next ante and open shop (or mid-ante cashout)
@@ -2399,14 +2428,8 @@ class GameEngine {
             }
         });
         
-        // Now reset scorecard and totalScore for next ante
-        this.state.scorecard = {};
-        this.state.totalScore = 0;
-        
-        // Reset The Heretic stacks at end of ante
-        if (this.state.hereticStacks) {
-            this.state.hereticStacks = 0;
-        }
+        // Defer scorecard reset until shop opens — keep pantheon scores visible during cashout
+        // (The Heretic stacks reset via ante_end joker timing above)
         
         // Reset The Zealot's last worship god at end of ante
         this.state.lastWorshipGod = null;
@@ -2750,17 +2773,16 @@ class GameEngine {
      * @returns {number} Interest gold earned
      */
     calculateInterest() {
-        const gold = this.state.gold;
-        
-        // Check for Golden Touch boon (better interest rate: 1 per 3 instead of 1 per 5)
+        return this.calculateInterestOnAmount(this.state.gold);
+    }
+
+    calculateInterestOnAmount(goldAmount) {
         const hasGoldenTouch = this.state.jokers?.some(j => j.id === 'golden_touch');
         const interestRate = hasGoldenTouch ? 3 : GAME_BALANCE.INTEREST_RATE;
-        
-        const interest = Math.min(
-            Math.floor(gold / interestRate),
+        return Math.min(
+            Math.floor(goldAmount / interestRate),
             GAME_BALANCE.MAX_INTEREST
         );
-        return interest;
     }
 
     // Unified pre-shop overlay: pantheon total (if end of ante) + interest/cashout, then open shop
@@ -2773,52 +2795,42 @@ class GameEngine {
         const pantheonTotal = opts.pantheonTotal;
         const scoresCount = this.state.scoresThisRound || 0;
         const scoresGold = scoresCount * GAME_BALANCE.GOLD_PER_SCORE;
-
-        // 1. Award scores gold first (interest calculated on gold after scores)
-        if (scoresGold > 0) {
-            this.updateGoldAnimated(scoresGold, "scores");
-            this.state.scoresThisRound = 0;
-        }
-
-        const goldAfterScores = this.state.gold;
-        const interest = this.calculateInterest();
-        const totalGold = goldAfterScores + interest;
-        const hasGoldenTouch = this.state.jokers?.some(j => j.id === 'golden_touch');
-        const rate = hasGoldenTouch ? 3 : GAME_BALANCE.INTEREST_RATE;
+        // Interest on (gold + scores) — we'll award all at once at end
+        const goldAfterScores = this.state.gold + scoresGold;
+        const interest = this.calculateInterestOnAmount(goldAfterScores);
+        const roundGained = scoresGold + interest;
 
         const doOpenShop = () => {
-            if (interest > 0) this.updateGoldAnimated(interest, "interest");
+            // Award all gold at once when cashout finishes (no staggered steps)
+            if (roundGained > 0) {
+                this.updateGoldAnimated(roundGained, "cashout");
+            }
+            this.state.scoresThisRound = 0;
+            if (opts.pantheonTotal != null) {
+                this.state.scorecard = {};
+                this.state.totalScore = 0;
+            }
             this._cashoutInProgress = false;
             this.state.transitioningToShop = false;
             this.openShop();
         };
 
-        const liveEl = this.dom.liveScoreDisplay;
+        const scorePanel = this.dom.gnosisScorePanel;
         const cashoutContent = this.dom.gnosisCashoutContent;
         const cashoutTitle = this.dom.gnosisCashoutTitle;
         const cashoutLinesEl = this.dom.gnosisCashoutLines;
-        if (!this.domReady || !liveEl || !cashoutContent || !cashoutTitle || !cashoutLinesEl) {
-            if (interest > 0) this.updateGoldAnimated(interest, "interest");
+        if (!this.domReady || !scorePanel || !cashoutContent || !cashoutTitle || !cashoutLinesEl) {
             doOpenShop();
             return;
         }
 
-        // Gold gained this round (scores + interest) - not total player gold
-        const roundGained = scoresGold + interest;
-
-        // Build stepped content: pantheon (if any), then hands scored, interest, round gained
+        // Build simplified steps: pantheon (if any), then gold total
         const steps = [];
         if (pantheonTotal != null) {
             steps.push({ type: 'pantheon', value: pantheonTotal });
         }
-        if (scoresGold > 0) {
-            steps.push({ type: 'scores', value: `${scoresCount} hands scored: +${scoresGold}g` });
-        }
-        if (interest > 0) {
-            steps.push({ type: 'interest', value: `Interest (1 per ${rate}g): +${interest}g` });
-        }
         if (roundGained > 0) {
-            steps.push({ type: 'roundGained', value: roundGained });
+            steps.push({ type: 'gold', value: roundGained });
         }
 
         if (steps.length === 0) {
@@ -2832,36 +2844,32 @@ class GameEngine {
         const renderStep = (stepIndex) => {
             const s = steps[stepIndex];
             const isPantheon = s.type === 'pantheon';
-            const isRoundGained = s.type === 'roundGained';
+            const isGold = s.type === 'gold';
             cashoutTitle.textContent = isPantheon ? 'Pantheon Total' : 'Cashout';
             cashoutTitle.style.display = '';
 
-            if (isRoundGained) {
-                // Gold gained: count-up like scoring accumulation
-                cashoutLinesEl.innerHTML = '<div class="gnosis-cashout-line">Gold gained: +<span class="gnosis-cashout-count">0</span>G</div>';
-                const countSpan = cashoutLinesEl.querySelector('.gnosis-cashout-count');
-                this.animateNumberCount(countSpan, 0, s.value, this.scaleDelay(600), () => {});
-            } else {
-                const lineHtml = isPantheon
-                    ? `<div class="gnosis-cashout-line gnosis-pantheon-value">${s.value}</div>`
-                    : `<div class="gnosis-cashout-line">${s.value}</div>`;
-                cashoutLinesEl.innerHTML = lineHtml;
+            if (isPantheon) {
+                const scoreExceedsRequired = opts.pantheonThreshold != null && s.value >= opts.pantheonThreshold;
+                const successClass = scoreExceedsRequired ? ' pantheon-success-flash' : '';
+                cashoutLinesEl.innerHTML = `<div class="gnosis-cashout-line gnosis-pantheon-value${successClass}">${s.value}</div>`;
+            } else if (isGold) {
+                cashoutLinesEl.innerHTML = `<div class="gnosis-cashout-line">Gold: +${s.value}g</div>`;
             }
 
             cashoutContent.classList.remove('hidden');
-            liveEl.classList.add('cashout-mode');
+            scorePanel.classList.add('cashout-mode');
         };
 
         const advance = () => {
             if (i >= steps.length) {
                 if (window.soundManager) window.soundManager.play('cardSlide1', { pitch: 0.95, volume: 0.5 });
                 setTimeout(() => {
-                    liveEl.classList.remove('cashout-mode');
+                    scorePanel.classList.remove('cashout-mode');
                     cashoutContent.classList.add('hidden');
                     cashoutTitle.textContent = '';
                     cashoutLinesEl.innerHTML = '';
                     this.updateLiveScoreDisplay(null);
-                    Logger.info(`Cashout: scores ${scoresGold}g, interest ${interest}g`);
+                    Logger.info(`Cashout: +${roundGained}g (scores ${scoresGold}g + interest ${interest}g)`);
                     doOpenShop();
                 }, this.scaleDelay(800));
                 return;
@@ -3053,6 +3061,9 @@ class GameEngine {
         state.unlockedCategories = state.unlockedCategories && typeof state.unlockedCategories === 'object'
             ? { 'Sevens': false, 'Eights': false, 'Nines': false, "Pandora's Box": false, ...state.unlockedCategories }
             : { 'Sevens': false, 'Eights': false, 'Nines': false, "Pandora's Box": false };
+
+        // Bonus Yahtzee: derive yahtzeesRolledThisRun from bonusYahtzees for old saves
+        state.yahtzeesRolledThisRun = state.yahtzeesRolledThisRun ?? (state.bonusYahtzees || 0) + 1;
 
         // held, packs — ensure arrays
         state.held = Array.isArray(state.held) ? state.held : Array(5).fill(false);

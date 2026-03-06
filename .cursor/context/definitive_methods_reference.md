@@ -495,7 +495,7 @@ When adding new features:
 
 - **BOON_IMPLEMENTATION_PATTERNS.md** - How to implement boons
 - **ALL_BOONS_IMPLEMENTED.md** - Complete boon implementation list
-- **FAVOUR_SYSTEM_EXPLAINED.md** (archive/) - Scoring formula details
+- **FAVOUR_SYSTEM_EXPLAINED.md** (docs/archive/) - Scoring formula details
 - **ARCHITECTURE.md** (.cursor/context/) - Overall system architecture
 
 ---

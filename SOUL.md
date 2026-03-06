@@ -24,7 +24,7 @@ Balatro-style Yahtzee + Greek mythology. Vanilla JS, class-based. Single source 
 | **5-architecture** | The Surveyor. File hierarchy, dependency order (data → logic → UI), pre-flight. |
 | **6-translator** | The Translator. Lua→JS mapping, owned exclusion, expulsion, save-state. |
 | **7-call-upon-able** | The Reuser. Card.render(), appendInventoryCard(). No duplicate card UI logic. |
-| **8-translator-playtest** | The Playtester. Playtest→translator bridge. `npm run playtest:ante1` → report. |
+| **8-translator-playtest** | The Playtester. Playtest→translator bridge. `npm run playtest:boons` → report. |
 
 ---
 
@@ -33,7 +33,7 @@ Balatro-style Yahtzee + Greek mythology. Vanilla JS, class-based. Single source 
 1. **SOUL.md** ← you are here
 2. **0-global.mdc** — Primary reference
 3. **ai_context.yaml** — Module map, hot paths
-4. **Task-specific rule** — e.g. Balatro porting → 6-translator + `Balatro CODE/`
+4. **Task-specific rule** — e.g. Balatro porting → 6-translator + `reference/balatro/`
 
 ---
 
@@ -68,7 +68,7 @@ Adding boon/libation/worship?  → game/js/data/gameData.js + class (Joker/Libat
 Changing economy?             → game/js/config/GameConstants.js
 Changing scoring?             → game/js/engine/ScoringEngine.js, HandEvaluator.js, game/js/config/ScoringConstants.js
 Fixing bug?                   → tracking/BUGS_FIXED_LOG.md, seed for repro
-Porting Balatro?              → 6-translator.mdc, Balatro CODE/
+Porting Balatro?              → 6-translator.mdc, reference/balatro/
 Card UI (sell/buy tags)?      → 7-call-upon-able.mdc
 Optimizing?                   → Profile first. Preserve determinism.
 ```

@@ -335,7 +335,7 @@ const CardData = {
             sellValue: 1, 
             effect: "Each turn gain +2 pips (stacks, resets at end of ante or when worship card is used).",
             description: "Growing stronger without divine intervention.",
-            timing: { before_score: true, turn_start: true }
+            timing: { before_score: true, turn_start: true, ante_end: true }
         },
         { 
             id: "reckless_abandon", 
@@ -424,8 +424,8 @@ const CardData = {
             rarity: "epic", 
             cost: 8, 
             sellValue: 2, 
-            effect: "One random die face becomes randomly enhanced for that turn.",
-            description: "The philosopher of change - fate shifts with each turn.",
+            effect: "Scores swap between upper and lower pantheon (Ones↔Three of a Kind, Twos↔Small Straight, etc.).",
+            description: "The philosopher of paradox - what you score in one sanctum appears in the other.",
             god: "Parmenides",
             timing: { turn_start: true }
         },
@@ -666,33 +666,6 @@ const CardData = {
             cost: 1,
             effect: "Gain +5 pips for this turn only.",
             description: "Sacred oil that enhances your dice rolls."
-        }
-    ],
-
-    artifacts: [
-        {
-            id: "cornucopia",
-            name: "Cornucopia",
-            rarity: "epic",
-            cost: 8,
-            effect: "Increases interest cap by 1.",
-            description: "The horn of plenty. Increases your maximum interest earnings."
-        },
-        {
-            id: "caduceus",
-            name: "Caduceus",
-            rarity: "vibrant",
-            cost: 5,
-            effect: "Gain +1 Favour when you score a Yahtzee.",
-            description: "The staff of Hermes. Rewards perfect dice combinations."
-        },
-        {
-            id: "aegis",
-            name: "Aegis",
-            rarity: "epic",
-            cost: 7,
-            effect: "Protects against negative effects from jokers.",
-            description: "The shield of Zeus. Protects you from harmful joker effects."
         }
     ],
 

@@ -25,8 +25,8 @@ This document contains ALL boons as YOU designed them, with exact mechanics.
 
 ### **4. Parmenides Die**
 - **Cost:** 8g
-- **Effect:** One random die each turn counts as both its value AND its opposite value (1↔6, 2↔5, 3↔4)
-- **Mechanic:** Quantum superposition, opens impossible scoring combinations
+- **Effect:** Scores swap between upper and lower pantheon (Ones↔Three of a Kind, Twos↔Small Straight, etc.)
+- **Mechanic:** Pantheon swap by position; scoring in a category places the result in the corresponding slot
 - **Status:** ✅ IMPLEMENTED
 
 ### **5. Ascetic's Vow**

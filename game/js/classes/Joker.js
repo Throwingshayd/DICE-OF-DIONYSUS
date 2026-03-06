@@ -692,7 +692,8 @@ class Joker extends Card {
                     this.dynamicStats.other = `🚫 No Worship`;
                     window.game?.showMessage?.(`The Heretic: +${hereticPips} Pips (stacking)!`);
                 } else {
-                    this.dynamicStats.other = 'Building...';
+                    this.dynamicStats.pips = 0;
+                    this.dynamicStats.other = 'Reset';
                 }
                 break;
             
@@ -1237,28 +1238,7 @@ class Joker extends Card {
                 break;
             
             case 'parmenides_die':
-                // Clear previous parmenides marks
-                gameState.dice.forEach(d => {
-                    d.parmenideEnhanced = false;
-                });
-                
-                // Pick one random die and randomly enhance one of its faces for this turn
-                const parmenidesDie = gameState.dice[this._randomInt(gameState.dice.length)];
-                const parmenidesMaxFace = 6 + Math.min(gameState.bonusYahtzees || 0, 3);
-                const parmenidesFaceKey = this._randomIntInclusive(1, parmenidesMaxFace);
-                
-                // Mark which die and face is enhanced
-                parmenidesDie.parmenideEnhanced = true;
-                parmenidesDie.parmenideEnhancedFace = parmenidesFaceKey;
-                
-                // Add a random enhancement type (parchment, iron, gold, mother_of_pearl, wild)
-                const enhancementTypes = ['parchment', 'iron', 'gold', 'mother_of_pearl', 'wild'];
-                const randomEnhancement = enhancementTypes[this._randomInt(enhancementTypes.length)];
-                
-                parmenidesDie.addFaceEnhancement(parmenidesFaceKey, randomEnhancement);
-                
-                window.game?.showMessage?.(`Parmenides Die: Face ${parmenidesFaceKey} enhanced with ${randomEnhancement} for this turn!`, 4000);
-                Logger.info(`Parmenides activated: Enhanced face ${parmenidesFaceKey} with ${randomEnhancement}`);
+                // Pantheon swap mechanic: scores go to corresponding upper↔lower slot (handled in GameEngine scoring)
                 break;
             
             case 'proteus_disguise':
@@ -1340,6 +1320,13 @@ class Joker extends Card {
     applyAnteEndEffect(gameState, result) {
         // Effects that trigger at the end of an Ante
         switch (this.id) {
+            case 'the_heretic':
+                // Reset stacks at ante end (with other ante_end joker effects)
+                if (gameState.hereticStacks && gameState.hereticStacks > 0) {
+                    gameState.hereticStacks = 0;
+                    this.dynamicStats = { ...this.dynamicStats, pips: 0, other: 'Reset' };
+                }
+                break;
             case 'cornucopia_of_ploutos':
                 // At end of Ante, multiply gold by 1.5 (rounded down)
                 const originalGold = gameState.gold;
@@ -1588,7 +1575,7 @@ class Joker extends Card {
         if (!gameState) return 0;
         
         switch (this.id) {
-            case 'heracles_rare': // Mt Olympus
+            case 'mt_olympus':
                 // +1 favour per worship used
                 const worshipCount = Object.values(gameState.worshipLevels || {}).reduce((sum, level) => sum + level, 0);
                 return worshipCount;
@@ -1637,8 +1624,8 @@ class Joker extends Card {
         
         const stats = [];
         
-        // Check dynamic stats tracking
-        if (this.dynamicStats.pips > 0) {
+        // Check dynamic stats tracking (the_heretic uses live gameState in its own case)
+        if (this.id !== 'the_heretic' && this.dynamicStats.pips > 0) {
             stats.push({ value: `+${this.dynamicStats.pips}`, type: 'pips' });
         }
         
@@ -1706,6 +1693,20 @@ class Joker extends Card {
                 }
                 break;
                 
+            case 'golden_touch':
+                // Interest rate: 1 per 3g (vs 1 per 5g base)
+                stats.push({ value: '1 per 3g', type: 'other' });
+                break;
+            case 'the_heretic':
+                // Live pip counter: current stacks (resets at ante end or when worship used)
+                const hereticStacks = gameState.hereticStacks || 0;
+                if (hereticStacks > 0) {
+                    stats.push({ value: `+${hereticStacks}`, type: 'pips' });
+                    stats.push({ value: '🚫 No Worship', type: 'other' });
+                } else {
+                    stats.push({ value: 'Reset', type: 'other' });
+                }
+                break;
             case 'proteus_disguise':
                 // Blueprint-style: show boon to the left
                 const jokers = gameState.jokers || [];
