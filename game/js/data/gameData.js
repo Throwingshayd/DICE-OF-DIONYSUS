@@ -2,7 +2,7 @@
 
 // AnteData is now defined in AnteData_js.js
 
-// Rarity weights for shop generation (inspired by Balatro)
+// Rarity weights for shop generation
 // Import from constants for consistency
 const RarityWeights = {
     // Boon rarities
@@ -21,8 +21,8 @@ const RarityWeights = {
 };
 
 const CardData = {
-    jokers: [
-        // Boons from CSV database only with Balatro-inspired timing
+    boons: [
+        // Boons from CSV database with standard timing hooks
         { 
             id: "hestias_hearth", 
             name: "Hestia's Hearth", 
@@ -669,44 +669,6 @@ const CardData = {
         }
     ],
 
-    boons: [
-        {
-            id: "zeus_lightning",
-            name: "Zeus's Lightning",
-            rarity: "epic",
-            effect: "Gain +5 Favour and +20 pips for this turn.",
-            description: "The power of the king of the gods courses through you."
-        },
-        {
-            id: "athena_wisdom",
-            name: "Athena's Wisdom",
-            rarity: "vibrant",
-            effect: "Gain +3 Favour and reroll any dice once.",
-            description: "The goddess of wisdom grants you insight and favor."
-        },
-        {
-            id: "apollo_inspiration",
-            name: "Apollo's Inspiration",
-            rarity: "vibrant",
-            effect: "Gain +2 Favour and +10 pips for this turn.",
-            description: "The god of music and poetry inspires your dice."
-        },
-        {
-            id: "hermes_speed",
-            name: "Hermes's Speed",
-            rarity: "rustic",
-            effect: "Gain +1 Favour and +5 pips for this turn.",
-            description: "The messenger god grants you swift favor."
-        },
-        {
-            id: "dionysus_revelry",
-            name: "Dionysus's Revelry",
-            rarity: "rustic",
-            effect: "Gain +1 Favour and reroll one die.",
-            description: "The god of wine and celebration brings good fortune."
-        }
-    ],
-
     worship: [
         // Worship cards from CSV database only
         { id: "worship_artemis", name: "Blessing of Artemis", god: "Artemis", rarity: "worship", cost: 3, effect: "+1 Favour when scoring Ones." },
@@ -743,7 +705,7 @@ const CardData = {
     ],
 
     packs: [
-        { type: 'joker', name: 'Boon Pack', cost: 4, description: 'Reveals 3 Boons - choose one to claim.' },
+        { type: 'boon', name: 'Boon Pack', cost: 4, description: 'Reveals 3 Boons - choose one to claim.' },
         { type: 'worship', name: 'Worship Pack', cost: 4, description: 'Reveals 3 Worship cards - choose one to claim.' },
         { type: 'libation', name: 'Libation Pack', cost: 4, description: 'Reveals 3 Libations - choose one to claim.' },
         { type: 'chaos', name: 'Chaos Pack', cost: 6, description: 'Reveals 3 random cards - choose one from any combination of Boons, Worship, and Libations!' }
@@ -756,7 +718,7 @@ const CardData = {
                 name: "Temple Market", 
                 cost: 10, 
                 effect: "Shop inventory size increased by 1.",
-                description: "Like Balatro's voucher system - permanent passive effect. Expands your shopping options each visit.",
+                description: "Permanent passive effect. Expands your shopping options each visit.",
                 rarity: "artifact" 
             }
         },
@@ -804,7 +766,7 @@ const CardData = {
 
     getAllCards: function() {
         return [
-            ...this.jokers.map(c => ({...c, class: 'Joker'})),
+            ...this.boons.map(c => ({...c, class: 'Boon'})),
             ...this.worship.map(c => ({...c, class: 'WorshipCard'})),
             ...this.libations.map(c => ({...c, class: 'LibationCard'}))
         ];

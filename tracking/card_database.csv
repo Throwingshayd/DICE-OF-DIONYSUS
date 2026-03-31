@@ -8,17 +8,8 @@ boon,lethe_waters,Lethe Waters,rustic,4,2,All dice with a value of 2 or less are
 boon,forge_of_hephaestus,Forge of Hephaestus,vibrant ,6,3,Gain x0.5 Favour for each unused re-roll you have at the end of the turn (Max x1.5).,,,Hephaestus,Three of a Kind
 boon,prometheus_gift,Prometheus' Gift,vibrant ,6,3,Gives +3 Favour to all hands but you have one less re-roll each turn.,,,Ares,Four of a Kind
 boon,chaos_primordial,Chaos Primordial,epic,10,8,All Favour gains are doubled but Pips are randomized (1-40).,,,Dionysus,Full House
-boon,artemis_common,Artemis' Blessing,rustic,3,1,Gain +1 Gold whenever you score 'Ones'.,,,Hermes,Small Straight
-boon,persephone_common,Persephone's Gift,rustic,3,1,Twos give +2 Pips each when scored.,,,Apollo,Large Straight
-boon,persephone_uncommon,Spring's Return,vibrant ,4,2,After scoring 'Twos' gain +1 Gold per 2 in the hand.,,,Zeus,Yahtzee
-boon,morpheus_common,Morpheus' Dream,rustic,3,1,Threes give +1 Favour each when scored.,,,Nyx,Chance
-boon,heracles_rare,Mt Olympus,epic,6,3,gains x1 favour per worship used,,,The Pleiades,Sevens
-boon,hera_uncommon,Queen's Authority,vibrant ,4,2,After scoring 'Fours' all other dice in your hand are re-rolled. Add their new values as bonus Pips.,,,Poseidon,Eights
-boon,athena_common,Athena's Wisdom,vibrant ,3,1,For every 5 in a scored 'Fives' hand gain +10 Pips.,,,The Nine Muses,Nines
-boon,athena_uncommon,Strategic Mind,epic,4,2,After scoring 'Fives' you may hold one extra die above the normal limit for the next turn.,,,,
-boon,poseidon_eights_rare,Ocean's Depth,epic,7,4,Eights count as 10s for scoring.,,,,
-boon,scaled of justice,scales of justice ,vibrant ,4,2,Balance pips as dice to the average value (rounded ).,,,,
-boon,parmenides,parmenides,epic,4,2,Lowest 2 dice show -1 (min 0 ) ; highest 2 dice show +1.(max 9),,,,
+boon,mt_olympus,Mt Olympus,epic,8,2,Gain +1 Favour for each Worship card you have used this run.,,,,
+boon,parmenides_die,Parmenides Die,epic,8,2,Scores swap between upper and lower pantheon.,,,Parmenides,
 worship,worship_artemis,Blessing of Artemis,planet,3,,+1 Favour when scoring Ones.,,,,
 worship,worship_persephone,Blessing of Persephone,planet,3,,+1 Favour when scoring Twos.,,,,
 worship,worship_morpheus,Blessing of Morpheus,planet,3,,+1 Favour when scoring Threes.,,,,

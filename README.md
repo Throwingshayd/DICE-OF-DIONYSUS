@@ -59,9 +59,11 @@ An elegant dice strategy game of pips, favour, and devotion. Cast the bones, cou
 - Esc: Back (from game or collection)
 
 ### Running locally
-- `npm run dev` — Starts Vite dev server at http://localhost:3000 (fixed 1920×1080 layout).
+- `npm run dev` — Starts Vite dev server at http://localhost:3000 (fixed 1920×1080 layout). **Recommended.**
 - `npm run build` — Builds to `dist/` for production.
 - `npm run preview` — Serves the production build locally.
+
+**Go Live / Live Preview:** Plain static servers do not mirror Vite’s `public/` mount, so URLs like `/ART/...` from `styles.css` will not resolve unless you use **`npm run dev`** (recommended) or configure the server to serve `game/public` at the site root. If you use Live Preview, set `livePreview.serverRoot` to `"${workspaceFolder}/game"` knowing that asset paths may still differ from Vite unless you adjust them.
 
 ### Platform support
 - **Responsive:** Game scales to fit any window size (design size 1920×1080, scales down/up to viewport).
@@ -108,7 +110,6 @@ If you wish to license, adapt, or distribute this work, please contact the autho
 - `tests/unit/` — Vitest unit tests
 - `tests/e2e/` — Playwright E2E tests
 - `docs/` (design/, archive/), `tracking/` — Documentation and meta
-- `reference/balatro/` — Balatro Lua reference for porting
 
 ### Contact
 For licensing, collaboration, or questions, please reach out via DiceofDionysus@gmail.com 

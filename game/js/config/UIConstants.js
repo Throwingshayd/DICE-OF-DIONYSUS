@@ -32,17 +32,17 @@ const TIMING = {
 };
 
 /**
- * Balatro-style card layout (71×95px base, per 6-translator)
+ * Card layout (71×95px base, per UIConstants / translator rules)
  * @const {Object}
  */
 const CARD_LAYOUT = {
     CARD_W: 71,
     CARD_H: 95,
-    JOKER_SLOTS: 5,
-    JOKER_AREA_W: 4.9 * 71,   /* Balatro: joker_W = 4.9*G.CARD_W */
-    JOKER_AREA_H: 0.95 * 95,   /* Balatro: joker_H = 0.95*G.CARD_H */
-    CONSUMABLE_AREA_W: 2.3 * 71, /* Balatro: consumeable_W = 2.3*G.CARD_W */
-    CONSUMABLE_AREA_H: 0.95 * 95, /* Balatro: consumeable_H = 0.95*G.CARD_H */
+    BOON_SLOTS: 5,
+    BOON_AREA_W: 4.9 * 71,
+    BOON_AREA_H: 0.95 * 95,
+    CONSUMABLE_AREA_W: 2.3 * 71,
+    CONSUMABLE_AREA_H: 0.95 * 95,
     CONSUMABLE_SLOTS_MIN: 2,
     CONSUMABLE_SLOTS_MAX: 5,
     CONSUMABLE_SCALE: 0.7,

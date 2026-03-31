@@ -7,6 +7,9 @@
 }
 
 :root {
+    /* Logical design resolution (app scaler + fixed layout) */
+    --design-w: 1920;
+    --design-h: 1080;
     --bg-deep-green: #1e4b43;
     --bg-light-green: #3a6b60;
     --stone-terracotta: #c88a78;
@@ -63,8 +66,8 @@ body::after {
     z-index: 10000;
 }
 
-/* Game viewport: scales game to fit any window size */
-.game-viewport {
+/* App viewport: letterboxed stage; --app-scale from CSS or DisplayScale.js */
+.app-viewport {
     position: fixed;
     inset: 0;
     display: flex;
@@ -72,15 +75,49 @@ body::after {
     justify-content: center;
     overflow: hidden;
     background: #1a1a1a;
+    --app-scale: min(
+        calc(100vw / (var(--design-w) * 1px)),
+        calc(100vh / (var(--design-h) * 1px))
+    );
+    --game-scale: var(--app-scale);
 }
 
-/* Game container - fixed design size, scaled by viewport */
-.game-container {
-    width: 1920px;
-    height: 1080px;
+@supports (height: 100dvh) {
+    .app-viewport {
+        --app-scale: min(
+            calc(100vw / (var(--design-w) * 1px)),
+            calc(100dvh / (var(--design-h) * 1px))
+        );
+        --game-scale: var(--app-scale);
+    }
+}
+
+/* Post-scale footprint for flex + overflow:hidden */
+.app-scale-wrap {
+    position: relative;
     flex-shrink: 0;
-    transform-origin: center center;
-    transform: scale(min(100vw / 1920, 100vh / 1080));
+    width: calc(var(--design-w) * 1px * var(--app-scale));
+    height: calc(var(--design-h) * 1px * var(--app-scale));
+    overflow: visible;
+}
+
+/* Single scaled box: menu, anthology, and game */
+.app-stage {
+    position: relative;
+    width: calc(var(--design-w) * 1px);
+    height: calc(var(--design-h) * 1px);
+    flex-shrink: 0;
+    transform-origin: 0 0;
+    transform: scale(var(--app-scale));
+    overflow: visible;
+}
+
+/* Game shell — design pixels; scale is on .app-stage */
+.game-container {
+    width: calc(var(--design-w) * 1px);
+    height: calc(var(--design-h) * 1px);
+    flex-shrink: 0;
+    transform: none;
     background-image: url('/ART/background swirl.png');
     background-size: cover;
     background-position: center;
@@ -96,9 +133,22 @@ body::after {
 /* Ensure game container wrapper doesn't clip content */
 #gameContainerWrapper {
     overflow: visible !important;
-    width: 1920px !important;
-    height: 1080px !important;
+    width: calc(var(--design-w) * 1px) !important;
+    height: calc(var(--design-h) * 1px) !important;
     position: relative !important;
+}
+
+/* In-run layer inside scaled stage */
+#gameViewport.game-screen {
+    position: absolute;
+    inset: 0;
+    z-index: 5;
+    overflow: visible;
+    pointer-events: none;
+}
+
+#gameViewport.game-screen .game-container {
+    pointer-events: auto;
 }
 
 /* Background overlay for readability */
@@ -134,7 +184,7 @@ body::after {
     left: 20px;
     width: 250px;
     height: 100px;
-    background-image: url('/ART/in game title .png');
+    background-image: url('/ART/in game title.png');
     background-size: contain;
     background-position: center;
     background-repeat: no-repeat;
@@ -244,8 +294,8 @@ body::after {
 }
 
 /* Card area with squish: boons left-to-right, both sections fill height */
-.joker-slots.card-area-squish,
-.inventory-panel-boons .joker-slots.card-area-squish {
+.boon-slots.card-area-squish,
+.inventory-panel-boons .boon-slots.card-area-squish {
     display: flex;
     flex-direction: row;
     align-items: center;
@@ -275,25 +325,25 @@ body::after {
     flex-wrap: nowrap;
 }
 
-.joker-slots.card-area-squish .card,
-.inventory-panel-boons .joker-slots.card-area-squish .card {
+.boon-slots.card-area-squish .card,
+.inventory-panel-boons .boon-slots.card-area-squish .card {
     flex-shrink: 0;
     margin-left: -8px;  /* Overlap: cards overlap less, right has higher z-index */
 }
 
-.joker-slots.card-area-squish .card:first-child,
-.inventory-panel-boons .joker-slots.card-area-squish .card:first-child {
+.boon-slots.card-area-squish .card:first-child,
+.inventory-panel-boons .boon-slots.card-area-squish .card:first-child {
     margin-left: 0;
 }
 
 /* Z-index: right-hand cards higher (6-translator) */
-.joker-slots.card-area-squish .card:nth-child(1) { z-index: 1; }
-.joker-slots.card-area-squish .card:nth-child(2) { z-index: 2; }
-.joker-slots.card-area-squish .card:nth-child(3) { z-index: 3; }
-.joker-slots.card-area-squish .card:nth-child(4) { z-index: 4; }
-.joker-slots.card-area-squish .card:nth-child(5) { z-index: 5; }
+.boon-slots.card-area-squish .card:nth-child(1) { z-index: 1; }
+.boon-slots.card-area-squish .card:nth-child(2) { z-index: 2; }
+.boon-slots.card-area-squish .card:nth-child(3) { z-index: 3; }
+.boon-slots.card-area-squish .card:nth-child(4) { z-index: 4; }
+.boon-slots.card-area-squish .card:nth-child(5) { z-index: 5; }
 
-.joker-slot {
+.boon-slot {
     width: 71px;
     height: 95px;
     background: transparent;
@@ -326,7 +376,7 @@ body::after {
 .consumable-slots.card-area-squish .card:nth-child(4) { z-index: 4; }
 .consumable-slots.card-area-squish .card:nth-child(5) { z-index: 5; }
 
-/* Balatro consumable slots: 71×95px base card size (same as jokers) */
+/* Balatro consumable slots: 71×95px base card size (same as boons) */
 .consumable-slots.card-area-squish .card {
     width: 71px !important;
     height: 95px !important;
@@ -349,8 +399,8 @@ body::after {
     height: 100% !important;
 }
 
-/* Balatro joker slots: 71×95px base, 2× scale in inventory panel (same ratio both sections) */
-.joker-slots.card-area-squish .card {
+/* Boon slots: 71×95px base, 2× scale in inventory panel (same ratio both sections) */
+.boon-slots.card-area-squish .card {
     width: 71px !important;
     height: 95px !important;
     min-width: 71px !important;
@@ -364,7 +414,7 @@ body::after {
     border: none !important;
 }
 
-.joker-slots.card-area-squish .card .card-background {
+.boon-slots.card-area-squish .card .card-background {
     background-size: contain !important;
     background-position: center !important;
     background-repeat: no-repeat !important;
@@ -373,7 +423,7 @@ body::after {
 }
 
 /* Inventory panel: boons 2× scale, consumables base scale so both libations fit visible */
-.inventory-panel-boons .joker-slots.card-area-squish .card {
+.inventory-panel-boons .boon-slots.card-area-squish .card {
     width: 142px !important;
     height: 190px !important;
     min-width: 142px !important;
@@ -383,7 +433,7 @@ body::after {
     margin-left: -16px !important;
 }
 
-.inventory-panel-boons .joker-slots.card-area-squish .card:first-child {
+.inventory-panel-boons .boon-slots.card-area-squish .card:first-child {
     margin-left: 0 !important;
 }
 
@@ -403,19 +453,19 @@ body::after {
     display: none;
 }
 
-.joker-slots .card.boon-draggable {
+.boon-slots .card.boon-draggable {
     cursor: grab;
 }
 
-.joker-slots .card.boon-draggable:active {
+.boon-slots .card.boon-draggable:active {
     cursor: grabbing;
 }
 
-.joker-slots .card.boon-dragging {
+.boon-slots .card.boon-dragging {
     opacity: 0.6;
 }
 
-.joker-slots .card.boon-drag-over {
+.boon-slots .card.boon-drag-over {
     outline: 2px dashed rgba(201, 162, 39, 0.8);
     outline-offset: 2px;
 }
@@ -445,12 +495,12 @@ body::after {
     opacity: 0 !important;
 }
 
-.joker-slot:hover {
+.boon-slot:hover {
     transform: translateY(-2px);
     filter: brightness(1.1);
 }
 
-.joker-slot.empty {
+.boon-slot.empty {
     opacity: 0.6;
 }
 
@@ -1790,7 +1840,7 @@ body::after {
 
 /* Remove borders for inventory cards */
 .consumable-slots .card,
-.joker-slots .card {
+.boon-slots .card {
     border: none !important;
     box-shadow: none !important;
 }
@@ -1910,19 +1960,19 @@ body::after {
 }
 
 /* Boons in boon slots: name via card-type-indicator only; hide effect, god, rarity */
-.joker-slots .card .card-content .card-effect,
-.joker-slots .card .card-content .card-rarity,
-.joker-slots .card .card-content .card-god {
+.boon-slots .card .card-content .card-effect,
+.boon-slots .card .card-content .card-rarity,
+.boon-slots .card .card-content .card-god {
     display: none !important;
 }
 
 /* Hide card-name — use card-type-indicator for name (matches shop) */
-.joker-slots .card.joker-card .card-content .card-name {
+.boon-slots .card.boon-card .card-content .card-name {
     display: none !important;
 }
 
 /* Show card-type-indicator (name) as in shop — prominent, centered */
-.joker-slots .card.joker-card .card-type-indicator {
+.boon-slots .card.boon-card .card-type-indicator {
     display: flex !important;
     visibility: visible !important;
     align-items: center;
@@ -1930,7 +1980,7 @@ body::after {
 }
 
 /* CSS-based frame for boons (white fallback design) */
-.card.joker-card .card-frame {
+.card.boon-card .card-frame {
     background: white;
     border: 2px solid #ddd;
     border-radius: 8px;
@@ -1942,17 +1992,17 @@ body::after {
 /* Cache bust: 2025-01-13 */
 
 /* Rarity-based frame colors for boons (white background with colored borders) */
-.card.joker-card.rustic .card-frame {
+.card.boon-card.rustic .card-frame {
     border-color: #8B7355;
     box-shadow: 0 2px 8px rgba(139, 115, 85, 0.2);
 }
 
-.card.joker-card.vibrant .card-frame {
+.card.boon-card.vibrant .card-frame {
     border-color: #4A90E2;
     box-shadow: 0 2px 8px rgba(74, 144, 226, 0.2);
 }
 
-.card.joker-card.epic .card-frame {
+.card.boon-card.epic .card-frame {
     border-color: #9B59B6;
     box-shadow: 0 2px 8px rgba(155, 89, 182, 0.2);
 }
@@ -2046,15 +2096,15 @@ body::after {
 }
 
 /* Ensure stats are visible on all card types */
-.joker-slots .card .card-dynamic-stats,
+.boon-slots .card .card-dynamic-stats,
 .consumable-slots .card .card-dynamic-stats {
     display: flex !important;
 }
 
 /* Boon slots: dynamic stats (pips, favour) white like title */
-.joker-slots .card .card-dynamic-stats .dynamic-stat.pips,
-.joker-slots .card .card-dynamic-stats .dynamic-stat.favour,
-.joker-slots .card .card-dynamic-stats .dynamic-stat.mult {
+.boon-slots .card .card-dynamic-stats .dynamic-stat.pips,
+.boon-slots .card .card-dynamic-stats .dynamic-stat.favour,
+.boon-slots .card .card-dynamic-stats .dynamic-stat.mult {
     color: rgba(255,255,255,0.95) !important;
     text-shadow: 0 1px 2px rgba(0,0,0,0.5);
     border-color: rgba(255,255,255,0.4) !important;
@@ -2507,9 +2557,9 @@ body::after {
     background: transparent !important;
 }
 /* EXCEPTION: Boons in shop & pack — show card-type-indicator (name) with same font/size as consumables */
-#shopDefaultView .card.joker-card .card-type-indicator,
-#packOpeningView .card.joker-card .card-type-indicator,
-.pack-cards-grid .card.joker-card .card-type-indicator {
+#shopDefaultView .card.boon-card .card-type-indicator,
+#packOpeningView .card.boon-card .card-type-indicator,
+.pack-cards-grid .card.boon-card .card-type-indicator {
     display: flex !important;
     visibility: visible !important;
     align-items: center;
@@ -2544,7 +2594,7 @@ body::after {
 }
 
 /* Pack art bindings */
-#shopDefaultView .pack-card.pack-joker { /* Boon pack */
+#shopDefaultView .pack-card.pack-boon { /* Boon pack */
     background-image: url('/ART/boon pack.png') !important;
     background-size: contain !important;
     background-position: center !important;
@@ -2575,7 +2625,7 @@ body::after {
 #packOpeningView .card.worship-card .card-frame,
 .pack-cards-grid .card.worship-card .card-frame,
 .consumable-slots .card.worship-card .card-frame,
-.joker-slots .card.worship-card .card-frame {
+.boon-slots .card.worship-card .card-frame {
     background-image: none !important;
     background: #4A90E2 !important;
     border: 2px solid rgba(255,255,255,0.4) !important;
@@ -2598,8 +2648,8 @@ body::after {
     box-shadow: 0 2px 8px rgba(177, 43, 251, 0.4) !important;
 }
 
-/* Boon cards (jokers) by rarity - using CSS frames instead of assets */
-#shopDefaultView .card.joker-card.rustic {
+/* Boon cards by rarity - using CSS frames instead of assets */
+#shopDefaultView .card.boon-card.rustic {
     background-image: none !important;
     background-color: transparent !important;
     border: none !important;
@@ -2607,7 +2657,7 @@ body::after {
     padding: 0 !important;
 }
 
-#shopDefaultView .card.joker-card.vibrant {
+#shopDefaultView .card.boon-card.vibrant {
     background-image: none !important;
     background-color: transparent !important;
     border: none !important;
@@ -2615,7 +2665,7 @@ body::after {
     padding: 0 !important;
 }
 
-#shopDefaultView .card.joker-card.epic:not(.has-asset) {
+#shopDefaultView .card.boon-card.epic:not(.has-asset) {
     background-image: none !important;
     background-color: transparent !important;
     border: none !important;
@@ -2623,7 +2673,7 @@ body::after {
     padding: 0 !important;
 }
 
-#shopDefaultView .card.joker-card.mythic {
+#shopDefaultView .card.boon-card.mythic {
     background-image: none !important;
     background-color: transparent !important;
     border: none !important;
@@ -2651,7 +2701,7 @@ body::after {
 }
 
 /* Universal asset rules for all contexts - all boons use white fallback */
-.card.joker-card.rustic {
+.card.boon-card.rustic {
     background-image: none !important;
     background-color: white !important;
     border: 2px solid #8B7355 !important;
@@ -2660,7 +2710,7 @@ body::after {
     border-radius: 8px !important;
 }
 
-.card.joker-card.vibrant {
+.card.boon-card.vibrant {
     background-image: none !important;
     background-color: white !important;
     border: 2px solid #4A90E2 !important;
@@ -2669,7 +2719,7 @@ body::after {
     border-radius: 8px !important;
 }
 
-.card.joker-card.epic {
+.card.boon-card.epic {
     background-image: none !important;
     background-color: white !important;
     border: 2px solid #9B59B6 !important;
@@ -2678,7 +2728,7 @@ body::after {
     border-radius: 8px !important;
 }
 
-.card.joker-card.mythic {
+.card.boon-card.mythic {
     background-image: none !important;
     background-color: white !important;
     border: 2px solid #FFD700 !important;
@@ -2690,102 +2740,102 @@ body::after {
 /* Worship/libation :not(.has-asset): card-frame provides simple style */
 
 /* Shop, pack & boon slots: boon card-content by rarity (brown, green, orange, pink) — no-asset only */
-#shopDefaultView .card.joker-card.no-asset.rustic .card-content,
-#packOpeningView .card.joker-card.no-asset.rustic .card-content,
-.pack-cards-grid .card.joker-card.no-asset.rustic .card-content,
-.joker-slots .card.joker-card.no-asset.rustic .card-content {
+#shopDefaultView .card.boon-card.no-asset.rustic .card-content,
+#packOpeningView .card.boon-card.no-asset.rustic .card-content,
+.pack-cards-grid .card.boon-card.no-asset.rustic .card-content,
+.boon-slots .card.boon-card.no-asset.rustic .card-content {
     background: #5D4037 !important;
     border-radius: 8px;
     border: 2px solid rgba(255,255,255,0.3);
 }
-#shopDefaultView .card.joker-card.no-asset.vibrant .card-content,
-#packOpeningView .card.joker-card.no-asset.vibrant .card-content,
-.pack-cards-grid .card.joker-card.no-asset.vibrant .card-content,
-.joker-slots .card.joker-card.no-asset.vibrant .card-content {
+#shopDefaultView .card.boon-card.no-asset.vibrant .card-content,
+#packOpeningView .card.boon-card.no-asset.vibrant .card-content,
+.pack-cards-grid .card.boon-card.no-asset.vibrant .card-content,
+.boon-slots .card.boon-card.no-asset.vibrant .card-content {
     background: #2E7D32 !important;
     border-radius: 8px;
     border: 2px solid rgba(255,255,255,0.3);
 }
-#shopDefaultView .card.joker-card.no-asset.epic .card-content,
-#packOpeningView .card.joker-card.no-asset.epic .card-content,
-.pack-cards-grid .card.joker-card.no-asset.epic .card-content,
-.joker-slots .card.joker-card.no-asset.epic .card-content {
+#shopDefaultView .card.boon-card.no-asset.epic .card-content,
+#packOpeningView .card.boon-card.no-asset.epic .card-content,
+.pack-cards-grid .card.boon-card.no-asset.epic .card-content,
+.boon-slots .card.boon-card.no-asset.epic .card-content {
     background: #E65100 !important;
     border-radius: 8px;
     border: 2px solid rgba(255,255,255,0.3);
 }
-#shopDefaultView .card.joker-card.no-asset.legendary .card-content,
-#shopDefaultView .card.joker-card.no-asset.mythic .card-content,
-#packOpeningView .card.joker-card.no-asset.legendary .card-content,
-#packOpeningView .card.joker-card.no-asset.mythic .card-content,
-.pack-cards-grid .card.joker-card.no-asset.legendary .card-content,
-.pack-cards-grid .card.joker-card.no-asset.mythic .card-content,
-.joker-slots .card.joker-card.no-asset.legendary .card-content,
-.joker-slots .card.joker-card.no-asset.mythic .card-content {
+#shopDefaultView .card.boon-card.no-asset.legendary .card-content,
+#shopDefaultView .card.boon-card.no-asset.mythic .card-content,
+#packOpeningView .card.boon-card.no-asset.legendary .card-content,
+#packOpeningView .card.boon-card.no-asset.mythic .card-content,
+.pack-cards-grid .card.boon-card.no-asset.legendary .card-content,
+.pack-cards-grid .card.boon-card.no-asset.mythic .card-content,
+.boon-slots .card.boon-card.no-asset.legendary .card-content,
+.boon-slots .card.boon-card.no-asset.mythic .card-content {
     background: #AD1457 !important;
     border-radius: 8px;
     border: 2px solid rgba(255,255,255,0.3);
 }
 /* Shop, pack & boon slots no-asset boons: fallback-bg matches rarity so whole card is colored */
-#shopDefaultView .card.joker-card.no-asset.rustic .card-fallback-bg,
-#packOpeningView .card.joker-card.no-asset.rustic .card-fallback-bg,
-.pack-cards-grid .card.joker-card.no-asset.rustic .card-fallback-bg,
-.joker-slots .card.joker-card.no-asset.rustic .card-fallback-bg {
+#shopDefaultView .card.boon-card.no-asset.rustic .card-fallback-bg,
+#packOpeningView .card.boon-card.no-asset.rustic .card-fallback-bg,
+.pack-cards-grid .card.boon-card.no-asset.rustic .card-fallback-bg,
+.boon-slots .card.boon-card.no-asset.rustic .card-fallback-bg {
     background: #5D4037 !important;
     border-color: rgba(255,255,255,0.3);
 }
-#shopDefaultView .card.joker-card.no-asset.vibrant .card-fallback-bg,
-#packOpeningView .card.joker-card.no-asset.vibrant .card-fallback-bg,
-.pack-cards-grid .card.joker-card.no-asset.vibrant .card-fallback-bg,
-.joker-slots .card.joker-card.no-asset.vibrant .card-fallback-bg {
+#shopDefaultView .card.boon-card.no-asset.vibrant .card-fallback-bg,
+#packOpeningView .card.boon-card.no-asset.vibrant .card-fallback-bg,
+.pack-cards-grid .card.boon-card.no-asset.vibrant .card-fallback-bg,
+.boon-slots .card.boon-card.no-asset.vibrant .card-fallback-bg {
     background: #2E7D32 !important;
     border-color: rgba(255,255,255,0.3);
 }
-#shopDefaultView .card.joker-card.no-asset.epic .card-fallback-bg,
-#packOpeningView .card.joker-card.no-asset.epic .card-fallback-bg,
-.pack-cards-grid .card.joker-card.no-asset.epic .card-fallback-bg,
-.joker-slots .card.joker-card.no-asset.epic .card-fallback-bg {
+#shopDefaultView .card.boon-card.no-asset.epic .card-fallback-bg,
+#packOpeningView .card.boon-card.no-asset.epic .card-fallback-bg,
+.pack-cards-grid .card.boon-card.no-asset.epic .card-fallback-bg,
+.boon-slots .card.boon-card.no-asset.epic .card-fallback-bg {
     background: #E65100 !important;
     border-color: rgba(255,255,255,0.3);
 }
-#shopDefaultView .card.joker-card.no-asset.legendary .card-fallback-bg,
-#shopDefaultView .card.joker-card.no-asset.mythic .card-fallback-bg,
-#packOpeningView .card.joker-card.no-asset.legendary .card-fallback-bg,
-#packOpeningView .card.joker-card.no-asset.mythic .card-fallback-bg,
-.pack-cards-grid .card.joker-card.no-asset.legendary .card-fallback-bg,
-.pack-cards-grid .card.joker-card.no-asset.mythic .card-fallback-bg,
-.joker-slots .card.joker-card.no-asset.legendary .card-fallback-bg,
-.joker-slots .card.joker-card.no-asset.mythic .card-fallback-bg {
+#shopDefaultView .card.boon-card.no-asset.legendary .card-fallback-bg,
+#shopDefaultView .card.boon-card.no-asset.mythic .card-fallback-bg,
+#packOpeningView .card.boon-card.no-asset.legendary .card-fallback-bg,
+#packOpeningView .card.boon-card.no-asset.mythic .card-fallback-bg,
+.pack-cards-grid .card.boon-card.no-asset.legendary .card-fallback-bg,
+.pack-cards-grid .card.boon-card.no-asset.mythic .card-fallback-bg,
+.boon-slots .card.boon-card.no-asset.legendary .card-fallback-bg,
+.boon-slots .card.boon-card.no-asset.mythic .card-fallback-bg {
     background: #AD1457 !important;
     border-color: rgba(255,255,255,0.3);
 }
 /* White text on colored backgrounds for shop, pack & boon slots boons */
-#shopDefaultView .card.joker-card .fallback-name,
-#packOpeningView .card.joker-card .fallback-name,
-.pack-cards-grid .card.joker-card .fallback-name,
-.joker-slots .card.joker-card .fallback-name {
+#shopDefaultView .card.boon-card .fallback-name,
+#packOpeningView .card.boon-card .fallback-name,
+.pack-cards-grid .card.boon-card .fallback-name,
+.boon-slots .card.boon-card .fallback-name {
     color: rgba(255,255,255,0.95) !important;
     text-shadow: 0 1px 2px rgba(0,0,0,0.5);
 }
 
 /* Boon slots no-asset: white text on colored card-content (match shop) */
-.joker-slots .card.joker-card.no-asset .card-content .card-name,
-.joker-slots .card.joker-card.no-asset .card-content .card-effect,
-.joker-slots .card.joker-card.no-asset .card-content .card-rarity,
-.joker-slots .card.joker-card.no-asset .card-content .card-god {
+.boon-slots .card.boon-card.no-asset .card-content .card-name,
+.boon-slots .card.boon-card.no-asset .card-content .card-effect,
+.boon-slots .card.boon-card.no-asset .card-content .card-rarity,
+.boon-slots .card.boon-card.no-asset .card-content .card-god {
     color: rgba(255,255,255,0.95) !important;
     text-shadow: 0 1px 2px rgba(0,0,0,0.5);
     background: rgba(0,0,0,0.2) !important;
 }
 
 /* Boon slots no-asset: name (card-type-indicator) white on colored background */
-.joker-slots .card.joker-card.no-asset .card-type-indicator {
+.boon-slots .card.boon-card.no-asset .card-type-indicator {
     color: rgba(255,255,255,0.95) !important;
     text-shadow: 0 1px 2px rgba(0,0,0,0.5);
 }
 
 /* Pack assets for all contexts */
-.pack-card.pack-joker {
+.pack-card.pack-boon {
     background-image: url('/ART/boon pack.png') !important;
     background-size: contain !important;
     background-position: center !important;
@@ -3306,12 +3356,12 @@ body::after {
 #shopDefaultView .card.worship-card .card-content,
 #shopDefaultView .card.libation-card .card-content,
 #shopDefaultView .card.libation .card-content,
-#shopDefaultView .card.joker-card .card-content {
+#shopDefaultView .card.boon-card .card-content {
     justify-content: center !important;
     align-items: center !important;
 }
-#packOpeningView .card.joker-card .card-content,
-.pack-cards-grid .card.joker-card .card-content {
+#packOpeningView .card.boon-card .card-content,
+.pack-cards-grid .card.boon-card .card-content {
     justify-content: center !important;
     align-items: center !important;
 }
@@ -3346,7 +3396,7 @@ body::after {
 #shopDefaultView .card.worship-card .card-name,
 #packOpeningView .card.worship-card .card-name,
 .consumable-slots .card.worship-card .card-type-indicator,
-.joker-slots .card.worship-card .card-type-indicator {
+.boon-slots .card.worship-card .card-type-indicator {
     font-family: 'DisneyHeroic', sans-serif !important;
     font-size: 1.1rem !important;
     font-weight: bold !important;
@@ -3590,9 +3640,8 @@ body::after {
 /* ===== START SCREEN (Balatro-style main menu bar) ===== */
 
 #startScreen {
-    position: fixed;
-    top: 0;
-    left: 0;
+    position: absolute;
+    inset: 0;
     width: 100%;
     height: 100%;
     background-image: url('/ART/Title art.png');
@@ -3602,7 +3651,20 @@ body::after {
     display: flex;
     justify-content: center;
     align-items: center;
-    z-index: 1000;
+    z-index: 1;
+}
+
+#collectionScreen {
+    position: absolute;
+    inset: 0;
+    z-index: 2;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    overflow: auto;
+    padding: 24px;
+    box-sizing: border-box;
+    background: rgba(10, 10, 12, 0.92);
 }
 
 /* Modal fills viewport; bar sits below centre (Balatro: align "bm", bar with emboss) */
@@ -4018,7 +4080,7 @@ body::after {
     color: #8B7355;
 }
 
-/* Game scales to fit viewport via .game-viewport transform */
+/* Game scales via .app-stage transform; optional JS override in DisplayScale.js */
 
 .bonus-yahtzee-indicator {
     background: rgba(106, 170, 154, 0.1);
@@ -4264,7 +4326,7 @@ body::after {
 }
 
 /* ===== MASTER BUTTON DEFINITION ===== */
-/* 6-translator: Balatro joker/tarot/planet tags - consistent placement, improved visibility */
+/* 6-translator: Card type tags - consistent placement, improved visibility */
 .buy-sell-label {
     position: absolute;
     top: 8px;
@@ -4366,31 +4428,31 @@ body::after {
 }
 
 /* Boon sell label: compact (~1/4 size), hangs off bottom, reveal on click */
-.joker-slots .card,
+.boon-slots .card,
 .consumable-slots .card {
     overflow: visible;
 }
 /* Inventory cards: no hover lift/scale — keeps labels stable and clickable */
-.joker-slots .card:hover,
+.boon-slots .card:hover,
 .consumable-slots .card:hover {
     transform: none;
 }
-.joker-slots .card .card-content,
+.boon-slots .card .card-content,
 .consumable-slots .card .card-content {
     position: relative;
     justify-content: center;
     align-items: center;
 }
 /* Card content text/visuals: non-interactive so action labels receive clicks */
-.joker-slots .card .card-content .card-rarity,
-.joker-slots .card .card-content .card-name,
+.boon-slots .card .card-content .card-rarity,
+.boon-slots .card .card-content .card-name,
 .consumable-slots .card .card-content .card-rarity,
 .consumable-slots .card .card-content .card-name {
     pointer-events: none;
 }
 
 /* Type indicator: match boon "Boon" text exactly (font, size, weight, centering) — non-interactive so labels stay clickable */
-.joker-slots .card .card-type-indicator,
+.boon-slots .card .card-type-indicator,
 .consumable-slots .card .card-type-indicator {
     font-family: 'DisneyHeroic', sans-serif !important;
     font-size: 1.1rem !important;
@@ -4404,12 +4466,12 @@ body::after {
 }
 
 /* Boon: dark text on white card */
-.joker-slots .card.joker-card .card-type-indicator {
+.boon-slots .card.boon-card .card-type-indicator {
     color: #2F1C10 !important;
     text-shadow: 0 1px 1px rgba(255,255,255,0.5);
 }
 /* Action labels row: symmetric Use | Sell at bottom center */
-.joker-slots .card .action-labels-row,
+.boon-slots .card .action-labels-row,
 .consumable-slots .card .action-labels-row {
     position: absolute;
     bottom: -14px;
@@ -4423,13 +4485,13 @@ body::after {
     z-index: 20;
     pointer-events: none; /* Row doesn't capture clicks; labels do */
 }
-.joker-slots .card .action-labels-row .buy-sell-label,
+.boon-slots .card .action-labels-row .buy-sell-label,
 .consumable-slots .card .action-labels-row .buy-sell-label {
     position: static;
     transform: none;
     pointer-events: auto; /* Labels are clickable when visible */
 }
-.joker-slots .card .buy-sell-label.sell,
+.boon-slots .card .buy-sell-label.sell,
 .consumable-slots .card .buy-sell-label.sell {
     top: auto;
     right: auto;
@@ -4454,16 +4516,16 @@ body::after {
     background: linear-gradient(135deg, #16a34a, #15803d);
 }
 .consumable-slots .card .buy-sell-label.use:active,
-.joker-slots .card .buy-sell-label.sell:active,
+.boon-slots .card .buy-sell-label.sell:active,
 .consumable-slots .card .buy-sell-label.sell:active {
     transform: none;
 }
-.joker-slots .card .buy-sell-label.sell:hover,
+.boon-slots .card .buy-sell-label.sell:hover,
 .consumable-slots .card .buy-sell-label.sell:hover {
     filter: brightness(1.1);
 }
 /* Boon/worship/libation action labels: hidden until card is clicked */
-.joker-slots .card .buy-sell-label.sell,
+.boon-slots .card .buy-sell-label.sell,
 .consumable-slots .card .buy-sell-label.sell,
 .consumable-slots .card .buy-sell-label.use {
     opacity: 0;
@@ -4471,7 +4533,7 @@ body::after {
     pointer-events: none;
     transition: opacity 0.15s ease, visibility 0.15s ease;
 }
-.joker-slots .card.sell-label-visible .buy-sell-label.sell,
+.boon-slots .card.sell-label-visible .buy-sell-label.sell,
 .consumable-slots .card.sell-label-visible .buy-sell-label.sell,
 .consumable-slots .card.sell-label-visible .buy-sell-label.use {
     opacity: 1;
@@ -4480,13 +4542,13 @@ body::after {
     z-index: 101;
 }
 /* Bring selected card (and its sell label) to front when sell label is visible */
-.joker-slots .card.sell-label-visible,
+.boon-slots .card.sell-label-visible,
 .consumable-slots .card.sell-label-visible {
     position: relative;
     z-index: 100;
 }
 /* Disable hover magnify when labels visible — prevents labels from moving and blocking clicks */
-.joker-slots .card.sell-label-visible:hover,
+.boon-slots .card.sell-label-visible:hover,
 .consumable-slots .card.sell-label-visible:hover {
     transform: none;
 }
@@ -5603,7 +5665,7 @@ body::after {
 }
 
 /* Pack type backgrounds */
-.pack-rip-animation.pack-joker .pack-image {
+.pack-rip-animation.pack-boon .pack-image {
     background-image: url('/ART/boon pack.png');
 }
 

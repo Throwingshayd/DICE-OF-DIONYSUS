@@ -37,8 +37,6 @@ aiLearningFiles:
 # - Performance change → Update performance_notes.md
 # PRIMARY: Use .cursor/rules/ (0-8) as the way forward. Cursor rules override scattered docs.
 
-referencePath: "reference/balatro/"  # Balatro Lua source for porting
-
 architecture:
   pattern: "Class-based OOP with separation of concerns"
   stateManagement: "Single source of truth in GameEngine.state"
@@ -75,23 +73,43 @@ coreModules:
       
   uiManager:
     file: "game/js/ui/UIManager.js"
-    lines: 1900
+    lines: ~330
     priority: high
-    dependencies: [GameEngine, BalatroEffects, SoundManager]
+    dependencies: [GameEngine, BalatroEffects, SoundManager, ShopUI]
     guidance: |
-      Currently large but intentionally monolithic.
-      Splitting deferred to future phase.
+      Delegates shop to ShopUI. Shop logic (stock generation) in ShopStockGenerator.
       Focus on optimizing existing methods, not restructuring.
-      
+  shopUI:
+    file: "game/js/ui/ShopUI.js"
+    priority: high
+    dependencies: [UIManager, ShopStockGenerator]
+    guidance: |
+      Renders shop, pack opening, expulsion. Uses ShopStockGenerator for pure stock logic.
+  shopStockGenerator:
+    file: "game/js/engine/ShopStockGenerator.js"
+    priority: high
+    dependencies: [CardData, GameConstants]
+    guidance: |
+      Pure logic: owned IDs, rarity, filters. No DOM. Input: gameState + prng. Output: stock data.
+
+  displayScale:
+    file: "game/js/utils/DisplayScale.js"
+    priority: medium
+    dependencies: [dataManager]
+    guidance: |
+      #appViewport letterboxed 1920×1080 stage (.app-stage transform). JS sets --app-scale only when
+      settings use preset mult, max scale cap, or integer width snap; else CSS min(vw,w vh/h).
+      Main.initialize → DisplayScale.init(); handleResize → refresh().
+
   cardSystem:
-    files: ["game/js/classes/Card.js", "game/js/classes/Joker.js", "game/js/classes/WorshipCard.js", "game/js/classes/LibationCard.js", "game/js/classes/Artifact.js"]
+    files: ["game/js/classes/Card.js", "game/js/classes/Boon.js", "game/js/classes/WorshipCard.js", "game/js/classes/LibationCard.js", "game/js/classes/Artifact.js"]
     priority: high
     dependencies: [GameEngine]
     reference: ".cursor/context/CARD_METADATA_REFERENCE.md"
     guidance: |
-      Inheritance hierarchy: Card → Joker/WorshipCard/LibationCard/Artifact
-      4 card types: Boons (jokers), Worship, Libations, Artifacts
-      Jokers use timing-based effect system (before_score, after_score, etc.)
+      Inheritance hierarchy: Card → Boon/WorshipCard/LibationCard/Artifact
+      4 card types: Boons, Worship, Libations, Artifacts
+      Boons use timing-based effect system (before_score, after_score, etc.)
       All new cards start in gameData.js
       **When adding/updating cards: Update .cursor/context/CARD_METADATA_REFERENCE.md**
       **When adding/updating boons: Update .cursor/context/CONSOLIDATED_BOON_REFERENCE.md**
@@ -182,7 +200,7 @@ criticalPatterns:
     priority: critical
     reference: ".cursor/context/CONSOLIDATED_BOON_REFERENCE.md (Timing System)"
     guidance: |
-      Joker effects use timing system:
+      Boon effects use timing system:
       - turn_start: ONLY in nextTurn(), never in executeRoll()
       - before_roll: Before dice roll
       - before_score: Before scoring calculation (main phase for bonuses)
@@ -195,16 +213,16 @@ criticalPatterns:
     priority: critical
     reference: ".cursor/context/CONSOLIDATED_BOON_REFERENCE.md (Implementation Patterns)"
     guidance: |
-      New joker effects:
+      New boon effects:
       1. Add to gameData.js with timing
-      2. Implement in Joker.js applyTimingEffect() switch
+      2. Implement in Boon.js applyTimingEffect() switch
       3. Test with deterministic seed
       4. Document in tracking/card_database.csv
       5. **Update .cursor/context/CONSOLIDATED_BOON_REFERENCE.md with new pattern**
 
 terminology:
   enforced:
-    jokers: "Boons (internal: jokers)"
+    boons: "Equipped passive cards (state.boons, type boon)"
     consumables: "Libations/Worship (internal: consumables)"
     pips: "Base score value"
     favour: "Score multiplier"
@@ -290,7 +308,7 @@ aiInstructions:
       - "Update .cursor/context/development_workflow.md if mechanics changed"
       - "Test economy balance thoroughly"
       - "Document in CHANGELOG.md"
-    location: "game/js/ui/UIManager.js (shop methods)"
+    location: "game/js/engine/ShopStockGenerator.js (logic), game/js/ui/ShopUI.js (UI)"
 
 behaviorExpectations:
   good:

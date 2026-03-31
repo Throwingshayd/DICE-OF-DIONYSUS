@@ -33,6 +33,12 @@ class SettingsOverlay {
 
     _createOverlay() {
         const s = (window.dataManager?.getSettings?.()) || {};
+        const preset = ['small', 'default', 'large'].includes(s.displayScalePreset) ? s.displayScalePreset : 'default';
+        const maxVal = s.displayMaxScale;
+        const maxSel =
+            maxVal === 1 ? '1' :
+            maxVal === 1.25 ? '1.25' :
+            maxVal === 2 ? '2' : '';
         const overlay = document.createElement('div');
         overlay.className = 'overlay settings-overlay-created';
         overlay.id = 'settingsOverlayDynamic';
@@ -80,6 +86,27 @@ class SettingsOverlay {
                             <option value="4" ${s.gameSpeed === 4 ? 'selected' : ''}>4×</option>
                         </select>
                     </div>
+                    <div class="settings-row">
+                        <label for="settingDisplayPreset">Display size</label>
+                        <select id="settingDisplayPreset">
+                            <option value="small" ${preset === 'small' ? 'selected' : ''}>Small (85%)</option>
+                            <option value="default" ${preset === 'default' ? 'selected' : ''}>Default (fit)</option>
+                            <option value="large" ${preset === 'large' ? 'selected' : ''}>Large (115%)</option>
+                        </select>
+                    </div>
+                    <div class="settings-row">
+                        <label for="settingDisplayMaxScale">Max scale</label>
+                        <select id="settingDisplayMaxScale" title="Cap upscaling (fit-to-window is still limited by screen)">
+                            <option value="" ${maxSel === '' ? 'selected' : ''}>No cap</option>
+                            <option value="1" ${maxSel === '1' ? 'selected' : ''}>1× (native size)</option>
+                            <option value="1.25" ${maxSel === '1.25' ? 'selected' : ''}>1.25×</option>
+                            <option value="2" ${maxSel === '2' ? 'selected' : ''}>2×</option>
+                        </select>
+                    </div>
+                    <div class="settings-row">
+                        <label for="settingDisplayInteger">Integer width snap</label>
+                        <input type="checkbox" id="settingDisplayInteger" ${s.displayIntegerScale ? 'checked' : ''} title="Snap scaled width to whole pixels (can help crispness on some displays)">
+                    </div>
                 </div>
                 <button class="divine-button" id="settingsCloseBtn">Close</button>
             </div>
@@ -92,7 +119,7 @@ class SettingsOverlay {
         const closeBtn = overlay.querySelector('#settingsCloseBtn');
         if (closeBtn) closeBtn.addEventListener('click', () => this.hide());
 
-        ['settingSound', 'settingAnimations', 'settingAutoSave', 'settingTutorial', 'settingGameSpeed'].forEach(id => {
+        ['settingSound', 'settingAnimations', 'settingAutoSave', 'settingTutorial', 'settingGameSpeed', 'settingDisplayPreset', 'settingDisplayMaxScale', 'settingDisplayInteger'].forEach(id => {
             const el = overlay.querySelector(`#${id}`);
             if (el) el.addEventListener('change', () => this._applySettings(overlay));
         });
@@ -124,20 +151,34 @@ class SettingsOverlay {
     }
 
     _applySettings(overlay) {
+        const prev = window.dataManager?.getSettings?.() || {};
         const musicVal = parseInt(overlay.querySelector('#settingMusicVolume')?.value || '60', 10);
         const sfxVal = parseInt(overlay.querySelector('#settingSfxVolume')?.value || '80', 10);
+        const maxRaw = overlay.querySelector('#settingDisplayMaxScale')?.value ?? '';
+        let displayMaxScale = null;
+        if (maxRaw !== '') {
+            const n = parseFloat(maxRaw);
+            if (Number.isFinite(n) && n > 0) displayMaxScale = n;
+        }
+        let displayScalePreset = overlay.querySelector('#settingDisplayPreset')?.value || 'default';
+        if (!['small', 'default', 'large'].includes(displayScalePreset)) displayScalePreset = 'default';
         const settings = {
+            ...prev,
             soundEnabled: overlay.querySelector('#settingSound')?.checked ?? true,
             musicVolume: Math.max(0, Math.min(1, musicVal / 100)),
             sfxVolume: Math.max(0, Math.min(1, sfxVal / 100)),
             animationsEnabled: overlay.querySelector('#settingAnimations')?.checked ?? true,
             autoSave: overlay.querySelector('#settingAutoSave')?.checked ?? true,
             showTutorial: overlay.querySelector('#settingTutorial')?.checked ?? true,
-            theme: (window.dataManager?.getSettings?.()?.theme) || 'default',
-            gameSpeed: parseFloat(overlay.querySelector('#settingGameSpeed')?.value || '2')
+            theme: prev.theme || 'default',
+            gameSpeed: parseFloat(overlay.querySelector('#settingGameSpeed')?.value || '2'),
+            displayScalePreset,
+            displayMaxScale,
+            displayIntegerScale: overlay.querySelector('#settingDisplayInteger')?.checked ?? false
         };
         if (![0.5, 1, 2, 4].includes(settings.gameSpeed)) settings.gameSpeed = 2;
         window.dataManager?.saveSettings?.(settings);
+        if (typeof window.DisplayScale?.refresh === 'function') window.DisplayScale.refresh();
         if (window.app) {
             window.app.applySoundSetting?.(settings.soundEnabled, settings.musicVolume, settings.sfxVolume);
             window.app.applyAutoSaveSetting?.(settings.autoSave);

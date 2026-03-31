@@ -49,7 +49,7 @@ if (imageBase64 && imageBase64.startsWith('data:')) {
 
 // 2. Update gameData.js
 let gameDataCode = fs.readFileSync(gameDataPath, 'utf8');
-const jokerEntry = `        { 
+const boonEntry = `        { 
             id: "${id}", 
             name: "${name}", 
             rarity: "${rarity || 'rustic'}", 
@@ -59,13 +59,13 @@ const jokerEntry = `        {
             timing: ${JSON.stringify(timing || { before_score: true })}
         }`;
 
-const existingJokerRegex = new RegExp(`\\{\\s*id:\\s*["']${escapedId}["'][\\s\\S]*?\\n\\s*\\},?`, 'm');
-if (existingJokerRegex.test(gameDataCode)) {
-  gameDataCode = gameDataCode.replace(existingJokerRegex, jokerEntry + ',');
+const existingBoonRegex = new RegExp(`\\{\\s*id:\\s*["']${escapedId}["'][\\s\\S]*?\\n\\s*\\},?`, 'm');
+if (existingBoonRegex.test(gameDataCode)) {
+  gameDataCode = gameDataCode.replace(existingBoonRegex, boonEntry + ',');
   console.log(`Updated boon "${name}" in gameData.js`);
 } else {
-  const insertPoint = gameDataCode.indexOf('jokers: [') + 9;
-  gameDataCode = gameDataCode.slice(0, insertPoint) + '\n' + jokerEntry + ',\n        ' + gameDataCode.slice(insertPoint);
+  const insertPoint = gameDataCode.indexOf('boons: [') + 8;
+  gameDataCode = gameDataCode.slice(0, insertPoint) + '\n' + boonEntry + ',\n        ' + gameDataCode.slice(insertPoint);
   console.log(`Added boon "${name}" to gameData.js`);
 }
 fs.writeFileSync(gameDataPath, gameDataCode);

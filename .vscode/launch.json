@@ -1,0 +1,13 @@
+{
+  "version": "0.2.0",
+  "configurations": [
+    {
+      "name": "Play game (Vite + Chrome)",
+      "type": "chrome",
+      "request": "launch",
+      "url": "http://localhost:3000/",
+      "webRoot": "${workspaceFolder}/game",
+      "preLaunchTask": "Run Game (Vite)"
+    }
+  ]
+}

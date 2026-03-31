@@ -14,14 +14,14 @@ When improving the game from playtest findings, follow this template.
 
 ---
 
-## 1. Map Playtest Results to Balatro
+## 1. Map playtest metrics to state
 
-| Playtest Metric        | Balatro Equivalent | Dice of Dionysus |
-|------------------------|-------------------|------------------|
-| Ante cleared           | Blind defeated     | `state.ante` advances |
-| Total score            | Chips × mult      | `state.totalScore` (scorecard sum + bonuses) |
-| Gold at shop           | Dollars           | `state.gold` |
-| Categories filled      | Hand types scored | `Object.keys(state.scorecard).length` |
+| Playtest metric     | Meaning              | In code |
+|---------------------|----------------------|---------|
+| Ante cleared        | Threshold beat       | `state.ante` advances |
+| Total score         | Run scorecard total  | `state.totalScore` (scorecard sum + bonuses) |
+| Gold at shop        | Currency             | `state.gold` |
+| Categories filled   | Yahtzee rows used    | `Object.keys(state.scorecard).length` |
 
 ---
 

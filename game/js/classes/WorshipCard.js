@@ -33,7 +33,7 @@ class WorshipCard extends Card {
 
         // Reset The Heretic stacks when worship is used
         if (gameState.hereticStacks && gameState.hereticStacks > 0) {
-            const heretic = gameState.jokers?.find(j => j.id === 'the_heretic');
+            const heretic = gameState.boons?.find(j => j.id === 'the_heretic');
             if (heretic) {
                 gameState.hereticStacks = 0;
                 heretic.dynamicStats = { ...heretic.dynamicStats, pips: 0, other: 'Reset' };
@@ -45,7 +45,7 @@ class WorshipCard extends Card {
         gameState.lastWorshipGod = this.god;
         
         // Cycle of Seasons: spread worship to another god
-        const hasCycle = gameState.jokers?.some(j => j.id === 'cycle_of_seasons');
+        const hasCycle = gameState.boons?.some(j => j.id === 'cycle_of_seasons');
         if (hasCycle) {
             // Build list of available gods (excluding current and locked categories)
             const baseGods = ['Artemis', 'Persephone', 'Morpheus', 'Hera', 'Athena', 
@@ -316,8 +316,8 @@ class WorshipCard extends Card {
                    synergies[otherCard.god]?.includes(this.god);
         }
         
-        // Synergy with jokers of same god
-        if (otherCard instanceof Joker && otherCard.god === this.god) {
+        // Synergy with boons of same god
+        if (otherCard instanceof Boon && otherCard.god === this.god) {
             return true;
         }
         

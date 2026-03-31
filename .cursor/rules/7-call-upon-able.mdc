@@ -1,6 +1,6 @@
 ---
 description: The Reuser — Card.render(), appendInventoryCard(). No duplicate card UI logic
-globs: js/ui/UIManager.js, js/classes/Card.js, js/classes/Joker.js, js/classes/LibationCard.js, js/classes/WorshipCard.js
+globs: js/ui/UIManager.js, js/classes/Card.js, js/classes/Boon.js, js/classes/LibationCard.js, js/classes/WorshipCard.js
 alwaysApply: false
 ---
 
@@ -12,7 +12,7 @@ alwaysApply: false
 
 If a feature exists for Boons, it should be trivial to replicate for Libations and Worship. The architecture supports this via:
 
-1. **Card.render(isShopItem, isDirectSale)** — Single source for buy/sell/take labels. All card types (Joker, LibationCard, WorshipCard) inherit it. No overrides for label HTML.
+1. **Card.render(isShopItem, isDirectSale)** — Single source for buy/sell/take labels. All card types (Boon, LibationCard, WorshipCard) inherit it. No overrides for label HTML.
 2. **UIManager.appendInventoryCard()** — Shared inventory card renderer. Use this when adding or wiring sell/buy tags for any card type.
 
 ## How to Add Sell Tags to a New Card Type

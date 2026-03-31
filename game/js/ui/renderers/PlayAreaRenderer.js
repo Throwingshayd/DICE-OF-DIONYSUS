@@ -6,19 +6,19 @@
 
 const PlayAreaRenderer = {
     updatePlayAreaSlots(dom, gameState, gameEngine, uiManager) {
-        const jokerKey = (gameState.jokers || []).map(j => j.id).join(',');
+        const boonKey = (gameState.boons || []).map(j => j.id).join(',');
         const consumableKey = (gameState.consumables || []).map(c => c.id).join(',');
         const artifactKey = (gameState.artifacts || []).map(a => a.id).join(',');
         const hereticKey = gameState.hereticStacks ?? 0;
-        const slotsKey = `${jokerKey}|${consumableKey}|${artifactKey}|${gameState.boonSlots ?? 5}|${gameState.consumableSlots ?? 2}|${hereticKey}`;
+        const slotsKey = `${boonKey}|${consumableKey}|${artifactKey}|${gameState.boonSlots ?? 5}|${gameState.consumableSlots ?? 2}|${hereticKey}`;
         if (uiManager._playAreaSlotsKey === slotsKey) return;
         uiManager._playAreaSlotsKey = slotsKey;
 
-        this.updateJokerUI(dom, gameState, gameEngine, uiManager);
+        this.updateBoonUI(dom, gameState, gameEngine, uiManager);
         this.updateConsumableUI(dom, gameState, gameEngine, uiManager);
         this.updateArtifactUI(dom);
 
-        const boonCount = (gameState.jokers || []).length;
+        const boonCount = (gameState.boons || []).length;
         const boonMax = gameState.boonSlots || (window.GAME_BALANCE?.STARTING_BOON_SLOTS ?? 5);
         const consumableCount = (gameState.consumables || []).length;
         const consumableMax = gameState.consumableSlots ?? (window.GAME_BALANCE?.STARTING_LIBATION_SLOTS ?? 2);
@@ -26,17 +26,17 @@ const PlayAreaRenderer = {
         if (dom.consumableSlotCounter) dom.consumableSlotCounter.textContent = `${consumableCount}/${consumableMax}`;
     },
 
-    updateJokerUI(dom, gameState, gameEngine, uiManager) {
-        const container = dom.jokerSlots;
+    updateBoonUI(dom, gameState, gameEngine, uiManager) {
+        const container = dom.boonSlots;
         const boonsPanel = container?.closest('.inventory-panel-boons');
-        if (!container) { Logger.warn('jokerSlots element not found'); return; }
+        if (!container) { Logger.warn('boonSlots element not found'); return; }
         container.innerHTML = '';
-        const jokers = gameState.jokers || [];
-        if (jokers.length === 0) { if (boonsPanel) boonsPanel.classList.remove('has-multiple-boons'); return; }
-        if (boonsPanel) boonsPanel.classList.toggle('has-multiple-boons', jokers.length >= 2);
+        const boons = gameState.boons || [];
+        if (boons.length === 0) { if (boonsPanel) boonsPanel.classList.remove('has-multiple-boons'); return; }
+        if (boonsPanel) boonsPanel.classList.toggle('has-multiple-boons', boons.length >= 2);
 
-        jokers.forEach(joker => {
-            uiManager.appendInventoryCard(joker, container, {
+        boons.forEach(boon => {
+            uiManager.appendInventoryCard(boon, container, {
                 onSell: (c) => uiManager.sellCard(c, gameState, gameEngine),
                 revealOn: 'click'
             });
@@ -76,13 +76,13 @@ const PlayAreaRenderer = {
                 cardEl.classList.remove('boon-drag-over');
                 const targetId = cardEl.dataset.id;
                 if (!draggedId || !targetId || draggedId === targetId) return;
-                const jokers = gameState.jokers || [];
-                const fromIndex = jokers.findIndex(j => j.id === draggedId);
-                const toIndex = jokers.findIndex(j => j.id === targetId);
+                const boons = gameState.boons || [];
+                const fromIndex = boons.findIndex(j => j.id === draggedId);
+                const toIndex = boons.findIndex(j => j.id === targetId);
                 if (fromIndex === -1 || toIndex === -1) return;
-                const card = jokers[fromIndex];
-                jokers.splice(fromIndex, 1);
-                jokers.splice(fromIndex < toIndex ? toIndex - 1 : toIndex, 0, card);
+                const card = boons[fromIndex];
+                boons.splice(fromIndex, 1);
+                boons.splice(fromIndex < toIndex ? toIndex - 1 : toIndex, 0, card);
                 if (gameEngine) { gameEngine.updateAllUI(); if (window.soundManager) window.soundManager.play('button', { volume: 0.4 }); }
             });
         });

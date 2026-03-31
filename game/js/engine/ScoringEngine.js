@@ -14,12 +14,12 @@ const ScoringEngine = {
     /**
      * Build scoring context from game state
      * @param {Object} state - Game state
-     * @returns {{ pipsBonuses: Object, jokers: Object[], activeBlind: string|null, unlockedCategories: Object }}
+     * @returns {{ pipsBonuses: Object, boons: Object[], activeBlind: string|null, unlockedCategories: Object }}
      */
     buildContext(state) {
         return {
             pipsBonuses: state.pipsBonuses || {},
-            jokers: state.jokers || [],
+            boons: state.boons || [],
             activeBlind: state.activeBlind || null,
             unlockedCategories: state.unlockedCategories || {}
         };
@@ -131,10 +131,10 @@ const ScoringEngine = {
 
         let favourMult = 1;
         let eventData = { category, pips, favour, favourMult, isValid };
-        const jokers = state.jokers || [];
+        const boons = state.boons || [];
 
         PHASE_ORDER.forEach((phase) => {
-            jokers.forEach((j) => {
+            boons.forEach((j) => {
                 const jPhase = j.triggerPhase ?? 'hand';
                 if (jPhase !== phase) return;
                 if (j.timing && j.timing.before_score && typeof j.onTimingEvent === 'function') {

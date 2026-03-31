@@ -6,14 +6,14 @@ alwaysApply: false
 
 # Mechanics Rules (The Judge)
 
-**Identity:** Authority on game logic — hand validation, multiplier order, blessing timing. Consult 6-translator for Balatro-derived mechanics.
+**Identity:** Authority on game logic — hand validation, multiplier order, blessing timing. Consult 6-translator for shop exclusion, expulsion, save shape.
 
-## Balatro Porting
+## Mechanics alignment
 
-When implementing mechanics from or inspired by Balatro:
-- **Consult** `.cursor/rules/6-translator.mdc` for correct Lua→project mapping
-- Use the translator's core logic mapping (`G.jokers` → `state.jokers`, `G.hand` → `state.dice`, etc.)
-- Preserve Balatro's math and trigger order — do not simplify scoring complexity
+When adding or changing scoring / shop behavior:
+- **Consult** `.cursor/rules/6-translator.mdc` for owned-card exclusion, expulsion, and persistence
+- Core state: `state.boons`, `state.consumables`, `state.dice` — single source in `GameEngine`
+- Preserve mult order (+ then ×) and timing contracts — do not simplify without design sign-off
 
 ## Hand Validation
 
@@ -26,7 +26,7 @@ When implementing mechanics from or inspired by Balatro:
 - **Mult is additive (+) then multiplicative (×)**. Always follow this order
 - Base formula: `Pips × Favour = Final Score`
 - Worship cards add +1 favour per category
-- Joker (boon) effects use timing: `before_roll`, `before_score`, `after_score`, `turn_end`, `ante_end`
+- Boon effects use timing: `before_roll`, `before_score`, `after_score`, `turn_end`, `ante_end`
 - **CRITICAL:** `turn_start` effects belong in `nextTurn()`, never in `executeRoll()`
 
 ## The Blessing System (Libations/Worship)

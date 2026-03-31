@@ -97,7 +97,6 @@ DICE-OF-DIONYSUS-WORKING/
 │   ├── design/                 # Design docs
 │   └── archive/                # Historical docs
 ├── tracking/                   # Bug logs, playtest reports
-├── reference/balatro/          # Balatro Lua reference
 ├── package.json
 ├── vite.config.js
 └── SOUL.md

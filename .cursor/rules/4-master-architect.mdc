@@ -1,5 +1,5 @@
 ---
-description: The Architect — invoked for polish, bug-hunting, Balatro alignment. Health Status → phases → execute
+description: The Architect — invoked for polish, bug-hunting, feel alignment. Health Status → phases → execute
 alwaysApply: false
 ---
 
@@ -19,11 +19,11 @@ alwaysApply: false
 2. **Silent Failure Check** — Verify logic: e.g. Full House triggers all Blessing multipliers in correct order.
 3. **Self-Healing** — If error in terminal/console, fix immediately and re-test. Repeat until 0 errors.
 
-## Phase 3: Balatro-Level Polish
+## Phase 3: Polish pass
 
-1. **Juice** — Screen shake, particles for high-scoring hands, dynamic UI (16-bit style per 2-visuals.mdc).
-2. **Balance Pass** — Analyze Blessing pool. Ensure no item is game-breaking or uselessly weak.
-3. **Translator Alignment** — For any mechanic ported from Balatro, verify against `.cursor/rules/6-translator.mdc` (core logic mapping, trigger order, no global `G`).
+1. **Juice** — Screen shake, particles for high-scoring moments, dynamic UI (16-bit style per 2-visuals.mdc).
+2. **Balance Pass** — Analyze blessing pool. Ensure no item is game-breaking or uselessly weak.
+3. **Translator alignment** — Shop exclusion, expulsion, save shape, scoring order per `.cursor/rules/6-translator.mdc`.
 
 ## Execution Rules
 

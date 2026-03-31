@@ -3,20 +3,41 @@
 class DataManager {
     constructor() {
         this.prefix = 'diceOfDionysus_';
-        this.version = '1.0';
-        this.migrationCheck();
+        /** Bump when save/collection shape changes; old localStorage payloads are rejected or reset. */
+        this.version = '3.0';
     }
 
-    // Collection management
-    getCollection() {
-        const collection = localStorage.getItem(this.prefix + 'collection');
-        return collection ? JSON.parse(collection) : {
+    _emptyCollection() {
+        return {
             boons: [],
             artifacts: [],
             worship: [],
             libations: [],
             version: this.version
         };
+    }
+
+    // Collection management
+    getCollection() {
+        const raw = localStorage.getItem(this.prefix + 'collection');
+        if (!raw) return this._emptyCollection();
+        try {
+            const c = JSON.parse(raw);
+            if (c.version !== this.version) {
+                const fresh = this._emptyCollection();
+                this.saveCollection(fresh);
+                if (typeof Logger !== 'undefined') {
+                    Logger.info('Collection version reset for current dev build');
+                }
+                return fresh;
+            }
+            for (const k of ['boons', 'artifacts', 'worship', 'libations']) {
+                if (!Array.isArray(c[k])) c[k] = [];
+            }
+            return c;
+        } catch {
+            return this._emptyCollection();
+        }
     }
 
     saveCollection(collection) {
@@ -66,6 +87,9 @@ class DataManager {
             showTutorial: true,
             theme: 'default',
             gameSpeed: 2,
+            displayScalePreset: 'default',
+            displayMaxScale: null,
+            displayIntegerScale: false,
             version: this.version
         };
         const raw = localStorage.getItem(this.prefix + 'settings');
@@ -76,7 +100,18 @@ class DataManager {
             if (![0.5, 1, 2, 4].includes(s.gameSpeed)) s.gameSpeed = 2;
             if (s.musicVolume === undefined) s.musicVolume = 0.6;
             if (s.sfxVolume === undefined) s.sfxVolume = 0.8;
-            return { ...defaults, ...s };
+            if (s.displayScalePreset === undefined) s.displayScalePreset = 'default';
+            if (!['small', 'default', 'large'].includes(s.displayScalePreset)) s.displayScalePreset = 'default';
+            if (s.displayMaxScale !== null && s.displayMaxScale !== undefined) {
+                const n = Number(s.displayMaxScale);
+                s.displayMaxScale = Number.isFinite(n) && n > 0 ? n : null;
+            } else {
+                s.displayMaxScale = null;
+            }
+            if (typeof s.displayIntegerScale !== 'boolean') s.displayIntegerScale = false;
+            const out = { ...defaults, ...s };
+            out.version = this.version;
+            return out;
         } catch {
             return { ...defaults };
         }
@@ -89,7 +124,7 @@ class DataManager {
 
     /**
      * Save game state with optional PRNG and resume phase
-     * @param {Object|Object} payload - Full payload { gameState, prngState?, resumePhase? } or legacy raw gameState
+     * @param {{ gameState: Object, prngState?: *, resumePhase?: string }|Object} payload - Wrapped payload, or bare gameState
      * @param {string} [slot='auto']
      */
     saveGame(payload, slot = 'auto') {
@@ -165,39 +200,5 @@ class DataManager {
             }
         }
         return saves.sort((a, b) => b.timestamp - a.timestamp);
-    }
-
-
-
-    // Version migration
-    migrationCheck() {
-        const collection = this.getCollection();
-        if (!collection.version || collection.version !== this.version) {
-            if (typeof Logger !== 'undefined') {
-                Logger.info('Running data migration...');
-            }
-            this.migrateData(collection.version || '0.0');
-        }
-    }
-
-    migrateData(fromVersion) {
-        const collection = this.getCollection();
-        const settings = this.getSettings();
-
-        // Add migration logic here for future versions
-        switch (fromVersion) {
-            case '0.0':
-                // Initial migration - ensure all arrays exist
-                if (!collection.worship) collection.worship = [];
-                if (!collection.libations) collection.libations = [];
-                break;
-            // Add more cases as needed for future versions
-        }
-
-        this.saveCollection(collection);
-        this.saveSettings(settings);
-        if (typeof Logger !== 'undefined') {
-            Logger.info(`Migrated data from ${fromVersion} to ${this.version}`);
-        }
     }
 }

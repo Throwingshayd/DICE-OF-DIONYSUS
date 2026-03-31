@@ -44,8 +44,8 @@ container.appendChild(cardElement);
 
 ## 💰 Shop Actions
 
-### Buy Card - Definitive Method: `UIManager.buyCard()`
-**Location:** `js/ui/UIManager.js` (line ~1596)
+### Buy Card - Definitive Method: `ShopUI.buyCard()` (via UIManager.shopUI)
+**Location:** `js/ui/ShopUI.js`
 
 **Pattern:**
 ```javascript
@@ -57,8 +57,8 @@ this.buyCard(card, gameState, gameEngine, cardElement);
 - ❌ Manual gold deduction
 - ❌ Custom buy logic
 
-### Sell Card - Definitive Method: `UIManager.sellCard()`  
-**Location:** `js/ui/UIManager.js` (line 1745)
+### Sell Card - Definitive Method: `UIManager.sellCard()` (delegates to ShopUI)
+**Location:** `js/ui/UIManager.js`, `js/ui/ShopUI.js`
 
 **Pattern:**
 ```javascript
@@ -76,8 +76,8 @@ this.sellCard(cardToSell, gameState, gameEngine);
 - ❌ Hardcoded Mortal Vineyard checks (use timing system)
 - ❌ Manual array splicing without timing hooks
 
-### Claim Card (Packs) - Definitive Method: `UIManager.claimCard()`
-**Location:** `js/ui/UIManager.js` (line ~1616)
+### Claim Card (Packs) - Definitive Method: `ShopUI.claimCard()`
+**Location:** `js/ui/ShopUI.js`
 
 **Pattern:**
 ```javascript

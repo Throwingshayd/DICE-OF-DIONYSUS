@@ -16,7 +16,7 @@ class GameEngine {
 
     /** Parmenides Die: get target category for pantheon swap (upper↔lower by position) */
     getParmenidesTargetCategory(category) {
-        if (!this.state.jokers?.some(j => j.id === 'parmenides_die')) return null;
+        if (!this.state.boons?.some(j => j.id === 'parmenides_die')) return null;
         const map = typeof BOON_EFFECTS !== 'undefined' && BOON_EFFECTS.PARMENIDES_DIE?.SWAP_MAP;
         return map ? map[category] || null : null;
     }
@@ -51,7 +51,7 @@ class GameEngine {
             baseFavour: GAME_BALANCE.BASE_FAVOUR,
             
             // Collections
-            jokers: [],
+            boons: [],
             artifacts: [],
             consumables: [],
             packs: [], // Track opened packs for collection
@@ -188,15 +188,15 @@ class GameEngine {
      * @param {string} boonId - e.g. 'hestias_hearth', 'the_gambler'
      */
     applyBoonTestMode(boonId) {
-        const boonData = typeof CardData !== 'undefined' && CardData.jokers
-            ? CardData.jokers.find(j => j.id === boonId)
+        const boonData = typeof CardData !== 'undefined' && CardData.boons
+            ? CardData.boons.find(j => j.id === boonId)
             : null;
         if (!boonData) {
             if (typeof Logger !== 'undefined') Logger.warn(`Test mode: Boon "${boonId}" not found`);
             return;
         }
-        const joker = new Joker(boonData);
-        this.state.jokers.push(joker);
+        const boon = new Boon(boonData);
+        this.state.boons.push(boon);
         this.state.gold = Math.max(this.state.gold, 20); // Ensure enough gold for boons that cost per roll
         if (typeof Logger !== 'undefined') Logger.info(`🧪 TEST MODE: Injected boon "${boonId}"`);
     }
@@ -348,7 +348,7 @@ class GameEngine {
             scorecardRows: document.querySelectorAll('.score-row'),
             
             // Card slots
-            jokerSlots: document.getElementById('jokerSlots'),
+            boonSlots: document.getElementById('boonSlots'),
             consumableSlots: document.getElementById('consumableSlots'),
             artifactSlots: document.getElementById('artifactSlots'),
             
@@ -571,9 +571,9 @@ class GameEngine {
 
         // FIX: Set rolls for turn 1 of new ante (was left at 0 from previous ante's last turn)
         this.state.rollsLeft = GAME_BALANCE.STARTING_ROLLS;
-        this.state.jokers.forEach(joker => {
-            if (joker.timing && joker.timing.turn_start) {
-                joker.onTimingEvent('turn_start', this.state);
+        this.state.boons.forEach(boon => {
+            if (boon.timing && boon.timing.turn_start) {
+                boon.onTimingEvent('turn_start', this.state);
             }
         });
 
@@ -649,7 +649,7 @@ class GameEngine {
 
     /**
      * Roll all non-held dice
-     * Applies joker effects, animations, and decrements rolls
+     * Applies boon effects, animations, and decrements rolls
      */
     rollDice() {
         // FIXED: Simple, bulletproof roll mechanics
@@ -689,8 +689,8 @@ class GameEngine {
      * RNG + effects, then update UI with bounce on rolled dice.
      */
     executeRoll() {
-        // Apply joker effects that trigger at roll start
-        this.applyJokerRollEffects();
+        // Apply boon effects that trigger at roll start
+        this.applyBoonRollEffects();
         
         // FIXED: Simple decrement - no complex logic
         this.state.rollsLeft--;
@@ -741,8 +741,8 @@ class GameEngine {
             }
             }
             this.state.dice.forEach((die, index) => die.processMotherOfPearl(this.state.dice, index, this.prng));
-            this.state.jokers.forEach(joker => {
-                if (joker.affectsDiceRoll?.()) joker.applyDiceRollEffect(this.state.dice, this.state, this.prng);
+            this.state.boons.forEach(boon => {
+                if (boon.affectsDiceRoll?.()) boon.applyDiceRollEffect(this.state.dice, this.state, this.prng);
             });
             finalFaces = this.state.dice.map(d => (typeof d.getEffectiveFace === 'function' ? d.getEffectiveFace() : d.face) || 1);
         }
@@ -779,17 +779,17 @@ class GameEngine {
         doPostPhysicsRoll();
     }
 
-    // Apply joker effects that trigger at turn start (Balatro-inspired timing)
-    applyJokerTurnStartEffects() {
-        this.state.jokers.forEach(joker => {
-            joker.onTimingEvent('turn_start', this.state);
+    // Apply boon effects that trigger at turn start (Balatro-inspired timing)
+    applyBoonTurnStartEffects() {
+        this.state.boons.forEach(boon => {
+            boon.onTimingEvent('turn_start', this.state);
         });
     }
 
-    // Apply joker effects that trigger at roll start
-    applyJokerRollEffects() {
-        this.state.jokers.forEach(joker => {
-            switch (joker.id) {
+    // Apply boon effects that trigger at roll start
+    applyBoonRollEffects() {
+        this.state.boons.forEach(boon => {
+            switch (boon.id) {
                 case 'achilles_heel':
                     // Achilles Heel: lose 1 Gold at the start of each roll
                     if (this.state.gold > 0) {
@@ -809,7 +809,7 @@ class GameEngine {
         if (!this.state.hasRolled || this.state.isAwaitingApi) return;
         
         // Reckless Abandon: cannot hold dice
-        const hasRecklessAbandon = this.state.jokers?.some(j => j.id === 'reckless_abandon');
+        const hasRecklessAbandon = this.state.boons?.some(j => j.id === 'reckless_abandon');
         if (hasRecklessAbandon) {
             if (window.soundManager) window.soundManager.play('cancel', { volume: 0.5 });
             this.showMessage("Reckless Abandon: You cannot hold dice!");
@@ -820,13 +820,9 @@ class GameEngine {
         const maxHeld = (!bossBlindsDisabled && this.state.activeBlind === 'max_3_hold') ? 3 : this.state.maxHeld;
         const currentHeldCount = this.state.held.filter(h => h).length;
         
-        // Check for Strategic Mind extra hold capacity
-        const extraHoldCapacity = this.state.abilities?.strategicMindExtraHold || 0;
-        const effectiveMaxHeld = maxHeld + extraHoldCapacity;
-        
-        if (!this.state.held[index] && currentHeldCount >= effectiveMaxHeld) {
+        if (!this.state.held[index] && currentHeldCount >= maxHeld) {
             if (window.soundManager) window.soundManager.play('cancel', { volume: 0.5 });
-            this.showMessage(`You can only hold ${effectiveMaxHeld} dice.`);
+            this.showMessage(`You can only hold ${maxHeld} dice.`);
             return;
         }
         
@@ -843,7 +839,7 @@ class GameEngine {
      */
     unholdAllDice() {
         if (!this.state.hasRolled || this.state.isAwaitingApi) return;
-        const hasRecklessAbandon = this.state.jokers?.some(j => j.id === 'reckless_abandon');
+        const hasRecklessAbandon = this.state.boons?.some(j => j.id === 'reckless_abandon');
         if (hasRecklessAbandon) return;
         if (this.state.held.every(h => !h)) return;
         this.state.held.fill(false);
@@ -974,8 +970,8 @@ class GameEngine {
                 pips += this.state.tempPips;
                 favour += this.state.tempFavour;
                 let eventData = { category, pips, favour, favourMult: 1 };
-                this.state.jokers.forEach((joker) => {
-                    eventData = joker.onTimingEvent('before_score', this.state, eventData);
+                this.state.boons.forEach((boon) => {
+                    eventData = boon.onTimingEvent('before_score', this.state, eventData);
                 });
                 pips = eventData.pips;
                 favour = eventData.favour * (eventData.favourMult || 1);
@@ -1020,9 +1016,9 @@ class GameEngine {
         // If all lower categories have been scored (non-undefined), grant +35 pips once
         this.checkAndAwardLowerBonus();
         
-        // Apply AFTER_SCORE joker effects (Balatro-inspired timing)
-        this.state.jokers.forEach(joker => {
-            joker.onTimingEvent('after_score', this.state, { category, pips, favour, finalScore });
+        // Apply AFTER_SCORE boon effects (Balatro-inspired timing)
+        this.state.boons.forEach(boon => {
+            boon.onTimingEvent('after_score', this.state, { category, pips, favour, finalScore });
         });
         
         // Track scores for cashout - gold awarded at round end before shop (not per-score)
@@ -1182,7 +1178,7 @@ class GameEngine {
                         }, idx * this.scaleDelay(100));
                     });
                 }
-                // Pip joker: satisfying stamp; mult joker: sparkly foil
+                // Pip boon: satisfying stamp; mult boon: sparkly foil
                 if (window.soundManager) {
                     if (contrib.pips > 0 && contrib.favour > 0) {
                         window.soundManager.play('paper1', { pitch: 0.92 + this.prng.random() * 0.1, volume: 0.5 });
@@ -1411,31 +1407,31 @@ class GameEngine {
         });
         
         // Simulate scoring with each boon individually to see contribution
-        this.state.jokers.forEach(joker => {
-            if (!joker.timing.before_score) return;
+        this.state.boons.forEach(boon => {
+            if (!boon.timing.before_score) return;
             
             // Test what this boon adds
             const testData = { category, pips: basePips, favour: baseFavour, favourMult: 1 };
-            const resultData = joker.onTimingEvent('before_score', this.state, testData);
+            const resultData = boon.onTimingEvent('before_score', this.state, testData);
             
             const pipsAdded = (resultData.pips || 0) - basePips;
             const favourAdded = (resultData.favour || 0) - baseFavour;
             
             if (pipsAdded !== 0 || favourAdded !== 0) {
                 const contrib = {
-                    boonId: joker.id,
-                    boonName: joker.name,
+                    boonId: boon.id,
+                    boonName: boon.name,
                     pips: pipsAdded,
                     favour: favourAdded,
                     source: 'boon'
                 };
                 // Pegasus Flight: show ×0.5 favour popup only on dice that contributed
-                if (joker.id === 'pegasus_flight' && resultData._pegasusDieIndices?.length) {
+                if (boon.id === 'pegasus_flight' && resultData._pegasusDieIndices?.length) {
                     contrib.dieIndices = resultData._pegasusDieIndices;
                     contrib.favourLabel = '×0.5 favour';
                 }
                 // Cerberus Watch: show +3 pips on each held die
-                if (joker.id === 'cerberus_watch' && resultData._cerberusDieIndices?.length) {
+                if (boon.id === 'cerberus_watch' && resultData._cerberusDieIndices?.length) {
                     contrib.dieIndices = resultData._cerberusDieIndices;
                     contrib.pipsLabel = '+3 pips';
                 }
@@ -1465,12 +1461,6 @@ class GameEngine {
             case 'cerberus_watch':
                 state.dice.forEach((die, i) => {
                     if (held[i] && result.length < 3) result.push({ dieIndex: i, label: '+3 pips' });
-                });
-                break;
-            case 'morpheus_common':
-                state.dice.forEach((die, i) => {
-                    const face = die.getEffectiveFace ? die.getEffectiveFace() : die.face;
-                    if (face === 3) result.push({ dieIndex: i, label: '×1 favour' });
                 });
                 break;
             case 'prime_time':
@@ -1621,12 +1611,12 @@ class GameEngine {
     }
 
     /**
-     * Show contribution popup under a boon card (Balatro-style: Joker shows what it added)
+     * Show contribution popup under a boon card
      * @param {string} boonId - ID of boon
      * @param {{pips: number, favour: number, boonName?: string}} contrib - Contribution from boon
      */
     showBoonPopup(boonId, contrib) {
-        const boonCards = document.querySelectorAll('.joker-slots .card');
+        const boonCards = document.querySelectorAll('.boon-slots .card');
         let cardEl = null;
         for (const card of boonCards) {
             const cardData = card.dataset;
@@ -1667,7 +1657,7 @@ class GameEngine {
      * @param {string} label - Optional label
      */
     showFloatingText(value, index, type, label = '') {
-        const container = type === 'die' ? document.getElementById('diceContainer') : document.getElementById('jokersArea');
+        const container = type === 'die' ? document.getElementById('diceContainer') : document.getElementById('boonSlots');
         if (!container) return;
         
         const text = document.createElement('div');
@@ -2130,7 +2120,7 @@ class GameEngine {
         } else {
             const context = typeof ScoringEngine !== 'undefined'
                 ? ScoringEngine.buildContext(this.state)
-                : { pipsBonuses: this.state.pipsBonuses || {}, jokers: this.state.jokers || [], activeBlind: this.state.activeBlind || null, unlockedCategories: this.state.unlockedCategories || {} };
+                : { pipsBonuses: this.state.pipsBonuses || {}, boons: this.state.boons || [], activeBlind: this.state.activeBlind || null, unlockedCategories: this.state.unlockedCategories || {} };
             let evalResult = typeof ScoringEngine !== 'undefined'
                 ? ScoringEngine.evaluateCategory(category, faces, counts, context)
                 : { pips: 0, isValid: false };
@@ -2156,8 +2146,8 @@ class GameEngine {
 
         // Side-effect messages (only when actually scoring, not previewing)
         if (isActualScoring && isValid) {
-            const hasBellows = this.state.jokers?.some(j => j.id === 'bellows_of_war');
-            const hasDionysus = this.state.jokers?.some(j => j.id === 'dionysus_revelry');
+            const hasBellows = this.state.boons?.some(j => j.id === 'bellows_of_war');
+            const hasDionysus = this.state.boons?.some(j => j.id === 'dionysus_revelry');
             if (hasBellows && ['Three of a Kind', 'Four of a Kind'].includes(category)) {
                 window.game?.showMessage?.("Bellows of War: Virtual die added!", 2000);
             }
@@ -2261,9 +2251,9 @@ class GameEngine {
 
     // Turn and ante progression
     nextTurn() {
-        // Apply TURN_END joker effects before advancing turn (Balatro-inspired timing)
-        this.state.jokers.forEach(joker => {
-            joker.onTimingEvent('turn_end', this.state);
+        // Apply TURN_END boon effects before advancing turn (Balatro-inspired timing)
+        this.state.boons.forEach(boon => {
+            boon.onTimingEvent('turn_end', this.state);
         });
         
         // Reset boon trigger counter for Eruption of Etna
@@ -2271,15 +2261,12 @@ class GameEngine {
         
         this.state.turn++;
         
-        // Apply joker effects that modify abilities (like Strategic Mind)
-        this.applyJokerAbilityEffects();
-        
         // FIXED: Default 3 rolls (can be modified by turn_start effects)
         this.state.rollsLeft = GAME_BALANCE.STARTING_ROLLS;
         
         // Apply TURN_START effects AFTER setting default rolls (so Kronos can override)
-        this.state.jokers.forEach(joker => {
-            joker.onTimingEvent('turn_start', this.state);
+        this.state.boons.forEach(boon => {
+            boon.onTimingEvent('turn_start', this.state);
         });
         
         // Reset turn state
@@ -2302,22 +2289,6 @@ class GameEngine {
         } else if (this.domReady) {
             this.updateAllUI();
         }
-    }
-
-
-
-    // Apply joker effects that modify abilities (like Strategic Mind)
-    applyJokerAbilityEffects() {
-        this.state.abilities = this.state.abilities || {};
-        
-        this.state.jokers.forEach(joker => {
-            switch (joker.id) {
-                case 'athena_uncommon':
-                    // Strategic Mind: +1 hold capacity next turn
-                    this.state.abilities.strategicMindExtraHold = 1;
-                    break;
-            }
-        });
     }
 
     /**
@@ -2422,14 +2393,14 @@ class GameEngine {
         this.state.turn = 1;
         
         // === ANTE_END TIMING HOOK - MUST run BEFORE reset so Odyssey/Message in a Bottle can read scorecard ===
-        this.state.jokers.forEach(joker => {
-            if (joker.timing && joker.timing.ante_end) {
-                joker.onTimingEvent('ante_end', this.state, {});
+        this.state.boons.forEach(boon => {
+            if (boon.timing && boon.timing.ante_end) {
+                boon.onTimingEvent('ante_end', this.state, {});
             }
         });
         
         // Defer scorecard reset until shop opens — keep pantheon scores visible during cashout
-        // (The Heretic stacks reset via ante_end joker timing above)
+        // (The Heretic stacks reset via ante_end boon timing above)
         
         // Reset The Zealot's last worship god at end of ante
         this.state.lastWorshipGod = null;
@@ -2521,7 +2492,7 @@ class GameEngine {
             });
             
             // Check for Trojan Horse BOON (not artifact) - fixes critical bug
-            const hasTrojanHorseBoon = this.state.jokers?.some(j => j.id === 'trojan_horse');
+            const hasTrojanHorseBoon = this.state.boons?.some(j => j.id === 'trojan_horse');
             if (hasTrojanHorseBoon && this.state.turn >= 11) {
                 this.state.boonMultiplier = 2;
                 Logger.info(`Trojan Horse BOON activated! All boons ×2 (Turn ${this.state.turn})`);
@@ -2716,7 +2687,7 @@ class GameEngine {
         let p = pips, f = favour;
         if (!fromPipeline) {
             let eventData = { category, pips: p, favour: f, favourMult: 1 };
-            this.state.jokers.forEach((j) => {
+            this.state.boons.forEach((j) => {
                 if (j.timing?.before_score) eventData = j.onTimingEvent('before_score', this.state, eventData);
             });
             p = eventData.pips;
@@ -2777,7 +2748,7 @@ class GameEngine {
     }
 
     calculateInterestOnAmount(goldAmount) {
-        const hasGoldenTouch = this.state.jokers?.some(j => j.id === 'golden_touch');
+        const hasGoldenTouch = this.state.boons?.some(j => j.id === 'golden_touch');
         const interestRate = hasGoldenTouch ? 3 : GAME_BALANCE.INTEREST_RATE;
         return Math.min(
             Math.floor(goldAmount / interestRate),
@@ -2908,7 +2879,7 @@ class GameEngine {
             this.startAnte();
         }
         
-        // Refresh UI after stage swap so jokers/inventory render correctly
+        // Refresh UI after stage swap so boons/inventory render correctly
         this.updateAllUI();
     }
 
@@ -2946,7 +2917,7 @@ class GameEngine {
     }
 
     /**
-     * Serialize state for save — ensure jokers, artifacts, consumables, dice, worshipLevels
+     * Serialize state for save — ensure boons, artifacts, consumables, dice, worshipLevels
      * and all critical mechanics are plain objects (guaranteed to persist).
      * @param {Object} state - Live game state
      * @returns {Object} Plain object safe for JSON.stringify
@@ -2958,8 +2929,8 @@ class GameEngine {
             dice: Array.isArray(state.dice)
                 ? state.dice.map((d, i) => toPlain(d) || { currentFace: 0, dieId: i + 1 })
                 : [],
-            jokers: Array.isArray(state.jokers)
-                ? state.jokers.map(c => toPlain(c)).filter(Boolean)
+            boons: Array.isArray(state.boons)
+                ? state.boons.map(c => toPlain(c)).filter(Boolean)
                 : [],
             artifacts: Array.isArray(state.artifacts)
                 ? state.artifacts.map(c => toPlain(c)).filter(Boolean)
@@ -3089,18 +3060,18 @@ class GameEngine {
             }
         }
 
-        // Boons (jokers): plain objects → Joker instances
-        state.jokers = Array.isArray(state.jokers) ? state.jokers : [];
-        state.jokers = state.jokers.map((saved) => {
+        // Boons: plain objects → Boon instances
+        state.boons = Array.isArray(state.boons) ? state.boons : [];
+        state.boons = state.boons.map((saved) => {
             if (!saved || !saved.id) return null;
-            const data = CardData?.jokers?.find(j => j.id === saved.id) ?? null;
+            const data = CardData?.boons?.find(j => j.id === saved.id) ?? null;
             if (!data) {
                 Logger.warn(`Rehydrate: Boon "${saved.id}" not found in CardData`);
                 return null;
             }
-            const joker = new Joker(data);
-            if (typeof joker.fromJSON === 'function') joker.fromJSON(saved);
-            return joker;
+            const boon = new Boon(data);
+            if (typeof boon.fromJSON === 'function') boon.fromJSON(saved);
+            return boon;
         }).filter(Boolean);
 
         // Artifacts: plain objects → Artifact instances

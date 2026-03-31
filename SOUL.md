@@ -6,7 +6,7 @@
 
 ## Identity
 
-Balatro-style Yahtzee + Greek mythology. Vanilla JS, class-based. Single source of truth: `GameEngine.state`. 5 dice, 13 categories, boons (jokers) + libations. Pips × Favour = Score.
+Roguelike dice + Greek mythology. Vanilla JS, class-based. Single source of truth: `GameEngine.state`. 5 dice, 13 categories, boons + libations. Pips × Favour = Score.
 
 **Project stance:** Stability > novelty. Performance > elegance. Respect what works.
 
@@ -33,7 +33,7 @@ Balatro-style Yahtzee + Greek mythology. Vanilla JS, class-based. Single source 
 1. **SOUL.md** ← you are here
 2. **0-global.mdc** — Primary reference
 3. **ai_context.yaml** — Module map, hot paths
-4. **Task-specific rule** — e.g. Balatro porting → 6-translator + `reference/balatro/`
+4. **Task-specific rule** — e.g. shop/save parity → 6-translator
 
 ---
 
@@ -44,7 +44,7 @@ Balatro-style Yahtzee + Greek mythology. Vanilla JS, class-based. Single source 
 | Game state | `game/js/game/GameEngine.js` | Split it |
 | UI | `game/js/ui/UIManager.js` | Split without request |
 | Cards | `game/js/data/gameData.js` | Add elsewhere |
-| Effects | `game/js/classes/Joker.js`, `LibationCard.js`, `WorshipCard.js` | Duplicate logic |
+| Effects | `game/js/classes/Boon.js`, `LibationCard.js`, `WorshipCard.js` | Duplicate logic |
 | Constants | `game/js/config/*.js` | Hardcode |
 | Scoring | `game/js/engine/ScoringEngine.js`, `HandEvaluator.js` | Bypass |
 
@@ -56,7 +56,7 @@ Balatro-style Yahtzee + Greek mythology. Vanilla JS, class-based. Single source 
 - **Mult:** Additive (+) first, then multiplicative (×).
 - **`turn_start`:** In `nextTurn()`, never `executeRoll()`.
 - **Update .cursor/context/** when adding cards, boons, economy, UI patterns.
-- **Terminology:** Jokers = Boons. Consumables = Libations/Worship. Pips = base. Favour = mult. Ante = difficulty.
+- **Terminology:** Boons (equipped modifiers). Consumables = Libations/Worship. Pips = base. Favour = mult. Ante = difficulty.
 - **Greek theming:** No "hands," "discards." Ask before new terms.
 
 ---
@@ -64,11 +64,11 @@ Balatro-style Yahtzee + Greek mythology. Vanilla JS, class-based. Single source 
 ## Decision Tree
 
 ```
-Adding boon/libation/worship?  → game/js/data/gameData.js + class (Joker/LibationCard/WorshipCard)
+Adding boon/libation/worship?  → game/js/data/gameData.js + class (Boon/LibationCard/WorshipCard)
 Changing economy?             → game/js/config/GameConstants.js
 Changing scoring?             → game/js/engine/ScoringEngine.js, HandEvaluator.js, game/js/config/ScoringConstants.js
 Fixing bug?                   → tracking/BUGS_FIXED_LOG.md, seed for repro
-Porting Balatro?              → 6-translator.mdc, reference/balatro/
+Shop/save/expulsion parity?   → 6-translator.mdc
 Card UI (sell/buy tags)?      → 7-call-upon-able.mdc
 Optimizing?                   → Profile first. Preserve determinism.
 ```

@@ -15,7 +15,13 @@ export default defineConfig({
   server: {
     port: 3000,
     open: true,
-    cors: true
+    cors: true,
+    strictPort: true,
+    // Windows: some setups resolve "localhost" to ::1 while the server is IPv4-first; explicit HMR host reduces WS failures
+    hmr: {
+      host: 'localhost',
+      protocol: 'ws',
+    },
   },
   
   // Preview server configuration
@@ -42,10 +48,11 @@ export default defineConfig({
     include: ['workbox-window']
   },
   
-  // Define global constants
+  // Define global constants (__DEV__ for classic scripts that cannot use import.meta)
   define: {
     __VERSION__: JSON.stringify(process.env.npm_package_version),
-    __BUILD_TIME__: JSON.stringify(new Date().toISOString())
+    __BUILD_TIME__: JSON.stringify(new Date().toISOString()),
+    __DEV__: JSON.stringify(process.env.NODE_ENV !== 'production'),
   }
 });
 

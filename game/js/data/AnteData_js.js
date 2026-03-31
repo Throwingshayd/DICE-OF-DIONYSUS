@@ -54,7 +54,7 @@ const AnteData = [
     {
         name: "Strength",
         blindName: "Primal Force",
-        blindId: "joker_disable",
+        blindId: "boon_disable",
         blindEffect: "All Boons are disabled",
         scoreThreshold: 2070  // +540 - Getting hard!
     },

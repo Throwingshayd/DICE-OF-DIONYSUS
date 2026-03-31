@@ -1,8 +1,8 @@
 // Asset Mapping System - Maps card IDs to their corresponding image assets
 
 const AssetMapping = {
-    // Boon (Joker) Assets
-    jokers: {
+    // Boon card art (id → filename under public/ART)
+    boons: {
         'hestias_hearth': 'hestias hearth.png',
         'charons_ferry_fare': 'charon ferry fare.png',
         'the_gambler': 'the gambler.png',
@@ -13,17 +13,7 @@ const AssetMapping = {
         'forge_of_hephaestus': 'forge of hephestus.png',
         'prometheus_gift': 'promethues gift.png',
         'chaos_primordial': 'chaos primordial.png',
-        'artemis_common': 'artemis rustic.png',
-        'persephone_common': 'Persephones gift.png',
-        'persephone_uncommon': 'queens authority (1).png',
-        'morpheus_common': 'morpheus dream.png',
-        'mt_olympus': 'Mt Olympus.png',
-        'hera_uncommon': 'queens authority (1).png',
-        'athena_common': 'athena shield .png',
-        'athena_uncommon': 'athena shield .png',
-        'poseidon_eights_rare': 'worship posiedon.png',
-        'scaled_of_justice': 'scales of justice.png',
-        'parmenides': 'parmenides.png' // Note: This asset might not exist yet
+        'mt_olympus': 'Mt Olympus.png'
     },
 
     // Worship Card Assets
@@ -67,7 +57,7 @@ const AssetMapping = {
 
     // Pack Assets
     packs: {
-        'joker': 'boon pack.png',
+        'boon': 'boon pack.png',
         'worship': 'worship pack.png',
         'libation': 'Libation pack.png',
         'chaos': 'chaos pack.png'
@@ -75,7 +65,7 @@ const AssetMapping = {
 
     // Frame Assets
     frames: {
-        'joker': null, // Use CSS-based frame for boons since we don't have a boon frame asset
+        'boon': null, // CSS-based frame for boons
         'worship': 'worship frame.png',
         'libation': 'libation frame.png'
     },
@@ -109,22 +99,14 @@ const AssetMapping = {
         'nines': null // Now handled by CSS: .face-9
     },
 
-    // UI Assets
+    // UI Assets (reserved for future getUIAsset use; paths must exist under public/ART)
     ui: {
-        'background': 'new background .png',
         'diceTable': 'dice table.png',
         'rollButton': 'roll button.png',
         'title': 'Title art.png',
         'inGameTitle': 'in game title.png',
         'columnScroll': 'column scroll new.png',
-        'boonSlots': 'boon slots.png',
-        'boonSlotsWithPillars': 'boon slots with pillars .png',
-        'libations': 'LIBATIONS NEW.png',
-        'libationFinal': 'libation final .png',
-        'boonSlotsNew': 'boon slots new.png',
         'shopfront': 'shopfront new (1).png',
-        'artifactCrate': 'Artifact crate.png',
-        'extraRollArtifact': 'extra roll artifact.png',
         'artifactUndecided': 'artifact undecided.png'
     },
 
@@ -154,19 +136,18 @@ const AssetMapping = {
 
     // Helper function to get asset path for a card
     getCardAsset(cardId, cardType) {
-        // Boons (jokers): use asset if mapped, otherwise fallback white design
-        if (cardType === 'joker') {
-            return this.jokers[cardId] || null;
+        if (cardType === 'boon') {
+            return this.boons[cardId] || null;
         }
-        
+
         // Map card types to the correct mapping keys
         const typeMapping = {
             'worship': 'worship',
             'libation': 'libations'
         };
-        
+
         const mappingKey = typeMapping[cardType] || cardType;
-        const mapping = this[mappingKey] || this.jokers;
+        const mapping = this[mappingKey] || this.boons;
         return mapping[cardId] || null;
     },
 
@@ -197,13 +178,12 @@ const AssetMapping = {
 
     // Helper function to get artifact asset
     getArtifactAsset(artifactId) {
-        // Artifacts use white fallback (no images) - like Balatro vouchers
         return null;
     },
 
     // Helper function to get boon asset (returns mapped asset or null for white fallback)
     getBoonAsset(boonId) {
-        return this.jokers[boonId] || null;
+        return this.boons[boonId] || null;
     },
 
     // Helper function to get pack asset

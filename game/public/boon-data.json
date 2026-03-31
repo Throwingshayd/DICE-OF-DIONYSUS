@@ -405,8 +405,8 @@
     "rarity": "epic",
     "cost": 8,
     "sellValue": 2,
-    "effect": "One random die face becomes randomly enhanced for that turn.",
-    "description": "The philosopher of change - fate shifts with each turn.",
+    "effect": "Scores swap between upper and lower pantheon (Ones↔Three of a Kind, Twos↔Small Straight, etc.).",
+    "description": "The philosopher of paradox - what you score in one sanctum appears in the other.",
     "god": "Parmenides"
   },
   {

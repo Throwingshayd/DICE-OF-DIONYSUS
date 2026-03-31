@@ -6,25 +6,25 @@ alwaysApply: false
 
 # Visual Rules (The Artist)
 
-**Identity:** Authority on 16-bit aesthetic — pixel art, card sizing (142×190/140×187), dithering, juice. No smooth blur. Consult 6-translator for Balatro scaling/juice mapping.
+**Identity:** Authority on 16-bit aesthetic — pixel art, card sizing (142×190/140×187), dithering, juice. No smooth blur. Consult 6-translator for card-area scaling and tooltip behavior.
 
 ## Card Sizing (Critical)
 
 **Cards must keep the same size across all game states.** When a card is bought in the shop (140×187px), it must stay 140×187px in the consumables area. Boons: 142×190 in inventory (2× base). Shop/consumables: 140×187. Animations must use `transform` only — never change `width`/`height` or layout-affecting properties.
 
-## Balatro Porting
+## Layout and juice
 
-When implementing Balatro-inspired UI, layout, or juice:
+When implementing UI, layout, or motion:
 - **Consult** `.cursor/rules/6-translator.mdc` for CardArea standards, scaling (71×95px), and z-index
-- Map shaders/dissolve/juice to CSS animations or `balatro-effects.css` / `juice-effects.css`
-- Use 2px strong outlines per translator's visual alignment rules
+- Map dissolve/juice to CSS animations or `balatro-effects.css` / `juice-effects.css` (legacy filenames)
+- Use 2px strong outlines per translator visual rules
 
 ## The Style
 
 - Highly detailed pixel art
 - Rich, vibrant retro style
 - Crisp 16-bit resolution
-- Balatro-inspired UI patterns 
+- Tactile roguelike UI patterns (clear feedback, readable stats)
 
 ## Shading
 
@@ -43,4 +43,4 @@ When implementing Balatro-inspired UI, layout, or juice:
 - UIManager (`js/ui/UIManager.js`) handles DOM rendering
 - **visual-tokens.css** — dithering, hard shadows, no blur (2-visuals compliant)
 - Juice effects in `js/ui/JuiceIntegration.js` and `css/juice-effects.css`
-- Balatro-style effects in `js/ui/BalatroEffects.js` and `css/balatro-effects.css`
+- Screen FX in `js/ui/BalatroEffects.js` and `css/balatro-effects.css` (legacy names; `window.balatroEffects`)

@@ -207,7 +207,6 @@ confirmScore()
 - `Joker.applyTurnStartEffect`, `applyAnteEndEffect`: Large switches.
 - `GameEngine.applyArtifactEffects`: Switch on artifact ids.
 - `GameEngine.applyJokerRollEffects`: Switch (only 1 case currently).
-- `GameEngine.applyJokerAbilityEffects`: Switch.
 
 ### 4.3 Tight Coupling
 

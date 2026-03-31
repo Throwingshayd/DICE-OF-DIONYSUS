@@ -57,6 +57,10 @@ class App {
         
         // Show start screen
         this.showStartScreen();
+
+        if (typeof window.DisplayScale?.init === 'function') {
+            window.DisplayScale.init();
+        }
         
         Logger.info('Game initialized successfully!');
     }
@@ -126,13 +130,22 @@ class App {
         if (window.settingsOverlay) window.settingsOverlay.hide();
     }
 
-    /** Register PWA ServiceWorker for offline support (HTTPS or localhost only) */
+    /** Register PWA ServiceWorker for offline support (HTTPS or localhost only). Skip in dev to avoid cache/HMR breakage. */
     registerServiceWorker() {
         if (!('serviceWorker' in navigator)) return;
-        const isSecure = location.protocol === 'https:' || location.hostname === 'localhost';
+        const h = location.hostname;
+        const loopback = h === 'localhost' || h === '127.0.0.1' || h === '[::1]' || h === '::1';
+        const isSecure = location.protocol === 'https:' || loopback;
         if (!isSecure) return;
+        const viteDev =
+            (typeof __DEV__ !== 'undefined' && __DEV__) ||
+            (loopback && location.port === '3000');
+        if (viteDev) {
+            navigator.serviceWorker.getRegistrations().then(regs => regs.forEach(r => r.unregister()));
+            return;
+        }
         try {
-            navigator.serviceWorker.register('js/pwa/ServiceWorker.js', { scope: './' })
+            navigator.serviceWorker.register('/ServiceWorker.js', { scope: '/' })
                 .then((reg) => {
                     if (typeof Logger !== 'undefined') Logger.info('ServiceWorker registered');
                 })
@@ -551,9 +564,8 @@ class App {
     }
 
     handleResize() {
-        // Handle responsive design adjustments if needed
-        if (this.currentScreen === 'game' && this.uiManager) {
-            // Could trigger UI updates for responsive behavior
+        if (typeof window.DisplayScale?.refresh === 'function') {
+            window.DisplayScale.refresh();
         }
     }
 
@@ -621,9 +633,9 @@ class CollectionManager {
         const grid = document.getElementById('boonsCollectionGrid');
         grid.innerHTML = '';
         
-        CardData.jokers.forEach(boonData => {
+        CardData.boons.forEach(boonData => {
             const isUnlocked = collection.boons.includes(boonData.id);
-            const boon = new Joker(boonData);
+            const boon = new Boon(boonData);
             // Render as shop item to show full text (isShopItem = true, forSale = false)
             const cardEl = boon.render(true, false);
             

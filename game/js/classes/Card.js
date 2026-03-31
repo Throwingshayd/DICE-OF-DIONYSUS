@@ -14,7 +14,7 @@ class Card {
      * @param {number} [data.cost=0] - Purchase cost in gold
      * @param {number} [data.sellValue] - Sell value (defaults to 75% of cost)
      * @param {string} [data.effect=''] - Effect description
-     * @param {string} [data.type='card'] - Card type (joker/worship/libation/artifact)
+     * @param {string} [data.type='card'] - Card type (boon/worship/libation/artifact)
      * @param {string|null} [data.god=null] - Associated god name
      * @param {string} [data.description=''] - Detailed description
      * @param {number} [data.usesLeft=-1] - Remaining uses (-1 = unlimited)
@@ -111,7 +111,7 @@ class Card {
 
         // Balatro-style dynamic stat display for boons (shows current values like +20 Pips, x3 Mult)
         let dynamicStatsHtml = '';
-        if (this.type === 'joker' && window.game && window.game.state) {
+        if (this.type === 'boon' && window.game && window.game.state) {
             const stats = this.getDynamicDisplayStats ? this.getDynamicDisplayStats(window.game.state) : [];
             if (stats && stats.length > 0) {
                 dynamicStatsHtml = '<div class="card-dynamic-stats">';
@@ -125,7 +125,7 @@ class Card {
 
         // Add type indicator: show actual card name (from shop) in inventory, not generic "Boon"/"Libation"
         let typeIndicatorHtml = '';
-        if (this.type === 'joker') {
+        if (this.type === 'boon') {
             typeIndicatorHtml = `<div class="card-type-indicator card-type-boon">${this.name}</div>`;
         } else if (this.type === 'worship') {
             typeIndicatorHtml = `<div class="card-type-indicator card-type-worship">${this.name}</div>`;
@@ -136,7 +136,7 @@ class Card {
         // Determine if we should show text or use tooltip
         const isInShop = isShopItem;
         // Boons in boon slots: show full content (name, effect, god) like shop
-        const showText = isInShop || this.type === 'joker';
+        const showText = isInShop || this.type === 'boon';
         
         let cardContent = '';
         if (showText) {
@@ -394,7 +394,7 @@ class Card {
      */
     getTypeIcon() {
         const icons = {
-            'joker': '⭐',
+            'boon': '⭐',
             'worship': '🛐',
             'libation': '🍷',
             'artifact': '🏺'

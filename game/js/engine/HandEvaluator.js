@@ -11,11 +11,11 @@ const HandEvaluator = {
      * @param {string} category
      * @param {number[]} faces
      * @param {Object} counts
-     * @param {Object} context - { pipsBonuses, jokers, activeBlind, unlockedCategories }
+     * @param {Object} context - { pipsBonuses, boons, activeBlind, unlockedCategories }
      * @returns {{ pips: number, isValid: boolean }}
      */
     evaluate(category, faces, counts, context = {}) {
-        const { pipsBonuses = {}, jokers = [], activeBlind = null, unlockedCategories = {} } = context;
+        const { pipsBonuses = {}, boons = [], activeBlind = null, unlockedCategories = {} } = context;
 
         if (['Sevens', 'Eights', 'Nines'].includes(category) && !unlockedCategories[category]) {
             return { pips: 0, isValid: false };
@@ -27,7 +27,7 @@ const HandEvaluator = {
             return { pips: 0, isValid: false };
         }
 
-        let result = handler(faces, counts, { pipsBonuses, jokers, activeBlind });
+        let result = handler(faces, counts, { pipsBonuses, boons, activeBlind });
 
         if (activeBlind === 'half_upper_pips' && ['Ones', 'Twos', 'Threes', 'Fours', 'Fives', 'Sixes'].includes(category)) {
             result = { ...result, pips: Math.floor(result.pips / 2) };
@@ -62,12 +62,12 @@ const HandEvaluator = {
     };
 });
 
-HandEvaluator.CATEGORY_HANDLERS['Three of a Kind'] = (faces, counts, { jokers, pipsBonuses }) => {
+HandEvaluator.CATEGORY_HANDLERS['Three of a Kind'] = (faces, counts, { boons, pipsBonuses }) => {
     let threshold = SCORING_THRESHOLDS.THREE_OF_KIND_REQUIRED;
-    if (jokers.some(j => j.id === 'bellows_of_war')) threshold -= 1;
+    if (boons.some(j => j.id === 'bellows_of_war')) threshold -= 1;
     if (!Object.values(counts).some(c => c >= threshold)) return { pips: 0, isValid: false };
     let pips = faces.reduce((a, b) => a + b, 0) + LOWER_SECTION_BONUSES['Three of a Kind'];
-    if (jokers.some(j => j.id === 'bellows_of_war')) {
+    if (boons.some(j => j.id === 'bellows_of_war')) {
         const matchVal = parseInt(Object.keys(counts).find(k => counts[k] >= threshold), 10);
         pips += matchVal;
     }
@@ -75,12 +75,12 @@ HandEvaluator.CATEGORY_HANDLERS['Three of a Kind'] = (faces, counts, { jokers, p
     return { pips, isValid: true };
 };
 
-HandEvaluator.CATEGORY_HANDLERS['Four of a Kind'] = (faces, counts, { jokers, pipsBonuses }) => {
+HandEvaluator.CATEGORY_HANDLERS['Four of a Kind'] = (faces, counts, { boons, pipsBonuses }) => {
     let threshold = SCORING_THRESHOLDS.FOUR_OF_KIND_REQUIRED;
-    if (jokers.some(j => j.id === 'bellows_of_war')) threshold -= 1;
+    if (boons.some(j => j.id === 'bellows_of_war')) threshold -= 1;
     if (!Object.values(counts).some(c => c >= threshold)) return { pips: 0, isValid: false };
     let pips = faces.reduce((a, b) => a + b, 0) + LOWER_SECTION_BONUSES['Four of a Kind'];
-    if (jokers.some(j => j.id === 'bellows_of_war')) {
+    if (boons.some(j => j.id === 'bellows_of_war')) {
         const matchVal = parseInt(Object.keys(counts).find(k => counts[k] >= threshold), 10);
         pips += matchVal;
     }
@@ -88,10 +88,10 @@ HandEvaluator.CATEGORY_HANDLERS['Four of a Kind'] = (faces, counts, { jokers, pi
     return { pips, isValid: true };
 };
 
-HandEvaluator.CATEGORY_HANDLERS['Full House'] = (faces, counts, { jokers }) => {
+HandEvaluator.CATEGORY_HANDLERS['Full House'] = (faces, counts, { boons }) => {
     const has3 = Object.values(counts).includes(SCORING_THRESHOLDS.FULL_HOUSE_THREE);
     const has2 = Object.values(counts).includes(SCORING_THRESHOLDS.FULL_HOUSE_TWO);
-    const hasDionysus = jokers.some(j => j.id === 'dionysus_revelry');
+    const hasDionysus = boons.some(j => j.id === 'dionysus_revelry');
     const pairCount = Object.values(counts).filter(c => c === 2).length;
     if (!((has3 && has2) || (hasDionysus && pairCount >= 2))) return { pips: 0, isValid: false };
     return { pips: faces.reduce((a, b) => a + b, 0) + LOWER_SECTION_BONUSES['Full House'], isValid: true };

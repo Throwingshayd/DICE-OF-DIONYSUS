@@ -81,7 +81,7 @@ class Artifact extends Card {
 
     // Apply artifact effect (passive, permanent)
     applyEffect(gameState) {
-        // Artifact effects are applied via Joker.applyEffect() for now
+        // Artifact effects are applied via dedicated engine paths
         // Could be refactored to have dedicated artifact system
         Logger.info(`Artifact purchased: ${this.name}`);
     }

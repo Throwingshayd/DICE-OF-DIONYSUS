@@ -43,7 +43,7 @@ alwaysApply: false
 ## Verification Protocol
 
 When implementing a feature (e.g. new boon):
-1. **If Balatro-derived:** Consult `.cursor/rules/6-translator.mdc` — ensure state mutations and math match the Lua source
+1. **If it touches shop, packs, expulsion, or save shape:** Consult `.cursor/rules/6-translator.mdc`
 2. Add code
 3. Update .cursor/context/ (see SOUL.md decision tree)
 4. Run `npm run dev` → verify in browser

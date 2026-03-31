@@ -141,9 +141,9 @@ class BalatroEffects {
 
             // Boon hover: show popups over affected dice (Pegasus Flight, Cerberus Watch, etc.)
             const boonId = element.dataset?.cardId;
-            const isJoker = element.dataset?.cardType === 'joker';
+            const isBoonCard = element.dataset?.cardType === 'boon';
             const isPlayArea = !element.closest('#shopStage');
-            if (isJoker && boonId && isPlayArea && window.game?.getBoonDicePreview) {
+            if (isBoonCard && boonId && isPlayArea && window.game?.getBoonDicePreview) {
                 const preview = window.game.getBoonDicePreview(boonId);
                 if (preview.length > 0) {
                     this.showBoonDicePopups(preview);
