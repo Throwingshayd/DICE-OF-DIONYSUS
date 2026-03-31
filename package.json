@@ -4,6 +4,8 @@
   "description": "An elegant dice strategy game of pips, favour, and devotion",
   "type": "module",
   "scripts": {
+    "predev": "node scripts/ensure-art-junction.cjs",
+    "postinstall": "node scripts/ensure-art-junction.cjs",
     "dev": "vite",
     "dev:all": "concurrently \"npm run dev\" \"npm run image-gen\"",
     "extract-boons": "node tools/extract-boons.cjs",

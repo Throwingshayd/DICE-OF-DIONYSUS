@@ -9,6 +9,7 @@ An elegant dice strategy game of pips, favour, and devotion. Cast the bones, cou
 ### How to play
 1) Start a run
    - Run `npm run dev` and open http://localhost:3000, or build with `npm run build` and serve the `dist/` folder.
+   - **If images/fonts are missing:** the game expects URLs like `/ART/...`. Vite maps `game/public/ART` to that path automatically. Live Server / Live Preview use the `game/` folder as root, so run `npm install` (runs `scripts/ensure-art-junction.cjs`) or `node scripts/ensure-art-junction.cjs` once to create a `game/ART` junction pointing at `game/public/ART`. Do not open `game/index.html` as a raw `file://` URL.
    - Click Play (optionally enter a seed to make the run reproducible).
 
 2) Rolling and holding
