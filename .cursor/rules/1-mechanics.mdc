@@ -1,17 +1,17 @@
 ---
-description: The Judge — hand validation, mult order (+ then ×), timing (turn_start in nextTurn)
-globs: js/game/**, js/classes/**, js/config/**, js/data/gameData.js
+description: Mechanics — hand validation, mult order (+ then ×), turn_start in nextTurn, seeded RNG
+globs: game/js/game/**, game/js/classes/**, game/js/config/**, game/js/data/gameData.js
 alwaysApply: false
 ---
 
-# Mechanics Rules (The Judge)
+# Mechanics
 
-**Identity:** Authority on game logic — hand validation, multiplier order, blessing timing. Consult 6-translator for shop exclusion, expulsion, save shape.
+**Scope:** Game logic—hands, multiplier order, boon/libation timing. If shop, expulsion, or save shape is involved, also read **`6-translator.mdc`**.
 
-## Mechanics alignment
+## Alignment
 
-When adding or changing scoring / shop behavior:
-- **Consult** `.cursor/rules/6-translator.mdc` for owned-card exclusion, expulsion, and persistence
+When adding or changing scoring or shop-adjacent behavior:
+- Use **`.cursor/rules/6-translator.mdc`** for owned-card exclusion, expulsion, persistence
 - Core state: `state.boons`, `state.consumables`, `state.dice` — single source in `GameEngine`
 - Preserve mult order (+ then ×) and timing contracts — do not simplify without design sign-off
 

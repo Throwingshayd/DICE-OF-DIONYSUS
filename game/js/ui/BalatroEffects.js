@@ -89,7 +89,7 @@ class BalatroEffects {
         });
     }
 
-    showTooltip(element, event) {
+    showTooltip(element, _event) {
         const tooltipData = element.dataset.tooltip;
         if (!tooltipData) return;
 
@@ -241,7 +241,7 @@ class BalatroEffects {
     }
 
     updateTooltipPosition(event) {
-        this.tooltips.forEach((tooltip, element) => {
+        this.tooltips.forEach((tooltip, _element) => {
             this.positionTooltip(tooltip, event);
         });
     }

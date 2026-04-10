@@ -177,7 +177,7 @@ const AssetMapping = {
     },
 
     // Helper function to get artifact asset
-    getArtifactAsset(artifactId) {
+    getArtifactAsset(_artifactId) {
         return null;
     },
 

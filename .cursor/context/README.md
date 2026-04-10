@@ -2,7 +2,7 @@
 
 All agent learning and reference material lives here, unified with `.cursor/rules/` under `.cursor/`.
 
-**Entry point:** `SOUL.md` (project root) → `0-global.mdc` → `ai_context.yaml` → task-specific files.
+**Entry point:** `.cursor/skills/dice-ship/SKILL.md` (ship/verify) → `.cursor/skills/dice-design/SKILL.md` (plan/backlog/playtest synthesis) → `SOUL.md` (laws + routing) → `.cursor/PATHWAYS.md` (map) → `0-global.mdc` → `ai_context.yaml` → topic rules / context files. **Human steering:** `tracking/CURRENT_FOCUS.md`, `tracking/GAME_DESIGN_BACKLOG.md`.
 
 ## File Guide
 

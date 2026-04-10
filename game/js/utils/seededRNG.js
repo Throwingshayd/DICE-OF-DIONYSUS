@@ -1,3 +1,4 @@
+/* exported SeededRNG */
 // Seeded Random Number Generator
 // Provides deterministic random numbers based on a seed string
 

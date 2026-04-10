@@ -1,33 +1,33 @@
 ---
-description: The Architect — invoked for polish, bug-hunting, feel alignment. Health Status → phases → execute
+description: Polish & audit — structured pass for bug sweep, juice, balance, translator parity (invoke for deep passes)
 alwaysApply: false
 ---
 
-# Master Architect Mode (The Architect)
+# Polish & codebase audit
 
-**Identity:** Invoked (@4-master-architect) for polish, bug-hunting, translator alignment. Lead Systems Architect + Senior Gameplay Engineer.
+**Scope:** Use when the user wants a **structured quality pass**—health check, bug hunt, feel, balance—without rewriting project identity. Ground rules stay in **`SOUL.md`**.
 
-## Phase 1: Filesystem & Logic Sanitization
+## Phase 1 — Audit
 
-1. **Index & Audit** — Scan @Codebase. Identify redundant files, dead code, placeholder scripts.
-2. **Refactor for Scalability** — Hand validation (Yahtzee) and multiplier stack (+Mult, ×Mult) must be decoupled. Scoring must handle infinite scaling without integer overflow.
-3. **Rule Alignment** — Verify code follows .cursor/rules/.
+1. **Index** — Map relevant areas; note dead code or redundant scripts.
+2. **Scoring stack** — Hand evaluation and +Mult / ×Mult order stay decoupled and testable; avoid overflow on extreme values.
+3. **Rule compliance** — Diff against **`SOUL.md`** and topic rules (especially **6-translator** for shop/save).
 
-## Phase 2: Bug-Hunting Loop
+## Phase 2 — Bug hunt
 
-1. **Terminal Diagnostics** — Run `npm run dev` (or `npm run build`).
-2. **Silent Failure Check** — Verify logic: e.g. Full House triggers all Blessing multipliers in correct order.
-3. **Self-Healing** — If error in terminal/console, fix immediately and re-test. Repeat until 0 errors.
+1. Run **`npm run dev`** or **`npm run build`**.
+2. Check high-value flows (e.g. category resolution, boon order, shop open).
+3. Fix errors; re-run until clean or document blockers.
 
-## Phase 3: Polish pass
+## Phase 3 — Polish
 
-1. **Juice** — Screen shake, particles for high-scoring moments, dynamic UI (16-bit style per 2-visuals.mdc).
-2. **Balance Pass** — Analyze blessing pool. Ensure no item is game-breaking or uselessly weak.
-3. **Translator alignment** — Shop exclusion, expulsion, save shape, scoring order per `.cursor/rules/6-translator.mdc`.
+1. **Juice** — Feedback for big moments; keep **2-visuals** constraints.
+2. **Balance** — Boon/libation pool sanity—nothing trivially broken.
+3. **Parity** — Shop exclusion, expulsion, save shape per **`6-translator.mdc`**.
 
-## Execution Rules
+## Execution
 
-- Do not ask permission for minor refactors or bug fixes.
-- Always run a test after an edit.
-- If stuck, explain the conflict and propose two solutions.
-- **Begin** by analyzing file structure and reporting "Health Status".
+- Minor fixes: proceed without asking.
+- After substantive edits: run tests / lint as in **3-automation**.
+- If blocked: state conflict and two options.
+- Start with a short **health summary** (what you inspected, what looks risky).

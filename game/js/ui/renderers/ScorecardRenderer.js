@@ -56,8 +56,11 @@ const ScorecardRenderer = {
                 row.classList.remove('used');
                 const worshipLevel = gameState.worshipLevels?.["Pandora's Box"] || 0;
                 const categorySpan = row.querySelector('span');
-                if (categorySpan && isUnlocked && worshipLevel > 0) categorySpan.textContent = `Pandora's Box (Lv.${worshipLevel})`;
-                else if (categorySpan && isUnlocked) categorySpan.textContent = "Pandora's Box";
+                if (categorySpan && isUnlocked && worshipLevel > 0) {
+                    categorySpan.innerHTML = `<span class="pantheon-cat">Pandora's Box</span> <span class="pantheon-deity">(Lv.${worshipLevel})</span>`;
+                } else if (categorySpan && isUnlocked) {
+                    categorySpan.innerHTML = '<span class="pantheon-cat">Pandora\'s Box</span>';
+                }
                 row.querySelector('.potential-score').textContent = combined > 0 ? combined : '-';
                 row.style.cursor = isUnlocked ? 'pointer' : 'default';
                 return;
@@ -69,8 +72,11 @@ const ScorecardRenderer = {
                 const god = godMapping[category];
                 const worshipLevel = gameState.worshipLevels?.[god] || 0;
                 const displayLevel = worshipLevel + 1;
-                if (worshipLevel > 0) categorySpan.innerHTML = `${displayCategory} <span class="worship-tier" data-level="${displayLevel}">(${god} Lv.${displayLevel})</span>`;
-                else categorySpan.textContent = `${displayCategory} (${god})`;
+                if (worshipLevel > 0) {
+                    categorySpan.innerHTML = `<span class="pantheon-cat">${displayCategory}</span> <span class="worship-tier" data-level="${displayLevel}">(${god} Lv.${displayLevel})</span>`;
+                } else {
+                    categorySpan.innerHTML = `<span class="pantheon-cat">${displayCategory}</span> <span class="pantheon-deity">(${god})</span>`;
+                }
             }
             const scoreDisplay = row.querySelector('.potential-score');
             if (gameState.scorecard[category] !== undefined) {

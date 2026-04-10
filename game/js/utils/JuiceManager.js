@@ -84,7 +84,7 @@ class JuiceManager {
         }
         
         const currentTime = performance.now();
-        const deltaTime = currentTime - this.lastFrame;
+        const _deltaTime = currentTime - this.lastFrame;
         this.lastFrame = currentTime;
         
         // Update all active juice effects

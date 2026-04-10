@@ -41,7 +41,7 @@ const GAME_BALANCE = {
     
     // Slots (Card capacity)
     STARTING_BOON_SLOTS: 5,
-    STARTING_LIBATION_SLOTS: 2,
+    STARTING_LIBATION_SLOTS: 5,
     STARTING_WORSHIP_SLOTS: 3,
     
     // Base multipliers

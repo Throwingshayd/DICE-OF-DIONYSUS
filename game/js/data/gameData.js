@@ -1,24 +1,7 @@
+/* exported CardData */
 // Game Data - All cards, antes, and configurations
 
 // AnteData is now defined in AnteData_js.js
-
-// Rarity weights for shop generation
-// Import from constants for consistency
-const RarityWeights = {
-    // Boon rarities
-    'rustic': RARITY_WEIGHTS.RUSTIC,
-    'vibrant': RARITY_WEIGHTS.VIBRANT,
-    'epic': RARITY_WEIGHTS.EPIC,
-    
-    // Worship rarities
-    'worship': RARITY_WEIGHTS.WORSHIP,
-    
-    // Libation rarities
-    'libation': RARITY_WEIGHTS.LIBATION,
-    
-    // Artifact rarities (all artifacts are equally rare)
-    'artifact': RARITY_WEIGHTS.ARTIFACT
-};
 
 const CardData = {
     boons: [

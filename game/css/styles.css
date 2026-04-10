@@ -203,16 +203,14 @@ body::after {
     overflow: visible;
 }
 
-/* Game board background: centred on dice container (inside center-game-area) */
+/* Game board: table art disabled while tuning layout — re-enable background-image when ready */
 .game-board-bg {
     position: absolute;
     inset: 0;
     z-index: 0;
     pointer-events: none;
-    background-image: url('/ART/dice table.png');
-    background-size: 93%;
-    background-position: center;
-    background-repeat: no-repeat;
+    background: transparent;
+    background-image: none;
 }
 
 /* Dice roll zone: pill shape (flattened top/bottom, rounded left/right ends) */
@@ -236,18 +234,36 @@ body::after {
 
 /* ===== ASSET POSITIONING SYSTEM ===== */
 
-/* 1. INVENTORY PANEL - Two separate rounded boxes with die-width gap (75% Boons, 25% Libations) */
-.inventory-panel {
+/* 1. BOON RAIL — top of run; table + consumable dock sit lower for more room */
+.boon-prayer-rail.inventory-panel-boons {
     position: absolute;
-    top: 55px;
-    left: 490px;
-    width: 963px;
-    height: 240px;
-    z-index: 10;
+    top: 52px;
+    left: 521px;
+    width: 911px;
+    height: 204px;
+    z-index: 9;
     display: flex;
-    flex-direction: row;
-    gap: 80px;  /* Die-width visible gap between the two boxes */
-    align-items: stretch;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 2px 10px 4px;
+    overflow: visible;
+    background: transparent;
+    border: none;
+    border-radius: 0;
+    box-sizing: border-box;
+}
+
+.boon-prayer-rail .boon-slots.card-area-squish {
+    min-height: 0;
+    max-height: 196px;
+}
+
+.boon-prayer-rail .inventory-counter {
+    position: absolute;
+    right: 8px;
+    bottom: 0;
+    font-size: 14px;
 }
 
 /* Shared box styling - no border */
@@ -375,6 +391,11 @@ body::after {
 .consumable-slots.card-area-squish .card:nth-child(3) { z-index: 3; }
 .consumable-slots.card-area-squish .card:nth-child(4) { z-index: 4; }
 .consumable-slots.card-area-squish .card:nth-child(5) { z-index: 5; }
+.consumable-slots.card-area-squish .card:nth-child(6) { z-index: 6; }
+.consumable-slots.card-area-squish .card:nth-child(7) { z-index: 7; }
+.consumable-slots.card-area-squish .card:nth-child(8) { z-index: 8; }
+.consumable-slots.card-area-squish .card:nth-child(9) { z-index: 9; }
+.consumable-slots.card-area-squish .card:nth-child(10) { z-index: 10; }
 
 /* Balatro consumable slots: 71×95px base card size (same as boons) */
 .consumable-slots.card-area-squish .card {
@@ -566,6 +587,11 @@ body::after {
     display: flex;
     flex-direction: column;
     gap: 20px;
+    font-family: 'Cormorant Garamond', Georgia, 'Times New Roman', serif;
+    font-weight: 600;
+    font-size: 18px;
+    line-height: 1.28;
+    -webkit-font-smoothing: antialiased;
 }
 
 /* Expand scorecard container when bonus rows (7/8/9) are unlocked */
@@ -578,15 +604,23 @@ body::after {
 .scorecard.expanded-3 { padding-bottom: 181px; }
 
 .scorecard h3 {
-    margin: 0 0 10px 0;
+    margin: 0 0 12px 0;
+    padding: 0 0 8px 0;
     text-align: center;
-    color: #2F1C10;
-    font-size: 24px;
-    text-shadow: 0 1px 1px rgba(0, 0, 0, 0.3);
-    font-family: 'DisneyHeroic', sans-serif;
+    color: #2f1c10;
+    font-size: 1.65rem;
+    font-weight: bold;
+    font-family: 'DisneyHeroic', 'IM Fell English SC', 'Times New Roman', serif;
+    text-transform: none;
+    letter-spacing: 0.04em;
+    text-shadow:
+        0 1px 0 rgba(255, 248, 220, 0.5),
+        0 2px 4px rgba(0, 0, 0, 0.22);
+    border: none;
+    border-bottom: 2px solid rgba(139, 90, 43, 0.45);
+    background: transparent;
     position: relative;
     z-index: 2;
-    font-weight: bold;
 }
 
 /* 4. CENTER DICE AREA - Stage swap per 6-translator */
@@ -594,12 +628,12 @@ body::after {
 .center-game-area,
 .centerGameArea {
     position: absolute;
-    top: 260px;
+    top: 272px;
     left: 521px;
     width: 911px;
-    height: 749px;
+    height: 548px;
     z-index: 6;
-    overflow: hidden;
+    overflow: visible;
 }
 
 .game-stage {
@@ -621,11 +655,12 @@ body::after {
 
 #playStage {
     justify-content: center;
+    align-items: center;
 }
 
 .play-stage-spacer {
-    flex: 0.55;
-    min-height: 8px;
+    flex: 1 1 0;
+    min-height: 0;
 }
 
 #shopStage {
@@ -654,17 +689,17 @@ body::after {
     flex-shrink: 0;
 }
 
-/* Dice container: board background now on .game-board-bg; dice sit centered on it */
+/* Dice container: hug the die row (no 1:1 square — dice are 95px; old aspect-ratio left huge empty height) */
 .dice-container,
 .diceContainer {
     position: relative;
     flex-shrink: 0;
     transition: opacity 350ms ease-out;
-    width: 100%;
-    max-width: min(100%, 720px);
-    aspect-ratio: 1;
+    width: auto;
+    max-width: 100%;
     align-self: center;
-    margin-top: 61px;
+    margin-top: 0;
+    margin-bottom: 0;
     background: transparent;
     display: flex;
     gap: 10px;
@@ -887,7 +922,7 @@ body::after {
     flex-shrink: 0;
     width: 394px;
     z-index: 10;
-    margin-top: -158px;
+    margin-top: 28px;
     display: flex;
     flex-direction: column;
     align-items: center;
@@ -1041,28 +1076,6 @@ body::after {
     color: #2F1C10;
     text-shadow: 0 1px 2px rgba(255,255,255,0.5);
     font-family: 'DisneyHeroic', sans-serif;
-}
-
-/* 7. ARTIFACT SECTION - no asset, Balatro-style minimal */
-/* Hidden: artifacts shown in pause menu Current Run Stats instead */
-.artifact-section {
-    display: none;
-    flex-shrink: 0;
-    margin-top: 16px;
-    width: 100%;
-}
-
-.artifact-slots {
-    width: 100%;
-    min-height: 80px;
-    background: transparent;
-    border-radius: 8px;
-    padding: 12px;
-    display: flex;
-    flex-direction: column;
-    gap: 8px;
-    position: relative;
-    z-index: 99999;
 }
 
 .packsSection {
@@ -2379,7 +2392,8 @@ body::after {
     gap: 12px;
     flex: 1;
     min-height: 0;
-    overflow: hidden;
+    overflow: visible;
+    padding-bottom: 18px;
 }
 
 #shopDefaultView .shop-cat {
@@ -3596,6 +3610,21 @@ body::after {
 #packOpeningView .card.shop-item-selected .buy-sell-label.take:active,
 #packOpeningView .pack-card.shop-item-selected .buy-sell-label.buy:active {
     transform: translateX(50%) scale(0.95);
+}
+
+/* Shop pack cards: Buy sits inside the card (was clipped by .shop-packs overflow + hung below hit area) */
+#shopDefaultView .pack-card .buy-sell-label.buy {
+    left: 50%;
+    right: auto;
+    bottom: 6px;
+    transform: translateX(-50%);
+    z-index: 150;
+}
+#shopDefaultView .pack-card.shop-item-selected .buy-sell-label.buy:hover {
+    transform: translateX(-50%) scale(1.08) translateY(-1px);
+}
+#shopDefaultView .pack-card.shop-item-selected .buy-sell-label.buy:active {
+    transform: translateX(-50%) scale(0.95);
 }
 
 /* Tooltip box below each asset on hover (usable across shop and pack views) */
@@ -6878,7 +6907,6 @@ body::after {
     color: #5a3d8a !important;
     font-weight: 900;
     text-shadow: 0 1px 1px rgba(0, 0, 0, 0.3);
-    font-size: 16px;
 }
 
 /* No shimmer effect - clean and simple */
@@ -6894,16 +6922,89 @@ body::after {
     margin-bottom: 12px;
 }
 
-/* Pantheon title enhancement - clean, no box */
-.scorecard h3 {
-    text-transform: uppercase;
-    letter-spacing: 2px;
-    padding: 0px 0px 8px 0px;
-    background: transparent;
-    border-radius: 0px;
+/* Pantheon: category vs deity hierarchy + ledger (Cormorant / Cinzel set on .scorecard + h3 above) */
+.scorecard .pantheon-cat {
+    font-weight: 700;
+}
+
+.scorecard .pantheon-deity {
+    font-style: italic;
+    font-weight: 500;
+    opacity: 0.88;
+    font-size: 0.94em;
+}
+
+/* Flush with parchment — no inset “card” panel (reads as generic web UI) */
+.scorecard .score-section {
+    margin: 0;
+    padding: 0;
+    border-radius: 0;
+    background: none;
+    box-shadow: none;
+}
+
+/* Manuscript row: space + alignment only, no row boxes or rules */
+.scorecard .score-row {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) minmax(2.25rem, auto);
+    align-items: baseline;
+    column-gap: 0.65rem;
+    font-family: inherit;
+    font-weight: 600;
+    text-shadow: 0 1px 2px rgba(0, 0, 0, 0.2);
     border: none;
-    border-bottom: 3px solid rgba(218, 165, 32, 0.5);
-    margin-bottom: 20px;
+    border-bottom: none;
+    border-radius: 0;
+    padding: 5px 0 7px;
+    margin-bottom: 0;
+    overflow: visible;
+    background: transparent;
+    box-shadow: none;
+}
+
+.scorecard .score-row > span:first-child {
+    font-family: inherit;
+    font-weight: 700;
+    text-shadow: 0 1px 2px rgba(0, 0, 0, 0.18);
+    min-width: 0;
+}
+
+.scorecard .potential-score {
+    font-family: inherit;
+    font-variant-numeric: tabular-nums;
+    font-weight: 700;
+    min-width: 0;
+    text-align: right;
+    letter-spacing: 0.03em;
+}
+
+.scorecard .score-details {
+    min-width: 0;
+    justify-self: end;
+    justify-content: flex-end;
+}
+
+.scorecard .bonus-yahtzee-indicator,
+.scorecard .bonus-text,
+.scorecard .bonus-count {
+    font-family: inherit;
+}
+
+/* Bonus strip: text-first, no bordered widget */
+.scorecard .bonus-yahtzee-indicator {
+    background: none;
+    border: none;
+    border-radius: 0;
+    padding: 4px 0 10px;
+    margin-bottom: 6px;
+    text-align: center;
+    opacity: 0.92;
+    border-bottom: 1px solid rgba(42, 24, 16, 0.12);
+}
+
+.scorecard .worship-tier {
+    font-style: italic;
+    font-size: 0.94em;
 }
 
 /* ===== BALATRO-STYLE GAME OVER SCREEN ===== */
@@ -7231,5 +7332,187 @@ body::after {
     font-weight: bold;
     text-shadow: 0 0 8px rgba(168, 85, 247, 0.8);
     border: 1px solid #a855f7;
+}
+
+/* ===== CONSUMABLE HORIZON + DRAG ZONES (sell wide left / worship right / libation → table) ===== */
+.consumable-shell {
+    position: absolute;
+    inset: 0;
+    z-index: 12;
+    pointer-events: none;
+}
+
+.consumable-zone {
+    position: absolute;
+    pointer-events: none;
+    opacity: 0;
+    transition: opacity 0.2s ease;
+    border-radius: 8px;
+}
+
+.main-game.consumable-drag-active .consumable-zone {
+    opacity: 1;
+}
+
+/* Sell: wide left band (former libation drop zone) */
+.consumable-zone-sell-wide {
+    top: 188px;
+    left: 56px;
+    width: 400px;
+    bottom: 216px;
+    background: linear-gradient(90deg, rgba(255, 107, 107, 0.24) 0%, rgba(255, 107, 107, 0) 100%);
+    border: 1px dashed rgba(255, 107, 107, 0.4);
+}
+
+/* Worship: drag toward Pantheon (right) */
+.consumable-zone-worship {
+    top: 188px;
+    right: 56px;
+    width: 400px;
+    bottom: 216px;
+    background: linear-gradient(270deg, rgba(147, 197, 255, 0.28) 0%, rgba(147, 197, 255, 0) 100%);
+    border: 1px dashed rgba(147, 197, 255, 0.45);
+}
+
+.consumable-horizon {
+    position: absolute;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    height: 212px;
+    pointer-events: auto;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: flex-end;
+    padding: 8px 12px 10px;
+    background: linear-gradient(0deg, rgba(15, 33, 28, 0.55) 0%, rgba(15, 33, 28, 0) 100%);
+}
+
+.consumable-horizon .consumable-slots.card-area-squish {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    justify-content: center;
+    gap: 0;
+    padding: 0;
+    min-height: 187px;
+    width: 100%;
+    max-width: min(100%, 900px);
+    overflow: visible;
+    flex-wrap: nowrap;
+    touch-action: none;
+}
+
+/* Bottom dock: same card footprint as shop / inventory (overrides 71×95 Balatro base) */
+.consumable-horizon .consumable-slots.card-area-squish .card {
+    width: 140px !important;
+    height: 187px !important;
+    min-width: 140px !important;
+    min-height: 187px !important;
+    max-width: 140px !important;
+    max-height: 187px !important;
+    margin-left: -16px !important;
+}
+
+.consumable-horizon .consumable-slots.card-area-squish .card:first-child {
+    margin-left: 0 !important;
+}
+
+.consumable-horizon-counter {
+    position: static;
+    margin-top: 4px;
+    align-self: center;
+    font-size: 16px;
+}
+
+.consumable-horizon .consumable-slots .card {
+    touch-action: none;
+    cursor: grab;
+}
+
+.consumable-horizon .consumable-slots .card:active {
+    cursor: grabbing;
+}
+
+.consumable-card-dragging {
+    z-index: 100 !important;
+    filter: drop-shadow(0 8px 16px rgba(0, 0, 0, 0.45));
+}
+
+@keyframes consumableWorshipPantheon {
+    0% {
+        transform: translate(0, 0) scale(1);
+        opacity: 1;
+        filter: blur(0);
+    }
+    100% {
+        transform: translate(420px, -90px) scale(0.68);
+        opacity: 0;
+        filter: blur(2px);
+    }
+}
+
+@keyframes consumableLibationArtifacts {
+    0% {
+        transform: translate(0, 0) rotate(0deg);
+        opacity: 1;
+        filter: blur(0);
+    }
+    45% {
+        transform: translate(-80px, 20px) rotate(-6deg);
+        opacity: 0.95;
+    }
+    100% {
+        transform: translate(-400px, 55px) rotate(-12deg);
+        opacity: 0;
+        filter: blur(2px);
+    }
+}
+
+@keyframes consumableSellSide {
+    0% {
+        transform: translateX(0) scale(1);
+        opacity: 1;
+    }
+    100% {
+        transform: translateX(var(--sell-dx, -120px)) scale(0.75);
+        opacity: 0;
+    }
+}
+
+.consumable-fx-worship-pantheon {
+    animation: consumableWorshipPantheon 0.52s cubic-bezier(0.25, 0.9, 0.35, 1) forwards;
+}
+
+.consumable-fx-libation-artifacts {
+    animation: consumableLibationArtifacts 0.55s cubic-bezier(0.33, 1, 0.68, 1) forwards;
+}
+
+@keyframes consumableLibationDice {
+    0% {
+        transform: translate(0, 0) scale(1);
+        opacity: 1;
+        filter: blur(0);
+    }
+    100% {
+        transform: translate(0, -220px) scale(0.72);
+        opacity: 0;
+        filter: blur(1px);
+    }
+}
+
+.consumable-fx-libation-dice {
+    animation: consumableLibationDice 0.52s cubic-bezier(0.33, 1, 0.68, 1) forwards;
+}
+
+.consumable-fx-sell-left {
+    --sell-dx: -140px;
+    animation: consumableSellSide 0.45s ease-in forwards;
+}
+
+.consumable-fx-sell-right {
+    --sell-dx: 140px;
+    animation: consumableSellSide 0.45s ease-in forwards;
 }
 

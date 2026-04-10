@@ -1,3 +1,4 @@
+/* exported AnteData, getAnteData, getRandomAnteData */
 // AnteData.js - Defines boss blinds and ante progression
 // First ante: 200. Progression scaled from original 300-base curve (~2/3).
 

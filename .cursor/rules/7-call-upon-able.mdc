@@ -1,12 +1,12 @@
 ---
-description: The Reuser — Card.render(), appendInventoryCard(). No duplicate card UI logic
-globs: js/ui/UIManager.js, js/classes/Card.js, js/classes/Boon.js, js/classes/LibationCard.js, js/classes/WorshipCard.js
+description: Card UI — Card.render(), appendInventoryCard(); single path for buy/sell/take tags
+globs: game/js/ui/UIManager.js, game/js/classes/Card.js, game/js/classes/Boon.js, game/js/classes/LibationCard.js, game/js/classes/WorshipCard.js
 alwaysApply: false
 ---
 
-# Call-Upon-Able Mechanics (The Reuser)
+# Card UI reuse
 
-**Identity:** Authority on card UI reuse — Card.render(), appendInventoryCard(). One abstraction per pattern. No type-specific branches when shared logic works.
+**Scope:** One path for card chrome—**`Card.render(isShopItem, isDirectSale)`** and **`UIManager.appendInventoryCard()`**. Avoid parallel tag logic per card type.
 
 ## Principle
 

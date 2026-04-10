@@ -2,8 +2,9 @@
 
 **Document Type:** Senior Architect Audit  
 **Date:** February 16, 2026  
-**Status:** READY FOR REVIEW  
-**Constraint:** No code changes — documentation only
+**Line counts refreshed:** April 10, 2026 (see `tracking/KNOWN_ISSUES.md`)  
+**Status:** Reference audit (historical narrative + updated metrics)  
+**Constraint:** Original pass was documentation-only; metrics updated with repo
 
 ---
 
@@ -38,7 +39,7 @@ rollDice() [GameEngine]
     → Pre-roll jiggle (DOM)
     → setTimeout 250ms
     → executeRoll()
-        → applyJokerRollEffects()     [GameEngine switch: achilles_heel only]
+        → applyBoonRollEffects()     [GameEngine switch: achilles_heel only]
         → state.rollsLeft--
         → state.hasRolled = true
         → Balatro effects (window.balatroEffects)
@@ -47,15 +48,15 @@ rollDice() [GameEngine]
         → state.dice.forEach: die.roll(prng)
         → diceTransformations.onesBecomeSixes?
         → processMotherOfPearl() [each Die]
-        → jokers.forEach: joker.applyDiceRollEffect() [if affectsDiceRoll]
+        → state.boons.forEach: boon.applyDiceRollEffect() [if affectsDiceRoll]
         → checkTriggerEffects() [fourFoursReroll, goldPerDie]
         → previewUnlockBonusCategoriesOnRoll()
         → updateAllUI()
 ```
 
 **Observations:**
-- `applyJokerRollEffects()` in GameEngine only handles `achilles_heel`, but Achilles' Heel is also in `Joker.applyBeforeRollEffect` — **duplication / split logic**.
-- Dice roll effects are split: some in GameEngine (switch), some via `joker.affectsDiceRoll()` + `applyDiceRollEffect`.
+- `applyBoonRollEffects()` in GameEngine only handles `achilles_heel`, but Achilles' Heel is also in `Boon.applyBeforeRollEffect` — **duplication / split logic**.
+- Dice roll effects are split: some in GameEngine (switch), some via `boon.affectsDiceRoll()` + `applyDiceRollEffect`.
 - `checkTriggerEffects()` reads from `state.triggerEffects`, `state.goldPerDie` — boons populate these elsewhere.
 
 #### Phase B: Hand Validation (refactored → js/engine/)
@@ -88,7 +89,7 @@ confirmScore()
     → { pips, favour, isValid } = calculateScore(category, true)
     → pips += tempPips, favour += tempFavour
     → eventData = { category, pips, favour, favourMult: 1 }
-    → jokers.forEach: eventData = joker.onTimingEvent('before_score', state, eventData)
+    → state.boons.forEach: eventData = boon.onTimingEvent('before_score', state, eventData)
     → pips = eventData.pips
     → favour = eventData.favour * (eventData.favourMult || 1)   [BALATRO: additive then multiplicative]
     → globalBonuses.fivesToAll?
@@ -106,13 +107,13 @@ confirmScore()
 
 ## Part 2: God Objects & Structural Problems
 
-### 2.1 GameEngine.js (~2,561 lines)
+### 2.1 GameEngine.js (~3,285 lines, Apr 2026)
 
 **Responsibilities (too many):**
 - Game state (single source of truth)
 - DOM binding (bindDOMElements, setupDOMEventListeners)
 - Dice roll (rollDice, executeRoll, shuffleDicePositions)
-- Joker roll effects (applyJokerRollEffects — switch)
+- Boon roll effects (applyBoonRollEffects — switch)
 - Trigger effects (checkTriggerEffects)
 - Scoring (promptScore, confirmScore, calculateScore)
 - Hand validation (inside calculateScore — 250+ lines)
@@ -125,33 +126,21 @@ confirmScore()
 
 **Verdict:** Classic God Object. ~40+ state buckets (`diceEffects`, `pipsBonuses`, `rerollAbilities`, `diceSubstitutions`, `abilities`, `doubleScoringAllowed`, `goldPerDie`, `forcedDiceValues`, `triggerEffects`, `globalBonuses`, `winConditions`, `yahtzeeEffects`, `prophecyEffects`, `flexibleScoring`, `diceTransformations`, etc.) are ad-hoc namespaces for boon effects. No single source of truth for “what effects exist.”
 
-### 2.2 Joker.js (~1,626 lines)
+### 2.2 Boon.js + boonTimingHandlers.js (~1,076 + ~620 lines, Apr 2026)
 
 **Structure:**
-- `onTimingEvent(timing, state, eventData)` → `applyTimingEffect()`
-- `applyTimingEffect()` delegates to:
-  - `applyTurnStartEffect()` — switch on `this.id`
-  - `applyAnteEndEffect()` — switch
-  - `applyBeforeRollEffect()` — switch
-  - `applyAfterRollEffect()` — switch
-  - `applyBeforeScoreEffect()` — **~800+ line switch** (main hub)
-  - `applyAfterScoreEffect()` — switch
-  - `applyTurnEndEffect()` — switch
-  - `applyShopEnterEffect()`, `applyShopExitEffect()`, etc.
+- `Boon.onTimingEvent(timing, state, eventData)` → timing handlers; **`before_score`** heavy logic lives in **`boonTimingHandlers.js`** (loaded before `Boon.js` in `index.html`).
+- Other timings still use large `switch`/`case` sets on `this.id` inside `Boon.js`.
 
-**Verdict:** One giant switch per timing. ~110 `case` statements across methods. Adding a boon requires editing multiple switches. No registry, no plugin system.
+**Verdict:** Adding a boon still touches multiple code paths; `before_score` is partially extracted. No registry / plugin system.
 
-### 2.3 UIManager.js (~2,583 lines)
+### 2.3 UIManager.js (~380 lines) + ShopUI.js (~670 lines)
 
 **Responsibilities:**
-- DOM binding, restoration
-- Shop (generateShopStock, generateDirectSales, generateArtifactStock, pack opening)
-- Dice rendering (renderDice)
-- Scorecard rendering
-- Card rendering
-- Pack claiming, collection display
+- **UIManager:** DOM binding, coordination, delegates shop/packs/expulsion to **ShopUI**; dice/scorecard often via **`ui/renderers/`**.
+- **ShopUI:** Stock display, buy/sell, pack flow, **expulsion** (inventory full).
 
-**Verdict:** Monolithic UI. Shop logic is deeply coupled to GameEngine state. Split deferred per ai_context.yaml.
+**Verdict:** UI monolith split from 2025-era layout; **GameEngine** is now the larger structural concern than UIManager alone.
 
 ### 2.4 Redundant Scoring Categories / Logic
 
@@ -163,18 +152,18 @@ confirmScore()
 
 ## Part 3: Inconsistent Handling of Blessings & Dice
 
-### 3.1 Blessings (Boons / Jokers)
+### 3.1 Blessings (Boons — UI term “joker”)
 
 | Aspect | Where | Problem |
 |--------|-------|---------|
-| Roll effects | `GameEngine.applyJokerRollEffects()` | Only achilles_heel; duplicated with Joker |
-| Roll effects | `Joker.applyBeforeRollEffect()` | Achilles also here |
-| Dice roll | `joker.affectsDiceRoll()` + `applyDiceRollEffect()` | Different code path from timing |
-| Hand validation | Inside `GameEngine.calculateScore()` | Bellows, Dionysus Revelry checked via `state.jokers.some()` — not via timing |
-| Pip/favour | `Joker.applyBeforeScoreEffect()` | Central place, but 800+ line switch |
+| Roll effects | `GameEngine.applyBoonRollEffects()` | Only achilles_heel; duplicated with `Boon` |
+| Roll effects | `Boon.applyBeforeRollEffect()` | Achilles also here |
+| Dice roll | `boon.affectsDiceRoll()` + `applyDiceRollEffect()` | Different code path from timing |
+| Hand validation | Inside `GameEngine.calculateScore()` | Bellows, Dionysus Revelry checked via `state.boons.some()` paths — not only via timing |
+| Pip/favour | `BoonTimingHandlers` + `Boon` (`before_score`, etc.) | Large switches; `before_score` hub in `boonTimingHandlers.js` |
 | State mutation | `state.pipsBonuses`, `state.diceSubstitutions`, etc. | Boons write to shared state buckets; order of execution matters; no isolation |
 
-**Inconsistency:** Some boons use timing (`before_score`), others mutate `state` in `applyDiceRollEffect`, others are hardcoded in GameEngine (`applyJokerRollEffects`, `calculateScore`).
+**Inconsistency:** Some boons use timing (`before_score`), others mutate `state` in `applyDiceRollEffect`, others are hardcoded in GameEngine (`applyBoonRollEffects`, `calculateScore`).
 
 ### 3.2 Dice
 
@@ -182,12 +171,12 @@ confirmScore()
 |--------|-------|---------|
 | Face value | `Die.currentFace` | Canonical |
 | Face value | `Die.getEffectiveFace()` | Correct for scoring (includes wild, mother of pearl) |
-| Face value | `die.face` in Joker.js | **Inconsistent:** Die has no `face` property. Code uses `die.face` in ~20 places. Some assign `die.face = 3` (Smog) — creates ad-hoc property; does not update `currentFace`. Risk of bugs. |
+| Face value | `die.face` in boon code | **Inconsistent:** Die has no stable `face` property. Code uses `die.face` in several places. Some assign `die.face = 3` (Smog) — ad-hoc; does not update `currentFace`. Risk of bugs. |
 | Held state | `state.held[]` | GameEngine owns |
-| Held state | `die.held` in Joker | Some boons (Medusa, Reckless) set `die.held` — Die may not have `.held`; state.held is the source of truth |
+| Held state | `die.held` from boons | Some boons (Medusa, Reckless) set `die.held` — Die may not have `.held`; state.held is the source of truth |
 | Roll | `die.roll(prng)` | Correct |
 
-**Inconsistency:** Mix of `currentFace`, `getEffectiveFace()`, and `die.face`. `die.face` used in Joker is undefined unless a boon assigns it (e.g. Smog), and assigning it does not affect `getEffectiveFace()`.
+**Inconsistency:** Mix of `currentFace`, `getEffectiveFace()`, and `die.face`. `die.face` is undefined unless a boon assigns it (e.g. Smog), and assigning it does not affect `getEffectiveFace()`.
 
 ---
 
@@ -202,29 +191,29 @@ confirmScore()
 ### 4.2 Nested If/Else and Switch Chains
 
 - `calculateScore`: Single 250+ line switch for categories.
-- `Joker.applyBeforeScoreEffect`: 800+ line switch with 50+ cases.
-- `Joker.applyAfterRollEffect`: 100+ lines.
-- `Joker.applyTurnStartEffect`, `applyAnteEndEffect`: Large switches.
+- `boonTimingHandlers.js` / `Boon` `before_score` and other timings: large switches with many cases.
+- `Boon.applyAfterRollEffect`: 100+ lines.
+- `Boon.applyTurnStartEffect`, `applyAnteEndEffect`: Large switches.
 - `GameEngine.applyArtifactEffects`: Switch on artifact ids.
-- `GameEngine.applyJokerRollEffects`: Switch (only 1 case currently).
+- `GameEngine.applyBoonRollEffects`: Switch (only 1 case currently).
 
 ### 4.3 Tight Coupling
 
 - GameEngine imports/calls UIManager, window.uiManager, window.game.
-- Joker uses `window.game?.showMessage?.()` — global coupling.
-- Shop logic in UIManager, but GameEngine owns shop flow (openShop, closeShop).
-- Dice rendering in UIManager depends on GameEngine state shape.
+- Boon code may use `window.game?.showMessage?.()` — global coupling.
+- Shop **UI** in ShopUI / shopManager; GameEngine owns shop flow (openShop, closeShop, cashout).
+- Dice rendering (renderers) depends on GameEngine state shape.
 
 ### 4.4 State Explosion
 
 - `state` has 40+ ad-hoc effect buckets. Adding a boon often means adding a new bucket or extending an existing one.
 - No schema or documentation for which boon writes to which bucket.
-- Order of joker application matters; not explicit.
+- Order of boon application matters; not explicit.
 
 ### 4.5 Duplication
 
-- Achilles' Heel: GameEngine + Joker.
-- Hand-validation boons (Bellows, Dionysus) live in GameEngine, not Joker timing.
+- Achilles' Heel: GameEngine + Boon timing.
+- Hand-validation boons (Bellows, Dionysus) live in GameEngine, not only in timing handlers.
 - God mapping centralized in GameConstants (GOD_TO_CATEGORY, GOD_METADATA, GodUtils).
 
 ### 4.6 Missing Abstractions
@@ -239,7 +228,7 @@ confirmScore()
 
 ### 5.1 Overview
 
-Every Blessing (Joker/Boon) is a **standalone object** that **subscribes** to game events. No monolithic switch. The game emits events; the registry routes them to interested boons.
+Every **Boon** is a **standalone object** that **subscribes** to game events. No monolithic switch. The game emits events; the registry routes them to interested boons.
 
 ### 5.2 Event Types (Replaces Timing Flags)
 
@@ -340,7 +329,7 @@ Multiplier Stack:
 2. Migrate one boon (e.g. Hestia's Hearth) to registry pattern.
 3. Run both paths in parallel; compare outputs; verify determinism.
 4. Migrate boons one-by-one.
-5. Remove switch statements from Joker.js.
+5. Remove switch statements from `Boon.js` / `boonTimingHandlers.js` (or replace with registry).
 6. Extract HandValidator from calculateScore.
 7. Slim down GameEngine to orchestration only.
 
@@ -351,8 +340,9 @@ Multiplier Stack:
 | File | Lines | Role |
 |------|-------|------|
 | GameEngine.js | ~2,561 | God Object |
-| UIManager.js | ~2,583 | Monolithic UI |
-| Joker.js | ~1,626 | Boon switch hub |
+| UIManager.js | ~380 | Coordinator; renderers + ShopUI |
+| GameEngine.js | ~3,285 | Primary god object |
+| Boon.js + boonTimingHandlers.js | ~1,076 + ~620 | Boon timing |
 | gameData.js | ~837 | Card definitions |
 | Die.js | ~436 | Dice model |
 | LibationCard.js | ~450 | Consumables |
@@ -366,9 +356,9 @@ Multiplier Stack:
 
 ## Part 7: Critical Inconsistencies to Fix (When Refactoring)
 
-1. **Die.face vs currentFace:** Standardize on `getEffectiveFace()` for scoring; add `face` getter as alias to `currentFace` if needed for legacy, or migrate all Joker code to `getEffectiveFace()`.
+1. **Die.face vs currentFace:** Standardize on `getEffectiveFace()` for scoring; add `face` getter as alias to `currentFace` if needed for legacy, or migrate all boon code to `getEffectiveFace()`.
 2. **die.held vs state.held:** Single source of truth — use `state.held[index]`; remove any `die.held`.
-3. **Achilles' Heel duplication:** Single implementation in Joker timing.
+3. **Achilles' Heel duplication:** Single implementation in Boon roll timing.
 4. **Hand-validation boons:** Move Bellows, Dionysus into event/hand-validator extension, not inline in calculateScore.
 5. **confirmOverlay binding:** Template vs body — ensure overlay is bound when game uses template (known playtest issue).
 
@@ -379,13 +369,13 @@ Multiplier Stack:
 The game works but has accumulated **architectural drift** from iterative AI coding. The main blockers for Balatro-grade polish are:
 
 - **God Object** GameEngine with 40+ ad-hoc state buckets
-- **Monolithic switch** in Joker.js (~110 cases)
+- **Monolithic switches** in `Boon.js` / `boonTimingHandlers.js` (many cases)
 - **Coupled hand validation** inside calculateScore
 - **Inconsistent Die API** (face vs currentFace)
-- **Scattered boon logic** across GameEngine, Joker, and state mutation
+- **Scattered boon logic** across GameEngine, `Boon` / handlers, and state mutation
 
 The proposed **Registry Pattern** with event-driven boons and a decoupled HandValidator provides a clear path to modular, testable, maintainable architecture without breaking the game's feel.
 
 ---
 
-**Document ready for review.** No code has been changed. This map is intended to guide future refactoring decisions.
+**Document ready for review.** Terminology and metrics updated Apr 2026 to match live `Boon` / `GameEngine` naming; use `tracking/KNOWN_ISSUES.md` for current line counts.

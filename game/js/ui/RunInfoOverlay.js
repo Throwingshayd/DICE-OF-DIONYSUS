@@ -1,3 +1,4 @@
+/* exported RunInfoOverlay */
 /**
  * RunInfoOverlay - Balatro-style Run Info content for pause menu
  * Balatro: G.UIDEF.run_info() — tabs for Blinds, Hands, Vouchers

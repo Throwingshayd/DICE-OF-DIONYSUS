@@ -7,6 +7,20 @@
 
 ---
 
+## 2026-04-10 — Profile targets (secondary focus)
+
+**Goal:** Per [`tracking/CURRENT_FOCUS.md`](../../tracking/CURRENT_FOCUS.md), prioritize **score tally** and **shop open** when profiling.
+
+| Area | Where to look | Status |
+|------|----------------|--------|
+| Score reveal / tally | `GameEngine.animateScoreUpdate`, `animateSequentialScoring`, live score DOM | **Deferred** — record long tasks (>50ms) in Performance tab when investigating “jank” |
+| Shop open | `GameEngine.showInterestThenOpenShop` → `openShop` → `ShopUI.openShop`, stock render | **Deferred** — stock generation is `ShopStockGenerator` (pure); main-thread cost is likely **DOM card mount** |
+| Dice / FX | `DiceRenderer`, `BalatroEffects` | **Deferred** — cosmetic `Math.random` allowed per SOUL; profile only if FPS drops |
+
+**Next step:** On next perf pass, paste **top 1–3 self-time stacks** (Chrome Performance → Bottom-Up) for a 30s window covering **one cashout + shop open** and **one full score animation**.
+
+---
+
 ## 🔥 Hot Paths (Profile These First)
 
 ### 1. Game Loop (Critical Path)
@@ -45,7 +59,7 @@
 ### 3. Rendering Loop (High Frequency)
 
 ```javascript
-// UIManager.renderDice() - Called after every roll
+// DiceRenderer / UIManager path — called after every roll
 - Creates/updates 5 dice DOM elements
 - Applies CSS classes based on state
 - Renders face values and enhancements
@@ -61,7 +75,7 @@
 ### 4. Shop Generation (Medium Priority)
 
 ```javascript
-// UIManager.generateShopStock() - Called at end of turns/antes
+// ShopUI + ShopStockGenerator — stock at shop open / reroll
 - Generates artifacts (rarity-weighted)
 - Generates random cards from pools
 - Generates pack contents

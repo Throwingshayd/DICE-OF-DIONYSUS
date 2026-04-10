@@ -11,6 +11,21 @@ const MUSIC_TRACKS = {
     music5: 'ART/Music/lute 5 w effects.wav'
 };
 
+/** Dry/wet mix for music convolver — lower wet = clearer, less smear (tracks already have “w effects”) */
+const MUSIC_REVERB_DRY = 0.94;
+const MUSIC_REVERB_WET = 0.06;
+
+/** Pre-reverb tone: roll off highs before convolver (wet path adds air back) */
+const MUSIC_PRE_LP_HZ = 3000;
+const MUSIC_PRE_LP_Q = 0.28;
+
+/** Master chain after dry+wet sum: darker ceiling so music sits back in the mix */
+const MUSIC_MASTER_LP_HZ = 2200;
+const MUSIC_MASTER_LP_Q = 0.32;
+const MUSIC_MASTER_BODY_HZ = 400;
+const MUSIC_MASTER_BODY_DB = 2.2;
+const MUSIC_MASTER_BODY_Q = 1;
+
 class SoundManager {
     constructor() {
         this.soundBase = 'sounds/';  // SFX from game/public/sounds/ (Vite serves public at root)
@@ -34,6 +49,8 @@ class SoundManager {
         };
         this._currentContext = 'play';
         this._musicLoadFailCount = 0;
+        /** Per-source graph connects here → aquatic master → musicGain → destination */
+        this._musicMasterIn = null;
     }
 
     /** Lazy init - create AudioContext on first use (requires user gesture) */
@@ -46,7 +63,7 @@ class SoundManager {
             this.sfxGain = this.audioContext.createGain();
             this.musicGain.gain.value = this.musicVolume;
             this.sfxGain.gain.value = this.sfxVolume;
-            this.musicGain.connect(this.audioContext.destination);
+            this._buildMusicMasterChain();
             this.sfxGain.connect(this.audioContext.destination);
             this._reverbIR = this._createOpenStoaIR();
             if (typeof Logger !== 'undefined') Logger.info('SoundManager initialized');
@@ -55,11 +72,59 @@ class SoundManager {
         }
     }
 
+    /**
+     * Shared bus: soft lowpass + low-mid body + gentle compression.
+     * Tames reversed/time-stretched grain and reads closer to ambient / submerged distance.
+     */
+    _buildMusicMasterChain() {
+        if (this._musicMasterIn || !this.audioContext) return;
+        const ac = this.audioContext;
+        this._musicMasterIn = ac.createGain();
+        this._musicMasterIn.gain.value = 1;
+
+        const aquaticLP = ac.createBiquadFilter();
+        aquaticLP.type = 'lowpass';
+        aquaticLP.frequency.value = MUSIC_MASTER_LP_HZ;
+        aquaticLP.Q.value = MUSIC_MASTER_LP_Q;
+
+        const bodyPeak = ac.createBiquadFilter();
+        bodyPeak.type = 'peaking';
+        bodyPeak.frequency.value = MUSIC_MASTER_BODY_HZ;
+        bodyPeak.Q.value = MUSIC_MASTER_BODY_Q;
+        bodyPeak.gain.value = MUSIC_MASTER_BODY_DB;
+
+        /** Tame residual brightness above the master LP knee (12 dB/oct is gradual) */
+        const airShelf = ac.createBiquadFilter();
+        airShelf.type = 'highshelf';
+        airShelf.frequency.value = 3800;
+        airShelf.gain.value = -4.5;
+        airShelf.Q.value = 0.7;
+
+        const glue = ac.createDynamicsCompressor();
+        glue.threshold.value = -26;
+        glue.knee.value = 22;
+        glue.ratio.value = 2.2;
+        glue.attack.value = 0.045;
+        glue.release.value = 0.38;
+
+        this._musicMasterIn.connect(aquaticLP);
+        aquaticLP.connect(bodyPeak);
+        bodyPeak.connect(airShelf);
+        airShelf.connect(glue);
+        glue.connect(this.musicGain);
+        this.musicGain.connect(ac.destination);
+        /** After first user gesture / ensureReady: if missing, an old cached script or init failure */
+        this.musicFxRevision = 3;
+        if (typeof Logger !== 'undefined') {
+            Logger.info('SoundManager: music bus v' + this.musicFxRevision + ' (pre-LP → reverb → master LP/peaking/highshelf/compressor)');
+        }
+    }
+
     /** Create reverb IR: open pillared space (stoa) — pillars, no walls, sound escapes upward */
     _createOpenStoaIR() {
         if (!this.audioContext) return null;
         const sr = this.audioContext.sampleRate;
-        const duration = 4.2;
+        const duration = 2.6;
         const len = Math.floor(sr * duration);
         const ir = this.audioContext.createBuffer(2, len, sr);
         const L = ir.getChannelData(0);
@@ -67,7 +132,7 @@ class SoundManager {
 
         // Early reflections: discrete pillar "slaps" (first ~120ms)
         const earlyDelays = [0.012, 0.028, 0.047, 0.068, 0.091, 0.118];
-        const earlyGain = 0.35;
+        const earlyGain = 0.2;
         for (const delay of earlyDelays) {
             const idx = Math.floor(delay * sr);
             if (idx < len) {
@@ -76,14 +141,15 @@ class SoundManager {
             }
         }
 
-        // Diffuse tail: gentle decay so harshness "escapes" — slower falloff than a box room
-        const decay = 1.6;
+        // Diffuse tail: gentle decay — keep quiet vs source files that already have FX
+        const decay = 2.0;
+        const tailLevel = 0.17;
         for (let i = 0; i < len; i++) {
             const t = i / len;
             const d = Math.pow(1 - t, decay);
-            const rolloff = 1 - t * 0.4; // Highs decay faster (open air) — subtle
-            L[i] = (L[i] || 0) + (Math.random() * 2 - 1) * d * rolloff * 0.28;
-            R[i] = (R[i] || 0) + (Math.random() * 2 - 1) * d * rolloff * 0.28;
+            const rolloff = 1 - t * 0.45;
+            L[i] = (L[i] || 0) + (Math.random() * 2 - 1) * d * rolloff * tailLevel;
+            R[i] = (R[i] || 0) + (Math.random() * 2 - 1) * d * rolloff * tailLevel;
         }
         return ir;
     }
@@ -175,17 +241,18 @@ class SoundManager {
             src.playbackRate.value = 0.606;
             const smoothing = this.audioContext.createBiquadFilter();
             smoothing.type = 'lowpass';
-            smoothing.frequency.value = 4800;
-            smoothing.Q.value = 0.4;
+            smoothing.frequency.value = MUSIC_PRE_LP_HZ;
+            smoothing.Q.value = MUSIC_PRE_LP_Q;
             src.connect(smoothing);
             const srcGain = this.audioContext.createGain();
             srcGain.gain.setValueAtTime(0, now);
             srcGain.gain.linearRampToValueAtTime(1, endTime);
-            srcGain.connect(this.musicGain);
+            if (this._musicMasterIn) srcGain.connect(this._musicMasterIn);
+            else srcGain.connect(this.musicGain);
             const dryGain = this.audioContext.createGain();
             const wetGain = this.audioContext.createGain();
-            dryGain.gain.value = 0.89;
-            wetGain.gain.value = 0.11;
+            dryGain.gain.value = MUSIC_REVERB_DRY;
+            wetGain.gain.value = MUSIC_REVERB_WET;
             dryGain.connect(srcGain);
             wetGain.connect(srcGain);
             if (this._reverbIR) {
@@ -228,16 +295,17 @@ class SoundManager {
             src.playbackRate.value = 0.606;
             const smoothing = this.audioContext.createBiquadFilter();
             smoothing.type = 'lowpass';
-            smoothing.frequency.value = 4800;
-            smoothing.Q.value = 0.4;
+            smoothing.frequency.value = MUSIC_PRE_LP_HZ;
+            smoothing.Q.value = MUSIC_PRE_LP_Q;
             src.connect(smoothing);
             const srcGain = this.audioContext.createGain();
             srcGain.gain.value = 1;
-            srcGain.connect(this.musicGain);
+            if (this._musicMasterIn) srcGain.connect(this._musicMasterIn);
+            else srcGain.connect(this.musicGain);
             const dryGain = this.audioContext.createGain();
             const wetGain = this.audioContext.createGain();
-            dryGain.gain.value = 0.89;
-            wetGain.gain.value = 0.11;
+            dryGain.gain.value = MUSIC_REVERB_DRY;
+            wetGain.gain.value = MUSIC_REVERB_WET;
             dryGain.connect(srcGain);
             wetGain.connect(srcGain);
             if (this._reverbIR) {

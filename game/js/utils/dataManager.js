@@ -1,3 +1,4 @@
+/* exported DataManager */
 // Data Manager - Handles localStorage persistence and collection tracking
 
 class DataManager {

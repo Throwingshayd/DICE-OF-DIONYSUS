@@ -1,5 +1,5 @@
 // JuiceIntegration - Adds juice effects to wired game UI elements
-// Integrates JuiceManager and ParticleSystem (per 4-master-architect, 5-architecture)
+// Integrates JuiceManager and ParticleSystem (visuals + architecture rules)
 // Unwired methods removed to eliminate redundant alternative paths
 
 class JuiceIntegration {
@@ -34,7 +34,7 @@ class JuiceIntegration {
 
             button.dataset.hasJuice = 'true';
 
-            button.addEventListener('click', (e) => {
+            button.addEventListener('click', (_e) => {
                 if (!button.disabled) {
                     this.juice.juiceUp(button, 0.3);
 

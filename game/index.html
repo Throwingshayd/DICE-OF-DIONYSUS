@@ -15,7 +15,7 @@
     <link rel="stylesheet" href="css/visual-tokens.css">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=IM+Fell+English+SC&family=VT323&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@500;600;700&family=Cormorant+Garamond:ital,wght@0,500;0,600;0,700;1,500&family=IM+Fell+English+SC&family=VT323&display=swap" rel="stylesheet">
     <link rel="icon" href="ART/Title art.png" type="image/png">
     <link rel="manifest" href="manifest.json">
 </head>
@@ -77,19 +77,12 @@
 
             <!-- Main game area -->
             <div class="main-game">
-            <!-- Inventory panel: fills gap between left-info-column and right-scorecard (75% Boons, 25% Libations) -->
-            <div class="inventory-panel">
-                <div class="inventory-panel-boons">
-                    <div class="inventory-panel-scanlines" aria-hidden="true"></div>
-                    <div class="boon-slots card-area-squish" id="boonSlots"></div>
-                    <span class="inventory-counter" id="boonSlotCounter">0/5</span>
-                    <span class="boon-reorder-hint" aria-hidden="true">Drag to rearrange</span>
-                </div>
-                <div class="inventory-panel-consumables">
-                    <div class="inventory-panel-scanlines" aria-hidden="true"></div>
-                    <div class="consumable-slots card-area-squish" id="consumableSlots"></div>
-                    <span class="inventory-counter" id="consumableSlotCounter">0/2</span>
-                </div>
+            <!-- Boons: top rail — frees vertical space for table + consumable horizon -->
+            <div class="boon-prayer-rail inventory-panel-boons" id="boonPrayerRail">
+                <div class="inventory-panel-scanlines" aria-hidden="true"></div>
+                <div class="boon-slots card-area-squish" id="boonSlots"></div>
+                <span class="inventory-counter" id="boonSlotCounter">0/5</span>
+                <span class="boon-reorder-hint" aria-hidden="true">Drag to rearrange</span>
             </div>
                             <!-- Left column: Game info + Gnosis -->
             <div class="left-info-column">
@@ -153,12 +146,6 @@
                             </div>
                         </div>
                         <div id="gnosisMessage" class="gnosis-message"></div>
-                    </div>
-                    <!-- Artifacts section -->
-                    <div class="artifact-section">
-                        <div class="artifact-slots" id="artifactSlots">
-                            <h3>Divine Artifacts</h3>
-                        </div>
                     </div>
                 </div>
             </div>
@@ -323,8 +310,18 @@
                             </div>
                         </div>
                     </div>
+
+            <!-- Consumables: horizon + drag zones (sell wide left / worship right / libation → dice table) -->
+            <div class="consumable-shell" id="consumableShell" aria-label="Consumables">
+                <div class="consumable-zone consumable-zone-sell consumable-zone-sell-wide" id="consumableZoneSellWide" aria-hidden="true"></div>
+                <div class="consumable-zone consumable-zone-worship" id="consumableZoneWorship" aria-hidden="true"></div>
+                <div class="consumable-horizon" id="consumableHorizon">
+                    <div class="consumable-slots card-area-squish" id="consumableSlots"></div>
+                    <span class="inventory-counter consumable-horizon-counter" id="consumableSlotCounter">0/5</span>
                 </div>
             </div>
+            </div>
+        </div>
     </template>
 
     <!-- Shop now lives in template shopStage (replaces rolling area per 6-translator) -->
@@ -373,6 +370,7 @@
     <!-- Scripts loaded in dependency order (defer = non-blocking parse, exec after DOM ready) -->
     <script defer src="js/utils/seededRNG.js"></script>
     <script defer src="js/utils/Logger.js"></script>
+    <script defer src="js/utils/PlaytestRecorder.js"></script>
     <script defer src="js/utils/dataManager.js"></script>
     <script defer src="js/utils/DisplayScale.js"></script>
     <script defer src="js/utils/JuiceManager.js"></script>
@@ -386,6 +384,7 @@
     <script defer src="js/data/gameData.js"></script>
     <script defer src="js/classes/Die.js"></script>
     <script defer src="js/classes/Card.js"></script>
+    <script defer src="js/classes/boonTimingHandlers.js"></script>
     <script defer src="js/classes/Boon.js"></script>
     <script defer src="js/classes/WorshipCard.js"></script>
     <script defer src="js/classes/LibationCard.js"></script>
@@ -395,6 +394,7 @@
     <script defer src="js/engine/ScoringEngine.js"></script>
     <script defer src="js/engine/ShopStockGenerator.js"></script>
     <script defer src="js/engine/GameStateManager.js"></script>
+    <script defer src="js/utils/GameTiming.js"></script>
     <script defer src="js/game/GameEngine.js"></script>
     <script defer src="js/ui/renderers/InfoBarRenderer.js"></script>
     <script defer src="js/ui/renderers/DiceRenderer.js"></script>

@@ -1,14 +1,14 @@
 ---
-description: The Translator — mechanics parity, owned exclusion, expulsion, save-state
+description: Shop & persistence — owned exclusion, expulsion, save/load, CardArea; aligns with GameEngine.state
 globs: game/js/**, .cursor/context/*.md, docs/design/**
 alwaysApply: false
 ---
 
-# Mechanics Translator (The Translator)
+# Shop, layout parity & save
 
-**Identity:** Shop/pack exclusion, expulsion when slots are full, save/load shape, scoring order — aligned with `GameEngine.state` and `ShopStockGenerator`.
+**Scope:** Shop/pack exclusion, expulsion when slots are full, save/load shape, CardArea behavior—aligned with **`GameEngine.state`** and **`ShopStockGenerator`**.
 
-**Playtest:** `.cursor/rules/8-translator-playtest.mdc` — `npm run playtest:boons` for E2E boon checks
+**Playtest bridge:** **`8-translator-playtest.mdc`**, `npm run playtest:boons`
 
 ---
 

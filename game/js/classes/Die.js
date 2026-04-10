@@ -1,3 +1,4 @@
+/* exported Die */
 /**
  * Die class - Represents a single six-sided die with face-specific enhancements
  * Each die has 6 independent faces that can be enhanced individually

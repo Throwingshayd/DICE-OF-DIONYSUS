@@ -1,34 +1,33 @@
 # Dice of Dionysus — Cursor Rules
 
-**First:** Read `SOUL.md` for canonical orientation, read order, and decision trees.
+**Default workflow:** Use the project skill **`.cursor/skills/dice-ship/SKILL.md`** (verify, guardrails, commands). For **design / planning / backlog steering**, use **`.cursor/skills/dice-design/SKILL.md`** with **`tracking/GAME_DESIGN_BACKLOG.md`**. **SOUL.md** = laws, RNG policy, and task→rule routing—skim the “For Cursor” block first.
 
-**Then:** Use `.cursor/rules/` (0–7) and `.cursor/context/` for task-specific reference.
-
----
-
-## Project Vision (Unified)
-
-- **Identity:** Balatro-style Yahtzee, Greek mythology themed. Vanilla JS, class-based. Single source of truth: `GameEngine.state`.
-- **Philosophy:** Stability > novelty. Performance > elegance. Simplicity > "best practices."
-- **Structure:** `.cursor/rules/` = procedural rules. `.cursor/context/` = reference docs (boons, design, workflow). SOUL.md = entry point.
+**Then:** `.cursor/rules/` (topic scopes **0–8**), **`.cursor/PATHWAYS.md`** (repo map), **`.cursor/context/`** (architecture, `ai_context.yaml`). **`.cursor/tester/TESTING.md`** = verification layout.
 
 ---
 
-## Critical Rules
+## Project vision
 
-| Do | Don't |
+- Roguelike dice + Greek myth; vanilla JS, class-based; **`GameEngine.state`** is the single run state.
+- Philosophy: stable shipping, small diffs, no gratuitous framework churn.
+
+---
+
+## Critical habits
+
+| Do | Don’t |
 |----|-------|
-| Use `this.prng` for randomness | Use `Math.random()` |
-| Add cards in gameData.js first | Add cards elsewhere |
-| Update .cursor/context/ when adding content | Forget to document new patterns |
-| Use Logger, not console.log | Remove Greek theming |
-| Jokers = Boons, consumables = Libations/Worship | Use "houseRules" or "offerings" |
+| Use run **`prng`** for gameplay/outcome randomness | `Math.random()` for rolls, shop pool picks, scoring logic |
+| Add cards in **`game/js/data/gameData.js`** first | Scatter card definitions elsewhere |
+| Update **`.cursor/context/`** when adding durable patterns | Leave docs stale for new systems |
+| Use **Logger** in game code | Rely on `console.log` for routine logging |
+| Boons = equipped; consumables = **Libations / Worship** | Confuse naming with unrelated terms |
 
 ---
 
-## Quick Reference
+## Quick reference
 
-- **Add boon:** gameData.js → Joker.js applyTimingEffect() → update CONSOLIDATED_BOON_REFERENCE
-- **Add libation:** gameData.js → LibationCard.js applyLibationEffect()
-- **Verify:** `npm run dev`, `npm run lint:fix`, `npm run test`
-- **Full detail:** SOUL.md decision tree, .cursor/context/ai_context.yaml
+- **Add boon:** `gameData.js` → `Boon.js` hooks → update consolidated boon context if present.
+- **Add libation:** `gameData.js` → `LibationCard.js`.
+- **Verify:** `npm run dev`, `npm run lint:fix`, `npm run test` (+ `playtest:boons` when flow changes).
+- **Map:** `.cursor/PATHWAYS.md` · **Modules:** `.cursor/context/ai_context.yaml`

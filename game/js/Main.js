@@ -1,3 +1,4 @@
+/* exported App */
 // Main application controller and entry point
 
 class App {
@@ -9,7 +10,6 @@ class App {
         this._collectionManager = null;  // Lazy: created on first showCollection()
         this.soundManager = null;
         
-        // Initialize when DOM is ready
         if (document.readyState === 'loading') {
             document.addEventListener('DOMContentLoaded', () => this.initialize());
         } else {
@@ -29,21 +29,15 @@ class App {
         window.app = this;
         if (typeof Logger !== 'undefined') Logger.info('Initializing Dice of Dionysus...');
         
-        // Initialize managers
         this.dataManager = new DataManager();
         this.uiManager = new UIManager();
         this.soundManager = window.soundManager;
         
-        // Effect systems (BalatroEffects, JuiceIntegration) defer init to startGame() - only needed during gameplay
-        
-        // Make globally available
         window.dataManager = this.dataManager;
         window.uiManager = this.uiManager;
         
-        // Initialize UI manager immediately (shop overlay exists in main HTML)
         this.uiManager.initialize();
         
-        // Set up screen management
         this.setupScreens();
         this.setupGlobalEventListeners();
         
@@ -63,6 +57,10 @@ class App {
         }
         
         Logger.info('Game initialized successfully!');
+
+        if (typeof PlaytestRecorder !== 'undefined' && PlaytestRecorder.active) {
+            PlaytestRecorder.ensureDockVisible();
+        }
     }
 
     setupScreens() {
@@ -137,16 +135,19 @@ class App {
         const loopback = h === 'localhost' || h === '127.0.0.1' || h === '[::1]' || h === '::1';
         const isSecure = location.protocol === 'https:' || loopback;
         if (!isSecure) return;
+        // Unregister on local dev servers so cached JS (e.g. SoundManager) cannot hide edits.
+        // Port 3000 = Vite dev; 4173 = vite preview; 5500/5501 = Live Server / Live Preview.
+        const localDevPort = ['3000', '4173', '5500', '5501'].includes(location.port);
         const viteDev =
             (typeof __DEV__ !== 'undefined' && __DEV__) ||
-            (loopback && location.port === '3000');
+            (loopback && localDevPort);
         if (viteDev) {
             navigator.serviceWorker.getRegistrations().then(regs => regs.forEach(r => r.unregister()));
             return;
         }
         try {
             navigator.serviceWorker.register('/ServiceWorker.js', { scope: '/' })
-                .then((reg) => {
+                .then(() => {
                     if (typeof Logger !== 'undefined') Logger.info('ServiceWorker registered');
                 })
                 .catch((err) => {
@@ -401,9 +402,6 @@ class App {
             gameContainer.appendChild(template.content.cloneNode(true));
         }
         
-        // Note: Shop overlay verification happens in UIManager.bindDOMElements()
-        // UIManager will restore if missing - no need to verify here
-        
         Logger.info('Game UI loaded successfully');
     }
 
@@ -571,19 +569,16 @@ class App {
 
     handleError(e) {
         Logger.error('Game Error', e.error);
-        this.showMessage('An error occurred. Check the console for details.', 5000);
-        
-        // Log error for debugging
-        if (this.dataManager) {
-            const errorLog = {
-                message: e.error?.message || 'Unknown error',
-                stack: e.error?.stack || 'No stack trace',
-                timestamp: Date.now(),
+        if (typeof PlaytestRecorder !== 'undefined' && PlaytestRecorder.active) {
+            PlaytestRecorder.log('window_error', {
+                message: e.error?.message || e.message || 'Unknown error',
+                stack: e.error?.stack || '',
+                filename: e.filename,
+                lineno: e.lineno,
                 screen: this.currentScreen,
-                userAgent: navigator.userAgent
-            };
-            Logger.debug('Error log', errorLog);
+            });
         }
+        this.showMessage('An error occurred. Check the console for details.', 5000);
     }
 
     handleUnhandledRejection(e) {
@@ -596,6 +591,12 @@ class App {
             return;
         }
         Logger.error('Unhandled Promise Rejection', reason);
+        if (typeof PlaytestRecorder !== 'undefined' && PlaytestRecorder.active) {
+            PlaytestRecorder.log('unhandled_rejection', {
+                reason: typeof reason === 'string' ? reason : (reason?.message || String(reason)),
+                stack: reason?.stack || '',
+            });
+        }
         this.showMessage('A promise was rejected. Check the console for details.', 5000);
     }
 
@@ -762,8 +763,7 @@ class CollectionManager {
     }
 }
 
-// Initialize the application (window.app set in initialize())
-const app = new App();
+new App();
 
 // Development mode detection
 if (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1') {

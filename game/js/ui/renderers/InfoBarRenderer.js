@@ -16,11 +16,10 @@ const InfoBarRenderer = {
         if (dom.scoreThresholdDisplay) dom.scoreThresholdDisplay.textContent = gameState.scoreThreshold;
 
         const transitioningToShop = !!gameState.transitioningToShop;
-        dom.rollButton.disabled = gameState.rollsLeft <= 0 || gameState.gameOver || gameState.isAwaitingApi || transitioningToShop;
+        dom.rollButton.disabled = gameState.rollsLeft <= 0 || gameState.gameOver || transitioningToShop;
     },
 
-    updateBlindUI(dom, gameState, gameEngine) {
-        // Blind display - currently minimal; extend as needed
+    updateBlindUI(_dom, _gameState, _gameEngine) {
     }
 };
 

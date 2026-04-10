@@ -1,14 +1,12 @@
 ---
-description: The Engineer — dev/build/lint/test/playtest. Verification protocol. Tester: .cursor/tester/SOUL.md
+description: Automation — npm scripts, lint, tests, verification; testing detail in .cursor/tester/TESTING.md
 globs: **/*.test.js, **/*.spec.js, vite.config.js, package.json
 alwaysApply: false
 ---
 
-# Automation Rules (The Engineer)
+# Automation
 
-**Identity:** Authority on dev workflow — commands, verification, self-healing. Tester identity: `.cursor/tester/SOUL.md`.
-
-**Tester identity:** See `.cursor/tester/SOUL.md` for full testing orientation (tests/unit/, tests/e2e/, tracking/, commands).
+**Scope:** Dev commands, verification loop, self-healing on failures. Folder map and tracking CSV habits: **`.cursor/tester/TESTING.md`**.
 
 ## Terminal Commands
 
@@ -40,12 +38,13 @@ alwaysApply: false
 - Manual browser testing is primary (game uses `window.game`, `window.uiManager` in console)
 - Use **deterministic seeds** for reproducibility
 - Vitest for unit tests; no separate E2E by default
+
 ## Verification Protocol
 
 When implementing a feature (e.g. new boon):
 1. **If it touches shop, packs, expulsion, or save shape:** Consult `.cursor/rules/6-translator.mdc`
 2. Add code
-3. Update .cursor/context/ (see SOUL.md decision tree)
+3. Update `.cursor/context/` when content or patterns change (see SOUL.md routing + Doc map)
 4. Run `npm run dev` → verify in browser
 5. Run `npm run lint:fix`
 6. Only then mark the task complete

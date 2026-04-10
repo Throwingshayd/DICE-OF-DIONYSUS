@@ -4,7 +4,8 @@
  * @module ShopUI
  */
 
-/* global CardData, Boon, WorshipCard, LibationCard, Artifact, GAME_BALANCE, Logger */
+/* exported ShopUI */
+/* global Boon, WorshipCard, LibationCard, Artifact, GAME_BALANCE, Logger */
 
 class ShopUI {
     /**
@@ -109,8 +110,7 @@ class ShopUI {
         this.shopItemIndex = 0;
 
         const stock = ShopStockGenerator.generateStock(gameState, gameEngine.prng, {
-            openedPacks: this.shopState.openedPacks,
-            shopDisplayedIds: new Set()  // Empty on open; used for pack exclusion
+            openedPacks: this.shopState.openedPacks
         });
 
         stock.artifacts.forEach(artifactData => {
@@ -122,7 +122,7 @@ class ShopUI {
             }
         });
 
-        stock.directSales.forEach(({ cardData, cardType }) => {
+        stock.directSales.forEach(({ cardData }) => {
             const el = this.createCardElement(cardData, 'direct', gameState, gameEngine);
             if (el) {
                 el.classList.add('shop-item-slide-in');
@@ -273,6 +273,14 @@ class ShopUI {
         gameEngine.updateGoldAnimated(-effectiveCost, "pack purchase");
         this.shopState.openedPacks.add(packData.type);
         if (packElement) packElement.remove();
+        if (typeof PlaytestRecorder !== 'undefined' && PlaytestRecorder.active) {
+            PlaytestRecorder.log('shop_pack_purchase', {
+                packType: packData.type,
+                cost: effectiveCost,
+                goldAfter: gameState.gold,
+                ante: gameState.ante,
+            });
+        }
         this.openPack(packData, gameState, gameEngine);
     }
 
@@ -292,6 +300,13 @@ class ShopUI {
             Logger.error('Failed to generate pack contents');
             gameEngine.showMessage('Failed to open pack - no contents generated');
             return;
+        }
+
+        if (typeof PlaytestRecorder !== 'undefined' && PlaytestRecorder.active) {
+            PlaytestRecorder.log('pack_open', {
+                packType: packData.type,
+                cardIds: packContents.map((c) => c.id).filter(Boolean),
+            });
         }
 
         const packRevealedCards = document.getElementById('packRevealedCards');
@@ -346,6 +361,14 @@ class ShopUI {
         if (window.soundManager) window.soundManager.play('card1', { pitch: 0.9, volume: 0.6 });
         gameEngine.updateGoldAnimated(-effectiveCost, "artifact purchase");
         gameState.artifacts.push(artifactData);
+        if (typeof PlaytestRecorder !== 'undefined' && PlaytestRecorder.active) {
+            PlaytestRecorder.log('shop_buy_artifact', {
+                id: artifactData.id,
+                cost: effectiveCost,
+                goldAfter: gameState.gold,
+                ante: gameState.ante,
+            });
+        }
         gameEngine.showMessage(`Acquired: ${artifactData.name}!`);
         element.remove();
         gameEngine.applyArtifactEffects();
@@ -371,6 +394,14 @@ class ShopUI {
         }
         if (window.soundManager) window.soundManager.play('coin3', { pitch: 0.95 + Math.random() * 0.1, volume: 0.6 });
         gameEngine.updateGoldAnimated(-effectiveCost, "card purchase");
+        if (typeof PlaytestRecorder !== 'undefined' && PlaytestRecorder.active) {
+            PlaytestRecorder.log('shop_buy_card', {
+                id: card.id,
+                cost: effectiveCost,
+                goldAfter: gameState.gold,
+                kind: card instanceof Boon ? 'boon' : (card instanceof WorshipCard ? 'worship' : 'libation'),
+            });
+        }
         if (window.balatroEffects && element) window.balatroEffects.addCardPurchaseEffect(element);
         this.claimCard(card, gameState, gameEngine, element);
     }
@@ -400,6 +431,14 @@ class ShopUI {
             gameState.boons.push(card);
         } else if (card instanceof WorshipCard || card instanceof LibationCard) {
             gameState.consumables.push(card);
+        }
+
+        if (typeof PlaytestRecorder !== 'undefined' && PlaytestRecorder.active) {
+            PlaytestRecorder.log('inventory_gain', {
+                id: card.id,
+                source: packContainer ? 'pack' : 'direct',
+                packType: packContainer?.dataset?.packType || null,
+            });
         }
 
         if (element) element.remove();
@@ -438,6 +477,9 @@ class ShopUI {
             gameState.usedFreeReroll = true;
             if (window.soundManager) window.soundManager.play('whoosh', { pitch: 0.95, volume: 0.5 });
             gameEngine.showMessage("Used your free reroll from Chronos' Hourglass!");
+            if (typeof PlaytestRecorder !== 'undefined' && PlaytestRecorder.active) {
+                PlaytestRecorder.log('shop_reroll', { paid: false, reason: 'chronos_hourglass', gold: gameState.gold });
+            }
             const directSalesContainer = document.getElementById('shopDirectSales');
             if (directSalesContainer) {
                 directSalesContainer.innerHTML = '<h4>Wares</h4>';
@@ -452,6 +494,12 @@ class ShopUI {
                         directSalesContainer.appendChild(el);
                     }
                 });
+            }
+            if (typeof PlaytestRecorder !== 'undefined' && PlaytestRecorder.active) {
+                const ids = Array.from(directSalesContainer?.querySelectorAll('[data-card-id]') || [])
+                    .map((el) => el.dataset.cardId)
+                    .filter(Boolean);
+                PlaytestRecorder.log('shop_stock_after_reroll', { paid: false, directSaleIds: ids });
             }
             return;
         }
@@ -472,6 +520,13 @@ class ShopUI {
 
         setTimeout(() => {
             gameEngine.updateGoldAnimated(-GAME_BALANCE.SHOP_REROLL_COST, "reroll");
+            if (typeof PlaytestRecorder !== 'undefined' && PlaytestRecorder.active) {
+                PlaytestRecorder.log('shop_reroll', {
+                    paid: true,
+                    cost: GAME_BALANCE.SHOP_REROLL_COST,
+                    goldAfter: gameState.gold,
+                });
+            }
             if (directSalesContainer) {
                 directSalesContainer.innerHTML = '<h4>Wares</h4>';
                 this.shopItemIndex = 0;
@@ -485,6 +540,12 @@ class ShopUI {
                         directSalesContainer.appendChild(el);
                     }
                 });
+            }
+            if (typeof PlaytestRecorder !== 'undefined' && PlaytestRecorder.active) {
+                const ids = Array.from(directSalesContainer?.querySelectorAll('[data-card-id]') || [])
+                    .map((el) => el.dataset.cardId)
+                    .filter(Boolean);
+                PlaytestRecorder.log('shop_stock_after_reroll', { paid: true, directSaleIds: ids });
             }
         }, 400);
     }
@@ -502,6 +563,13 @@ class ShopUI {
             });
             if (window.soundManager) window.soundManager.play('crumple1', { pitch: 0.9 + Math.random() * 0.1, volume: 0.5 });
             gameEngine.updateGoldAnimated(totalGold, "card sale");
+            if (typeof PlaytestRecorder !== 'undefined' && PlaytestRecorder.active) {
+                PlaytestRecorder.log('inventory_sell', {
+                    id: soldCard.id,
+                    gold: totalGold,
+                    kind: soldCard.type === 'boon' ? 'boon' : 'consumable',
+                });
+            }
             gameEngine.showMessage(`Sold ${soldCard.name} for ${totalGold} Gold.`);
             gameEngine.updateAllUI();
         }
@@ -513,14 +581,15 @@ class ShopUI {
         const inventory = inventoryType === 'boon' ? gameState.boons : gameState.consumables;
         if (inventory.length === 0) return;
 
-        this.expulsionPending = { card, element: element || null, gameState, gameEngine, refundGold: opts.refundGold, packContainer: opts.packContainer || null, packType: opts.packType || null };
-
         const overlay = this.dom.expulsionOverlay || document.getElementById('expulsionOverlay');
         const titleEl = document.getElementById('expulsionTitle');
         const subtitleEl = document.getElementById('expulsionSubtitle');
         const gridEl = document.getElementById('expulsionCardGrid');
         const cancelBtn = document.getElementById('expulsionCancelBtn');
-        if (!overlay || !gridEl) return;
+        // Require DOM before setting expulsionPending — otherwise no overlay and all future buys no-op (soft-lock).
+        if (!overlay || !gridEl || !titleEl || !subtitleEl) return;
+
+        this.expulsionPending = { card, element: element || null, gameState, gameEngine, refundGold: opts.refundGold, packContainer: opts.packContainer || null, packType: opts.packType || null };
 
         titleEl.textContent = 'No Space!';
         subtitleEl.textContent = `Choose one to sell and make room for ${card.name}:`;
@@ -538,9 +607,17 @@ class ShopUI {
             gridEl.appendChild(el);
         });
 
-        cancelBtn.onclick = () => this.cancelExpulsion();
+        if (cancelBtn) cancelBtn.onclick = () => this.cancelExpulsion();
         overlay.classList.remove('hidden');
         window.balatroEffects?.hideAllTooltips();
+        if (typeof PlaytestRecorder !== 'undefined' && PlaytestRecorder.active) {
+            PlaytestRecorder.log('expulsion_open', {
+                incomingCard: card?.id || card?.name,
+                refundGold: opts.refundGold || 0,
+                boonIds: gameState.boons?.map((b) => b.id),
+                consumableIds: gameState.consumables?.map((c) => c.id),
+            });
+        }
     }
 
     cancelExpulsion() {
@@ -555,6 +632,9 @@ class ShopUI {
         const overlay = this.dom.expulsionOverlay || document.getElementById('expulsionOverlay');
         if (overlay) overlay.classList.add('hidden');
         p.gameEngine?.updateAllUI();
+        if (typeof PlaytestRecorder !== 'undefined' && PlaytestRecorder.active) {
+            PlaytestRecorder.log('expulsion_cancel', {});
+        }
     }
 
     completeExpulsion(cardToSell) {
@@ -578,6 +658,13 @@ class ShopUI {
             packContainer.dataset.packClaimed = 'true';
             if (packType && gameState.packs) gameState.packs.push({ type: packType, name: this.getPackName(packType), openedAt: Date.now() });
             setTimeout(() => this.closePackOpeningView(), 150);
+        }
+        if (typeof PlaytestRecorder !== 'undefined' && PlaytestRecorder.active) {
+            PlaytestRecorder.log('expulsion_complete', {
+                soldId: cardToSell?.id,
+                gainedId: card?.id,
+                gainedKind: card instanceof Boon ? 'boon' : 'consumable',
+            });
         }
     }
 }

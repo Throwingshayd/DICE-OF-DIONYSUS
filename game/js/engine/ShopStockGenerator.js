@@ -5,7 +5,8 @@
  * @module ShopStockGenerator
  */
 
-/* global CardData, RARITY_WEIGHTS, GAME_BALANCE, CARD_ECONOMY */
+/* exported ShopStockGenerator */
+/* global CardData, RARITY_WEIGHTS, CARD_ECONOMY */
 
 const ShopStockGenerator = {
     /**
@@ -118,12 +119,10 @@ const ShopStockGenerator = {
      * @param {Object} prng - Seeded RNG
      * @param {Object} options
      * @param {Set<string>} [options.openedPacks] - Pack types already opened this shop
-     * @param {Set<string>} [options.shopDisplayedIds] - Card IDs in Wares (exclude from packs)
      * @returns {{ artifacts: Array, directSales: Array, packs: Array }}
      */
     generateStock(gameState, prng, options = {}) {
         const openedPacks = options.openedPacks || new Set();
-        const shopDisplayedIds = options.shopDisplayedIds || new Set();
         const { boonIds: ownedBoonIds, consumableIds: ownedConsumableIds } = this.getOwnedCardIds(gameState);
         const pools = this._getFilteredPools(gameState);
 

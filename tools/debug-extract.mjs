@@ -1,0 +1,13 @@
+import fs from 'fs';
+const text = fs.readFileSync('game/js/classes/Boon.js', 'utf8');
+const startMarker = '    applyBeforeScoreEffect(gameState, result) {';
+const endMarker = '    // Balatro-inspired timing effect methods';
+const i0 = text.indexOf(startMarker);
+const i1 = text.indexOf(endMarker, i0);
+const block = text.slice(i0, i1);
+const sw = block.indexOf('        switch (this.id) {');
+const frag = block.slice(sw, sw + 80);
+console.log(JSON.stringify(frag));
+const len = '        switch (this.id) {'.length;
+console.log('len', len);
+console.log('after slice', JSON.stringify(block.slice(sw + len, sw + len + 30)));

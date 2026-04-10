@@ -126,10 +126,10 @@ Steps:
 
 | Type | Location | AI Guidance |
 |------|----------|-------------|
-| **Game logic** | `js/game/GameEngine.js` | Single source of truth, don't split |
-| **UI rendering** | `js/ui/UIManager.js` | Monolithic by design, optimize in place |
-| **Card definitions** | `js/data/gameData.js` | All cards start here |
-| **Card behavior** | `js/classes/Joker.js`, `LibationCard.js`, etc. | Implement effects here |
+| **Game logic** | `game/js/game/GameEngine.js` | Single source of truth (`state`); ~3.3k lines — split only with explicit design |
+| **UI rendering** | `game/js/ui/UIManager.js`, `ShopUI.js`, `ui/renderers/` | Coordinator + shop module + renderers |
+| **Card definitions** | `game/js/data/gameData.js` | All cards start here |
+| **Card behavior** | `game/js/classes/Boon.js`, `boonTimingHandlers.js`, `LibationCard.js`, etc. | Effects per card type |
 | **Constants** | `js/config/*.js` | All magic numbers go here |
 | **Utilities** | `js/utils/*.js` | Helpers, no game logic |
 | **AI notes** | `.cursor/context/*.md`, `ai_context.yaml` | Teach AI about your project |
@@ -138,8 +138,8 @@ Steps:
 
 - **Under 500 lines**: ✅ Good, easy to navigate
 - **500-1000 lines**: ⚠️ Consider logical grouping
-- **1000-2000 lines**: 🟡 OK if monolithic by design (GameEngine, UIManager)
-- **Over 2000 lines**: 🔴 Consider splitting (with user approval)
+- **1000-2000 lines**: 🟡 OK for focused modules; review if responsibilities multiply
+- **Over 2000 lines**: 🔴 **GameEngine.js** exceeds this — extract **pure** helpers first; vertical splits need approval + plan (`tracking/KNOWN_ISSUES.md`)
 
 ---
 

@@ -1,3 +1,4 @@
+/* exported WorshipCard */
 // WorshipCard class - Represents worship cards that increase god favor
 
 class WorshipCard extends Card {
@@ -183,9 +184,7 @@ class WorshipCard extends Card {
     }
 
     // Apply card-specific effects during level up
-    applyCardSpecificEffects(gameState) {
-        // This method can be overridden for cards that do more than just level up
-        // For example, some cards might also provide immediate bonuses
+    applyCardSpecificEffects(_gameState) {
     }
 
     // Apply basic worship effects from CSV database

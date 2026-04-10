@@ -160,16 +160,19 @@
     transform-origin: center center;
 }
 
+/* Pantheon hover: diffuse lift — no hard edge (outline / hairline box) */
 .scorecard .score-row:not(.used):hover {
-    transform: scale(1.08);
+    transform: scale(1.03);
     z-index: 5;
     position: relative;
-    outline: 2px solid rgba(74, 222, 128, 0.6);
-    outline-offset: 2px;
+    outline: none;
+    box-shadow: 0 6px 18px rgba(15, 33, 28, 0.2), 0 0 24px rgba(106, 170, 154, 0.22);
 }
 
 .scorecard .score-row.used:hover {
-    transform: scale(1.08);
+    transform: scale(1.02);
+    outline: none;
+    box-shadow: none;
 }
 
 /* Enhanced Buy/Sell Tags */

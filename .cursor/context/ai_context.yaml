@@ -1,5 +1,5 @@
 # AI Context Metadata for Dice of Dionysus
-# READ SOUL.md FIRST — this file extends it with module-level detail
+# Workflow: .cursor/skills/dice-ship/SKILL.md → SOUL.md (laws/RNG/routing) → this file = module detail
 # All agent context lives in .cursor/context/ (unified with cursor rules under .cursor/)
 
 project:
@@ -11,10 +11,12 @@ project:
   targetPlatforms: ["Web", "PWA", "Electron"]
 
 # === ENTRY POINT ===
-soul: "SOUL.md"  # Canonical agent orientation — read order, decision tree, strong opinions
+ship_skill: ".cursor/skills/dice-ship/SKILL.md"  # Default workflow + verification
+soul: "SOUL.md"  # Laws, RNG policy, routing, definition of done
 
 # === AI LEARNING REFERENCES (.cursor/context/) ===
 aiLearningFiles:
+  pathways: ".cursor/PATHWAYS.md"  # Repo map + task → rule (laws in SOUL.md)
   primary: ".cursor/context/development_workflow.md"
   cardMetadata: ".cursor/context/CARD_METADATA_REFERENCE.md"
   boonReference: ".cursor/context/CONSOLIDATED_BOON_REFERENCE.md"
@@ -35,7 +37,7 @@ aiLearningFiles:
 # - UI pattern added → Update BALATRO_DESIGN_PRINCIPLES.md
 # - Bug fixed → Update development_workflow.md (bug fixes section)
 # - Performance change → Update performance_notes.md
-# PRIMARY: Use .cursor/rules/ (0-8) as the way forward. Cursor rules override scattered docs.
+# PRIMARY: Use .cursor/rules/ (0-global, 1-8 topics). Cursor rules override scattered docs.
 
 architecture:
   pattern: "Class-based OOP with separation of concerns"
@@ -52,7 +54,7 @@ performance:
   hotPaths:
     - "GameEngine.rollDice()"
     - "GameEngine.calculateScore()"
-    - "UIManager.renderDice()"
+    - "DiceRenderer / UIManager dice update path"
     - "UIManager.updateScorecard()"
   optimizationNotes: |
     - Profile before optimizing (use Chrome DevTools)
@@ -63,13 +65,14 @@ performance:
 coreModules:
   gameEngine:
     file: "game/js/game/GameEngine.js"
-    lines: 2020
+    lines: 3285
     priority: critical
-    dependencies: [seededRNG, dataManager, Die, Card classes]
+    dependencies: [seededRNG, dataManager, Die, Card classes, ScoringEngine, HandEvaluator]
     guidance: |
-      Single source of truth for game state.
-      All game logic flows through here.
-      DO NOT split without explicit request.
+      Single source of truth: GameEngine.state. ~3.3k lines — main maintenance hotspot.
+      Pure scoring in ScoringEngine/HandEvaluator; shop stock in ShopStockGenerator.
+      Large before_score switch in boonTimingHandlers.js (see dice-ship SKILL).
+      Split only with an explicit design; prefer extracting pure helpers first.
       
   uiManager:
     file: "game/js/ui/UIManager.js"
@@ -215,7 +218,7 @@ criticalPatterns:
     guidance: |
       New boon effects:
       1. Add to gameData.js with timing
-      2. Implement in Boon.js applyTimingEffect() switch
+      2. Implement timing in Boon.js (applyTimingEffect / other methods); **before_score** logic in boonTimingHandlers.js
       3. Test with deterministic seed
       4. Document in tracking/card_database.csv
       5. **Update .cursor/context/CONSOLIDATED_BOON_REFERENCE.md with new pattern**
@@ -327,7 +330,7 @@ behaviorExpectations:
     - "Add features without updating .cursor/context/ learning files"
 
 philosophy: |
-  See SOUL.md for identity and strong opinions.
+  See SOUL.md for laws and routing; dice-ship skill for workflow.
   Stability > novelty. Performance > elegance. Simplicity > "best practices."
   Keep .cursor/context/ files updated when adding game parameters or patterns.
 

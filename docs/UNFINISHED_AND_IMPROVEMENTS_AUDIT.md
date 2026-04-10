@@ -41,9 +41,10 @@ From `docs/archive/TESTING_GUIDE_56_BOONS.md` and codebase search:
 
 | Item | Location | Priority |
 |------|-----------|----------|
-| UIManager.js too large (~1900 lines) | ARCHITECTURE.md | Deferred |
+| GameEngine.js monolith (~3.3k lines) | ARCHITECTURE.md, KNOWN_ISSUES.md | High — extract pure helpers first |
+| UIManager split | Mostly done — coordinator ~380 lines; shop in ShopUI | Lower |
 | console.log → Logger | FIXED — Main, GameEngine, Die, LibationCard migrated | — |
-| Limited automated tests | ai_context.yaml | Medium |
+| Limited automated tests | KNOWN_ISSUES.md, `tests/unit/` (expanded 2026-04-10) | Medium |
 | ESLint config | FIXED — .eslintrc.cjs added, lint:fix passes (0 errors) | — |
 | Split hand validation from GameEngine | system_map.md | Deferred |
 | PWA ServiceWorker | FIXED — registration in Main.js, manifest in game/ | — |

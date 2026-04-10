@@ -1,10 +1,10 @@
 # 🏛️ Dice of Dionysus - Architecture Documentation
 
 **Version:** 1.4  
-**Last Updated:** October 12, 2025  
-**Post-Phase 3 Architecture**
+**Last Updated:** April 10, 2026  
+**Post-Phase 3 Architecture** (line counts and module boundaries refreshed)
 
-*Agent orientation: See SOUL.md first. This doc provides structural detail.*
+*Agent orientation: `.cursor/skills/dice-ship/SKILL.md` + SOUL.md; this doc is structural detail.*
 
 ---
 
@@ -13,6 +13,7 @@
 Dice of Dionysus is a single-page application (SPA) built with vanilla JavaScript, inspired by Balatro's design philosophy. The game uses a class-based architecture with clear separation of concerns.
 
 ### Core Philosophy
+
 - **Simplicity:** Vanilla JS, no framework overhead
 - **Modularity:** Clear boundaries between systems
 - **Maintainability:** Well-documented, consistent patterns
@@ -41,9 +42,11 @@ DICE-OF-DIONYSUS-WORKING/
 │   │   ├── classes/              # Game entities
 │   │   │   ├── Card.js           # Base card class
 │   │   │   ├── Die.js            # Die with face-specific enhancements
-│   │   │   ├── Joker.js          # Boon cards
+│   │   │   ├── Boon.js           # Boon (equipped joker-style cards)
+│   │   │   ├── boonTimingHandlers.js  # Large before_score switch (loaded before Boon.js)
 │   │   │   ├── LibationCard.js   # Consumable libations
-│   │   │   └── WorshipCard.js    # Worship cards for favour
+│   │   │   ├── WorshipCard.js    # Worship cards for favour
+│   │   │   └── Artifact.js
 │   │
 │   │   ├── engine/               # Scoring logic (decoupled)
 │   │   │   ├── HandEvaluator.js  # Category evaluation
@@ -62,11 +65,12 @@ DICE-OF-DIONYSUS-WORKING/
 │   │   │   └── assetMapping.js   # Asset paths & mappings
 │   │   │
 │   │   ├── game/                 # Core game logic
-│   │   │   └── GameEngine.js     # **MAIN ENGINE** (1,370 lines)
+│   │   │   └── GameEngine.js     # **MAIN ENGINE** (~3,285 lines — see § Monolithic GameEngine)
 │   │   │
 │   │   ├── ui/                   # UI rendering & interaction
-│   │   │   ├── UIManager.js      # UI coordinator (1,900 lines)
-│   │   │   ├── BalatroEffects.js # Visual effects system
+│   │   │   ├── UIManager.js      # UI coordinator (~380 lines); renderers in ui/renderers/
+│   │   │   ├── ShopUI.js         # Shop, packs, expulsion (~670 lines)
+│   │   │   ├── BalatroEffects.js # Visual effects system (~690 lines)
 │   │   │   └── SoundManager.js   # Audio playback
 │   │   │
 │   │   ├── utils/                # Utility functions
@@ -75,11 +79,8 @@ DICE-OF-DIONYSUS-WORKING/
 │   │   │   ├── Logger.js         # Centralized logging
 │   │   │   ├── JuiceManager.js   # Juice/feedback
 │   │   │   └── ParticleSystem.js # Particle effects
-│   │   │
-│   │   └── pwa/                  # PWA (ServiceWorker; registration unwired)
-│   │       └── ServiceWorker.js
 │   │
-│   └── public/                  # Static assets (served at /)
+│   └── public/                  # Static assets (served at /); ServiceWorker.js (registered from Main.js)
 │       └── ART/                 # Images, music
 │           ├── [68 .png files]
 │           └── Music/
@@ -153,25 +154,42 @@ DICE-OF-DIONYSUS-WORKING/
 
 ### 1. GameEngine (game/js/game/GameEngine.js)
 
+**Scale (Apr 2026):** ~~3,285 lines, **~~90+ instance methods** — the primary **god object** for a run. Single source of truth: `**GameEngine.state`**.
+
 **Responsibilities:**
-- Game state management
-- Dice rolling & scoring logic
-- Turn progression
-- Ante management
-- Joker/Worship/Libation effects
-- Artifact passive effects
-- Win/loss conditions
-- Save/load coordination
 
-**Key Methods:**
-- `rollDice()` - Roll unheld dice
-- `calculateScore(category)` - Calculate score for category
-- `confirmScore()` - Execute scoring
-- `startAnte()` - Begin new ante
-- `canSave()` / `saveGame()` - Persistence
-- `applyJokerEffects()` - Apply boon effects at appropriate timing
+- Game state initialization and mutation
+- DOM binding (`bindDOMElements`, `setupDOMEventListeners`) and coordination with `window.uiManager` / `window.shopManager`
+- Dice roll pipeline (`rollDice`, `executeRoll`, holds, triggers)
+- Scoring (`calculateScore` delegates category math to `ScoringEngine` / `HandEvaluator`; `confirmScore`, animations, live preview)
+- Turn / ante / blind progression (`nextTurn`, `endAnte`, win checks)
+- Shop handoff (`openShop`, `closeShop`, `showInterestThenOpenShop` cashout UI)
+- Boon timing orchestration (`onTimingEvent` on equipped boons; large `before_score` body lives in `boonTimingHandlers.js`)
+- Artifacts, consumable targeting modes, save/load (`serializeStateForSave`, `canSave`)
 
-**State Object:**
+#### Monolithic GameEngine — assessment
+
+
+| Strength                                                            | Risk                                                           |
+| ------------------------------------------------------------------- | -------------------------------------------------------------- |
+| One place to read “what happens on a roll/score”                    | High **regression surface**; easy to break unrelated flows     |
+| Already delegates pure scoring to `ScoringEngine` / `HandEvaluator` | DOM + animation + rules still interleaved in one class         |
+| Shop **stock** is pure in `ShopStockGenerator`                      | Cashout timers, overlays, and shop open/close remain in-engine |
+
+
+**Practical direction:** Prefer **new pure modules** (inputs/outputs clear, no `window`) for any large feature. **Vertical splits** of `GameEngine.js` (e.g. “animations only”) need careful design so `state` stays single-writer. See `tracking/KNOWN_ISSUES.md` for the live line-count table.
+
+**Key Methods (non-exhaustive):**
+
+- `rollDice()` / `executeRoll()` — roll pipeline
+- `calculateScore(category)` / `confirmScore()` — scoring
+- `startGame()` / `startAnte()` / `nextTurn()` / `endAnte()` — progression
+- `showInterestThenOpenShop()` / `openShop()` / `closeShop()` — economy UI → shop
+- `canSave()` / `saveGame()` / `loadGame()` — persistence
+- `updateAllUI()` — refresh path into UI layer
+
+**State object (shape, abbreviated):**
+
 ```javascript
 {
     dice: [Die, Die, Die, Die, Die],
@@ -182,11 +200,11 @@ DICE-OF-DIONYSUS-WORKING/
     gold: 15,
     ante: 1,
     turn: 1,
-    jokers: [Joker, ...],
+    boons: [Boon, ...],
     consumables: [WorshipCard, LibationCard, ...],
     artifacts: [Object, ...],
     worshipLevels: { "Zeus": 2, ... },
-    // ... many more properties
+    // ... many more properties (effect buckets, flags, shop fields)
 }
 ```
 
@@ -194,22 +212,16 @@ DICE-OF-DIONYSUS-WORKING/
 
 ### 2. UIManager (game/js/ui/UIManager.js)
 
+**Scale (Apr 2026):** ~380 lines — **coordinator**, not the whole UI surface.
+
 **Responsibilities:**
-- Render all UI elements
-- Handle UI interactions
-- Update displays (dice, score, cards)
-- Shop interface
-- Pack opening
-- Visual feedback
 
-**Key Methods:**
-- `renderDice()` - Display dice
-- `updateScorecard()` - Update scorecard
-- `openShop()` / `closeShop()` - Shop interface
-- `generatePackContents()` - Pack opening
-- `renderCard()` - Card rendering
+- Wires `GameEngine` to DOM, delegates heavy areas to dedicated modules
+- Shop, packs, expulsion → `**ShopUI.js`** (`window.shopManager`)
+- Dice / scorecard / info bar → `**game/js/ui/renderers/**` (e.g. `DiceRenderer`, `InfoBarRenderer`)
+- Juices and tooltips → `BalatroEffects`, `SoundManager`
 
-**Future:** Should be split into smaller modules (Task 3.4 - deferred)
+**Note:** Older docs that cite “UIManager 1,900+ lines” are obsolete; shop logic moved to `ShopUI.js`.
 
 ---
 
@@ -218,22 +230,25 @@ DICE-OF-DIONYSUS-WORKING/
 All cards inherit from `Card.js` base class.
 
 #### Card (Base Class)
+
 - Properties: id, name, rarity, cost, effect, god
 - Methods: `render()`, `canUse()`, `use()`, `toJSON()`
 
-#### Joker (Boons)
-- Extends Card
-- Type: 'joker'
-- Timing-based effects (before_roll, before_score, after_score, turn_start, turn_end)
-- `applyTimingEffect(timing, gameState, result)` - Apply effect at specific timing
+#### Boon (equipped “jokers”)
+
+- Extends `Card`; type `'boon'`
+- Timing-based effects (`before_roll`, `before_score`, `after_score`, `turn_start`, `ante_end`, shop, etc.)
+- `onTimingEvent(timing, gameState, result)` — `before_score` cases largely implemented in `boonTimingHandlers.js`
 
 #### WorshipCard
+
 - Extends Card
 - Type: 'worship'
 - Increases favour for specific scoring categories
 - `applyWorship(gameState)` - Increase worship level
 
 #### LibationCard
+
 - Extends Card  
 - Type: 'libation'
 - Consumable effects (die face enhancements, gold doubling, etc.)
@@ -244,17 +259,20 @@ All cards inherit from `Card.js` base class.
 ### 4. Die System
 
 **Die Class (game/js/classes/Die.js)**
+
 - 6 independent faces with individual enhancements
 - Face-specific enhancement system
 - Permanent modifications (Elixir/Chalice effects)
 
 **Key Features:**
+
 - `faces[1-6]` - Each face has value, enhancements, modifiedValue
 - `addFaceEnhancement(face, type)` - Add enhancement to specific face
 - `modifyFaceValue(face, delta)` - Permanently change face value
 - `hasEnhancementForCurrentFace(type)` - Check if rolled face has enhancement
 
 **Enhancement Types:**
+
 - Parchment: 6.67% for +15 gold OR 10% for +1 favour
 - Iron: +5 pips when scored
 - Gold: +1 gold when scored
@@ -272,6 +290,7 @@ All cards inherit from `Card.js` base class.
 **dataManager.js** - Save/load to localStorage
 
 **Data Flow:**
+
 ```
 gameData.js defines cards
   ↓
@@ -293,17 +312,20 @@ dataManager.js saves state
 All magic numbers extracted to constants:
 
 **GameConstants.js:**
+
 - Starting values (gold, rolls, dice)
 - Progression (max turns, antes)
 - Slots (boons, libations)
 - Economy (shop reroll cost)
 
 **ScoringConstants.js:**
+
 - Base scores (straights, yahtzee)
 - Bonuses (lower section)
 - Thresholds (3-of-kind = 3, etc.)
 
 **UIConstants.js:**
+
 - Timing (animations, auto-save)
 - Visual config
 - Z-index layers
@@ -313,6 +335,7 @@ All magic numbers extracted to constants:
 ### 7. Logging System (**NEW** - Phase 3)
 
 **Logger.js:**
+
 - Log levels: DEBUG, INFO, WARN, ERROR, CRITICAL
 - Auto-detects production mode
 - Buffers last 100 messages
@@ -320,6 +343,7 @@ All magic numbers extracted to constants:
 - Production mode suppresses debug logs
 
 **Usage:**
+
 ```javascript
 Logger.debug('Dice rolled', { faces: [1,2,3,4,5] });
 Logger.warn('Low gold', { gold: 2 });
@@ -331,6 +355,7 @@ Logger.error('Save failed', error);
 ## 🔄 Data Flow
 
 ### Dice Rolling Flow
+
 ```
 User clicks "Roll"
   ↓
@@ -348,6 +373,7 @@ Update UI
 ```
 
 ### Scoring Flow
+
 ```
 User clicks category
   ↓
@@ -375,6 +401,7 @@ GameEngine.confirmScore()
 ```
 
 ### Shop Flow
+
 ```
 Turn ends / Ante completes
   ↓
@@ -405,16 +432,19 @@ UIManager.closeShop()
 ## 🎨 UI Architecture
 
 ### Screen Management
+
 - **Start Screen:** Menu, seed input, collection
 - **Game Screen:** Dice, scorecard, cards, shop
 - **Collection Screen:** View all discovered cards
 
 ### Overlay System
+
 - **Shop Overlay:** Modal for shopping
 - **Confirm Overlay:** Scoring confirmation
 - **Pack Opening:** Card selection from packs
 
 ### Visual Effects
+
 - **BalatroEffects.js:** Hover effects, animations, particles
 - **Card rendering:** Dynamic based on type/rarity
 - **Dice animations:** Roll, hold, score effects
@@ -426,6 +456,7 @@ UIManager.closeShop()
 ### Adding New Cards
 
 **1. Boon (Joker):**
+
 ```javascript
 // Add to gameData.js
 {
@@ -444,6 +475,7 @@ case 'new_boon':
 ```
 
 **2. Worship Card:**
+
 ```javascript
 // Add to gameData.js worship array
 { 
@@ -457,6 +489,7 @@ case 'new_boon':
 ```
 
 **3. Libation:**
+
 ```javascript
 // Add to gameData.js libations array
 {
@@ -479,9 +512,11 @@ case 'new_libation':
 ## 🗂️ Key Data Structures
 
 ### Game State
+
 See GameEngine.initializeGameState() for full structure.
 
 ### Card Object
+
 ```javascript
 {
     id: "card_id",
@@ -497,6 +532,7 @@ See GameEngine.initializeGameState() for full structure.
 ```
 
 ### Die Object
+
 ```javascript
 {
     currentFace: 1-6 (or 0 = unrolled),
@@ -515,6 +551,7 @@ See GameEngine.initializeGameState() for full structure.
 ## 🎯 Design Patterns
 
 ### 1. Inheritance
+
 ```
 Card (base)
   ├─ Joker (boons)
@@ -523,6 +560,7 @@ Card (base)
 ```
 
 ### 2. Composition
+
 ```
 GameEngine contains:
   ├─ state (game data)
@@ -532,10 +570,12 @@ GameEngine contains:
 ```
 
 ### 3. Observer Pattern (implicit)
+
 - UI updates when state changes
 - Effects trigger on events (roll, score, turn end)
 
 ### 4. Strategy Pattern
+
 - Different scoring strategies per category
 - Different enhancement effects per type
 
@@ -559,6 +599,7 @@ Changes to constants automatically apply throughout codebase.
 ## 🔍 Debugging
 
 ### Logger Usage
+
 ```javascript
 Logger.debug('Dice rolled', { faces: [1,2,3,4,5] });  // Dev only
 Logger.info('Ante started', { ante: 2 });
@@ -568,12 +609,14 @@ Logger.critical('Fatal error', error);  // Game-breaking
 ```
 
 ### Export Logs
+
 ```javascript
 Logger.downloadLogs();  // Downloads log file
 Logger.getRecentLogs(50);  // Get last 50 entries
 ```
 
 ### Console Access
+
 ```javascript
 window.game  // Current GameEngine instance
 window.app   // App instance
@@ -586,12 +629,14 @@ window.uiManager  // UIManager instance
 ## 🚀 Performance
 
 ### Optimizations
+
 - **Seeded RNG:** Deterministic, no Math.random()
 - **Event delegation:** Minimal event listeners
 - **CSS animations:** GPU-accelerated
 - **Lazy rendering:** Only render visible cards
 
 ### Bundle Size
+
 - **Total:** ~120KB (after Phase 3 cleanup)
 - **Scripts:** ~80KB
 - **CSS:** ~20KB
@@ -602,12 +647,14 @@ window.uiManager  // UIManager instance
 ## 🔐 Save System
 
 ### Storage Strategy
+
 - **localStorage:** Auto-save every 30 seconds
 - **Checkpoints:** After each roll, after scoring, at shop open
 - **Slot:** 'auto' (single save per player)
 - **Format:** JSON
 
 ### Save Data
+
 ```javascript
 {
     gameState: { ... },   // serializeStateForSave() ensures plain objects
@@ -619,6 +666,7 @@ window.uiManager  // UIManager instance
 ```
 
 ### Explicitly Serialized (guaranteed to persist)
+
 - **dice** — Die.toJSON() per die
 - **jokers** (boons) — Card.toJSON() per joker
 - **artifacts** — Card.toJSON() per artifact
@@ -627,10 +675,12 @@ window.uiManager  // UIManager instance
 - **scorecard**, **enhancementMap**, **unlockedCategories**
 
 ### Resume Behaviour
+
 - **play:** Restore play stage (dice, rolls left, held state)
 - **shop:** Restore shop stage with same stock (PRNG restored = identical offerings)
 
 ### Collection Data (Separate)
+
 ```javascript
 {
     boons: ["id1", "id2", ...],  // Discovered boons
@@ -645,12 +695,14 @@ window.uiManager  // UIManager instance
 ## 🛡️ Error Handling
 
 ### Strategy (Phase 3)
+
 1. **Validate inputs** at function boundaries
 2. **Return safe defaults** on error (don't throw)
 3. **Log errors** with context
 4. **Show user-friendly messages** via showMessage()
 
 ### Example
+
 ```javascript
 calculateScore(category) {
     // Validate
@@ -673,31 +725,35 @@ calculateScore(category) {
 
 ## 📊 Terminology
 
-| Code Term | UI Term | Description |
-|-----------|---------|-------------|
-| jokers | Boons | Permanent passive effects |
-| consumables | Libations/Worship | One-time use cards |
-| scorecard | Scorecard | Player's scores |
-| ante | Ante | Difficulty level (like Balatro's blinds) |
-| pips | Pips | Base score value |
-| favour | Favour | Score multiplier |
-| Yahtzee | Heureka | 5-of-a-kind (thematic rename) |
+
+| Code Term   | UI Term           | Description                              |
+| ----------- | ----------------- | ---------------------------------------- |
+| jokers      | Boons             | Permanent passive effects                |
+| consumables | Libations/Worship | One-time use cards                       |
+| scorecard   | Scorecard         | Player's scores                          |
+| ante        | Ante              | Difficulty level (like Balatro's blinds) |
+| pips        | Pips              | Base score value                         |
+| favour      | Favour            | Score multiplier                         |
+| Yahtzee     | Heureka           | 5-of-a-kind (thematic rename)            |
+
 
 ---
 
 ## 🔮 Future Architecture Considerations
 
 ### Potential Improvements
-1. **Split UIManager** - Currently 1,900 lines, could be 6 modules
+
+1. **Thin GameEngine** — Extract cohesive units (e.g. cashout/shop transition object, animation scheduler) behind stable interfaces; keep `state` mutation in one layer.
 2. **Event System** - True pub/sub for loose coupling
 3. **TypeScript Migration** - Type safety & better IDE support
-4. **State Machine** - Formal state transitions
+4. **State Machine** - Formal state transitions (especially shop / expulsion / targeting modes)
 5. **Plugin System** - Modding support
 
 ### Technical Debt (Post-Phase 3)
-- UIManager.js still too large (deferred to future)
-- Some console.log still present (majority replaced with Logger)
-- Limited test coverage (Phase 4)
+
+- **GameEngine.js** remains the largest maintenance hotspot (~3.3k lines)
+- Routine logging → **Logger**; avoid new `console.`* in `game/js` outside `Logger.js`
+- **Tests:** `vitest run` + unit invariants + one Playwright boon spec; combo coverage still manual (see `tracking/KNOWN_ISSUES.md`)
 
 ---
 
@@ -709,4 +765,3 @@ calculateScore(category) {
 ---
 
 *Architecture evolves with each phase - this document will be updated as systems improve.*
-

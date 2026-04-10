@@ -128,6 +128,15 @@ const DiceRenderer = {
                     const targetFace = gameState.hasRolled ? die.getEffectiveFace() : (die.currentFace || (index % 6) + 1);
                     libation.applyEnhancementToDie(gameState, index, targeting.enhancementType, targetFace, game);
                     libation.use();
+                    if (typeof PlaytestRecorder !== 'undefined' && PlaytestRecorder.active) {
+                        PlaytestRecorder.log('libation_die_applied', {
+                            libationId: libation.id,
+                            dieIndex: index,
+                            enhancementType: targeting.enhancementType,
+                            targetFace,
+                            turn: gameState.turn,
+                        });
+                    }
                     if (window.soundManager) window.soundManager.play('foil1', { pitch: 0.95 + Math.random() * 0.1, volume: 0.55 });
                     const idx = gameState.consumables.findIndex(c => c.id === libation.id);
                     if (idx !== -1) gameState.consumables.splice(idx, 1);

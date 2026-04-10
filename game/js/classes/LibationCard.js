@@ -173,18 +173,19 @@ class LibationCard extends Card {
             case 'soma_wild':
                 this.promptForDieFaceSelection(gameState, 'wild', gameEngine);
                 return false;
-            case 'kylix_hermit':
+            case 'kylix_hermit': {
                 const gain = Math.min(gameState.gold, 20);
                 gameState.gold += gain;
                 engine?.showMessage?.(`Kylix of the Hermit: +${gain} gold (double, max gain 20)!`);
                 return true;
+            }
             case 'elixir_lethe':
                 this.promptForDieFaceSelection(gameState, 'permanent_reduce', gameEngine);
                 return false;
             case 'chalice_helios':
                 this.promptForDieFaceSelection(gameState, 'permanent_increase', gameEngine);
                 return false;
-            case 'the_eucharist':
+            case 'the_eucharist': {
                 const gods = Object.keys(gameState.worshipLevels || {}).filter(g => g !== "Pandora's Box");
                 if (gods.length > 0) {
                     this.enterEucharistTargetingMode(gameState, gameEngine);
@@ -192,7 +193,8 @@ class LibationCard extends Card {
                     engine?.showMessage?.("The Eucharist: No gods available to worship!");
                 }
                 return false;
-            case 'divine_guidance':
+            }
+            case 'divine_guidance': {
                 const availableGods = Object.keys(gameState.worshipLevels || {});
                 if (availableGods.length >= 2) {
                     const shuffledGods = [...availableGods].sort(() => engine.prng.random() - 0.5);
@@ -209,6 +211,7 @@ class LibationCard extends Card {
                     engine?.showMessage?.("Divine Guidance: No gods available to worship!");
                 }
                 return true;
+            }
             default:
                 return false;
         }
@@ -533,6 +536,25 @@ class LibationCard extends Card {
 
     }
 
+    /**
+     * Die-face enhancement libations (drag onto a die or click a die while targeting).
+     * @param {LibationCard} libation
+     * @returns {string|null} enhancementType for applyEnhancementToDie, or null
+     */
+    static getDieFaceEnhancementType(libation) {
+        if (!(libation instanceof LibationCard)) return null;
+        const map = {
+            kyphi_mead: 'parchment',
+            tisane_hephaestus: 'iron',
+            ambrosial_krasi: 'gold',
+            retsina_echoes: 'mother_of_pearl',
+            soma_wild: 'wild',
+            elixir_lethe: 'permanent_reduce',
+            chalice_helios: 'permanent_increase',
+        };
+        return map[libation.id] ?? null;
+    }
+
     // Check if this libation can be used
     canUse() {
         // Libations can be used once (usesLeft = 1)
@@ -646,7 +668,7 @@ class LibationCard extends Card {
     enterEucharistTargetingMode(gameState, gameEngine = null) {
         const engine = gameEngine || window.game;
         if (!engine) return;
-        engine?.showMessage?.(`${this.name}: Click a god on the scorecard to increase worship level!`);
+        engine?.showMessage?.(`${this.name}: Click or drag onto a god on the Pantheon to increase worship!`);
         engine.state.eucharistTargetingMode = { libation: this };
         if (engine.updateAllUI) engine.updateAllUI();
     }

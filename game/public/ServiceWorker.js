@@ -3,9 +3,9 @@
  * Served from root to control entire origin. Provides offline support, caching, and app-like experience.
  */
 
-const CACHE_NAME = 'dice-of-dionysus-v1.4.0';
-const STATIC_CACHE_NAME = 'dice-of-dionysus-static-v1.4.0';
-const DYNAMIC_CACHE_NAME = 'dice-of-dionysus-dynamic-v1.4.0';
+const CACHE_NAME = 'dice-of-dionysus-v1.4.1';
+const STATIC_CACHE_NAME = 'dice-of-dionysus-static-v1.4.1';
+const DYNAMIC_CACHE_NAME = 'dice-of-dionysus-dynamic-v1.4.1';
 
 // Files to cache for offline use
 const STATIC_ASSETS = [

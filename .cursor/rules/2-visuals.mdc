@@ -1,12 +1,12 @@
 ---
-description: The Artist — 16-bit pixel art, card sizing, dithering, no blur. Card.render/appendInventoryCard: 7-call-upon-able
-globs: css/**/*.css, **/*.png, js/ui/**
+description: Visuals — 16-bit pixel UI, card sizes 142×190 / 140×187, dithering, no blur; Card DOM → 7-call-upon-able
+globs: game/css/**/*.css, game/**/*.png, game/js/ui/**
 alwaysApply: false
 ---
 
-# Visual Rules (The Artist)
+# Visuals
 
-**Identity:** Authority on 16-bit aesthetic — pixel art, card sizing (142×190/140×187), dithering, juice. No smooth blur. Consult 6-translator for card-area scaling and tooltip behavior.
+**Scope:** 16-bit look—pixel art, card sizing (142×190 / 140×187), dithering, juice. No soft blur. Card-area scaling and tooltips: also **`6-translator.mdc`** where relevant.
 
 ## Card Sizing (Critical)
 

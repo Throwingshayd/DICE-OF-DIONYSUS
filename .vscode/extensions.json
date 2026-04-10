@@ -1,0 +1,14 @@
+{
+  "recommendations": [
+    "dbaeumer.vscode-eslint",
+    "vitest.explorer",
+    "ms-playwright.playwright",
+    "usernamehw.errorlens",
+    "christian-kohler.path-intellisense",
+    "wix.vscode-import-cost",
+    "kisstkondoros.vscode-gutter-preview",
+    "eamodio.gitlens",
+    "aaron-bond.better-comments",
+    "gruntfuggly.todo-tree"
+  ]
+}

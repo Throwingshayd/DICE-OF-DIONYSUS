@@ -79,10 +79,7 @@ class Artifact extends Card {
         return el;
     }
 
-    // Apply artifact effect (passive, permanent)
-    applyEffect(gameState) {
-        // Artifact effects are applied via dedicated engine paths
-        // Could be refactored to have dedicated artifact system
+    applyEffect(_gameState) {
         Logger.info(`Artifact purchased: ${this.name}`);
     }
 }

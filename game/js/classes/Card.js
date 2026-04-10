@@ -1,3 +1,4 @@
+/* exported Card */
 /**
  * Base Card class - Foundation for all card types (Boons, Worship, Libations)
  * @class
@@ -403,8 +404,7 @@ class Card {
     }
 
     // Check if this card is an upgrade of another
-    isUpgradeOf(otherCard) {
-        // Default implementation - override in subclasses
+    isUpgradeOf(_otherCard) {
         return false;
     }
 

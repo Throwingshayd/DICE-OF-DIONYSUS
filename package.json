@@ -14,7 +14,7 @@
     "build": "vite build",
     "clean": "node tools/clean-builds.cjs",
     "preview": "vite preview",
-    "test": "vitest",
+    "test": "vitest run",
     "test:ui": "vitest --ui",
     "playtest:boons": "playwright test tests/e2e/boon-playtest.spec.js",
     "lint": "eslint game/js/**/*.js",

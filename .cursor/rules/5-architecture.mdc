@@ -1,12 +1,12 @@
 ---
-description: The Surveyor — file hierarchy, dependency order (data→logic→UI), pre-flight. No v2/_new
+description: Architecture — file hierarchy, data→logic→UI order, pre-flight; no v2/_new forks
 globs: game/js/**/*.js, game/js/**/*.ts, game/index.html
 alwaysApply: false
 ---
 
-# Architecture Rules (The Surveyor)
+# Architecture
 
-**Identity:** Authority on structure — hierarchy (ARCHITECTURE.md), dependency order, pre-flight. Search before create; replace duplicates, never v2.
+**Scope:** Where files live and in what order to build features. Follow **`ARCHITECTURE.md`** and **`ai_context.yaml`**. Search before adding files; replace duplicates—never `v2` / `_new` forks.
 
 ## Directory Hierarchy
 

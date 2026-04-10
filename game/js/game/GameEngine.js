@@ -1,3 +1,4 @@
+/* exported GameEngine */
 // GameEngine - Main game logic and state management
 
 class GameEngine {
@@ -6,12 +7,17 @@ class GameEngine {
         this.dataManager = new DataManager();
         this.initializeGameState(seed);
         this.setupEventListeners();
+        if (typeof PlaytestRecorder !== 'undefined') {
+            PlaytestRecorder.onEngineReady(this);
+        }
     }
 
     /** Balatro: G.SETTINGS.GAMESPEED — scale animation delays (2x = half delay, 4x = quarter) */
     scaleDelay(ms) {
         const speed = (window.dataManager?.getSettings?.()?.gameSpeed) ?? 2;
-        return Math.max(1, Math.round(ms / speed));
+        return typeof GameTiming !== 'undefined' && GameTiming.scaleDelay
+            ? GameTiming.scaleDelay(ms, speed)
+            : Math.max(1, Math.round(ms / speed));
     }
 
     /** Parmenides Die: get target category for pantheon swap (upper↔lower by position) */
@@ -80,7 +86,6 @@ class GameEngine {
             // UI state
             pendingCategory: null,
             gameOver: false,
-            isAwaitingApi: false,
             /** Libation die-targeting: { libation, enhancementType } when active; null otherwise */
             libationTargetingMode: null,
             /** Eucharist god-targeting: { libation } when active; null otherwise */
@@ -443,7 +448,6 @@ class GameEngine {
         const rerollShopBtn = document.getElementById('rerollShop');
         if (rerollShopBtn) {
             rerollShopBtn.addEventListener('click', () => {
-                Logger.debug('Reroll shop clicked from GameEngine listener');
                 this.rerollShop();
             });
         }
@@ -460,6 +464,9 @@ class GameEngine {
 
     cancelTargetingMode() {
         if (this.state.libationTargetingMode) {
+            if (typeof PlaytestRecorder !== 'undefined' && PlaytestRecorder.active) {
+                PlaytestRecorder.log('targeting_cancelled', { kind: 'libation' });
+            }
             this.state.libationTargetingMode = null;
             if (window.soundManager) window.soundManager.play('cancel', { volume: 0.45 });
             this.showMessage('Libation targeting cancelled.');
@@ -469,6 +476,9 @@ class GameEngine {
             }
         }
         if (this.state.eucharistTargetingMode) {
+            if (typeof PlaytestRecorder !== 'undefined' && PlaytestRecorder.active) {
+                PlaytestRecorder.log('targeting_cancelled', { kind: 'eucharist' });
+            }
             this.state.eucharistTargetingMode = null;
             this.showMessage('Eucharist selection cancelled.');
             const scorecard = document.getElementById('scorecard');
@@ -492,6 +502,14 @@ class GameEngine {
         if (!god) return;
         if (god === "Pandora's Box" && !this.state.unlockedCategories?.["Pandora's Box"]) return;
         this.state.worshipLevels[god] = (this.state.worshipLevels[god] || 0) + 1;
+        if (typeof PlaytestRecorder !== 'undefined' && PlaytestRecorder.active) {
+            PlaytestRecorder.log('eucharist_used', {
+                libationId: mode.libation.id,
+                god,
+                category,
+                turn: this.state.turn,
+            });
+        }
         mode.libation.use();
         const idx = this.state.consumables.findIndex(c => c.id === mode.libation.id);
         if (idx !== -1) this.state.consumables.splice(idx, 1);
@@ -653,7 +671,7 @@ class GameEngine {
      */
     rollDice() {
         // FIXED: Simple, bulletproof roll mechanics
-        if (this.state.rollsLeft <= 0 || this.state.gameOver || this.state.isAwaitingApi) {
+        if (this.state.rollsLeft <= 0 || this.state.gameOver) {
             return;
         }
         
@@ -689,10 +707,8 @@ class GameEngine {
      * RNG + effects, then update UI with bounce on rolled dice.
      */
     executeRoll() {
-        // Apply boon effects that trigger at roll start
         this.applyBoonRollEffects();
-        
-        // FIXED: Simple decrement - no complex logic
+
         this.state.rollsLeft--;
         this.state.hasRolled = true;
         
@@ -705,11 +721,9 @@ class GameEngine {
         // Sync DOM to shuffled state so physics uses correct dice/held mapping
         if (this.domReady) this.updateAllUI();
 
-        const diceElements = this.dom.diceContainer?.querySelectorAll('.die');
         const held = [...this.state.held];
         const anyToRoll = held.some(h => !h);
 
-        let finalFaces = null;
         if (anyToRoll) {
             const sevenSidedRoll = this.state.forcedDiceValues?.sevenSidedFirstRoll;
             if (sevenSidedRoll && sevenSidedRoll.length >= 5 && this.state.turn === 1) {
@@ -744,7 +758,6 @@ class GameEngine {
             this.state.boons.forEach(boon => {
                 if (boon.affectsDiceRoll?.()) boon.applyDiceRollEffect(this.state.dice, this.state, this.prng);
             });
-            finalFaces = this.state.dice.map(d => (typeof d.getEffectiveFace === 'function' ? d.getEffectiveFace() : d.face) || 1);
         }
         
         const doPostPhysicsRoll = () => {
@@ -777,6 +790,19 @@ class GameEngine {
 
         // Original non-physics roll: immediate completion with bounce on rolled dice
         doPostPhysicsRoll();
+
+        if (typeof PlaytestRecorder !== 'undefined' && PlaytestRecorder.active) {
+            const faces = this.state.dice.map((d) =>
+                typeof d.getEffectiveFace === 'function' ? d.getEffectiveFace() : (d.face ?? d.currentFace)
+            );
+            PlaytestRecorder.log('roll', {
+                turn: this.state.turn,
+                rollsAfter: this.state.rollsLeft,
+                held: [...this.state.held],
+                diceFaces: faces,
+                boonTriggersThisTurn: this.state.boonTriggersThisTurn,
+            });
+        }
     }
 
     // Apply boon effects that trigger at turn start (Balatro-inspired timing)
@@ -806,7 +832,7 @@ class GameEngine {
      * @param {number} index - Die index (0-4)
      */
     toggleHold(index) {
-        if (!this.state.hasRolled || this.state.isAwaitingApi) return;
+        if (!this.state.hasRolled) return;
         
         // Reckless Abandon: cannot hold dice
         const hasRecklessAbandon = this.state.boons?.some(j => j.id === 'reckless_abandon');
@@ -827,8 +853,19 @@ class GameEngine {
         }
         
         this.state.held[index] = !this.state.held[index];
-        if (window.soundManager) window.soundManager.play('highlight1', { pitch: 0.95 + Math.random() * 0.1, volume: 0.5 });
-        
+        if (window.soundManager) window.soundManager.play('highlight1', { pitch: 0.95 + this.prng.random() * 0.1, volume: 0.5 });
+        if (typeof PlaytestRecorder !== 'undefined' && PlaytestRecorder.active) {
+            const faces = this.state.dice.map((d) =>
+                typeof d.getEffectiveFace === 'function' ? d.getEffectiveFace() : (d.face ?? d.currentFace)
+            );
+            PlaytestRecorder.log('hold_toggle', {
+                index,
+                held: [...this.state.held],
+                diceFaces: faces,
+                turn: this.state.turn,
+                rollsLeft: this.state.rollsLeft,
+            });
+        }
         if (this.domReady) {
             this.updateAllUI();
         }
@@ -838,12 +875,15 @@ class GameEngine {
      * Unhold all dice (right-click on dice area)
      */
     unholdAllDice() {
-        if (!this.state.hasRolled || this.state.isAwaitingApi) return;
+        if (!this.state.hasRolled) return;
         const hasRecklessAbandon = this.state.boons?.some(j => j.id === 'reckless_abandon');
         if (hasRecklessAbandon) return;
         if (this.state.held.every(h => !h)) return;
         this.state.held.fill(false);
         if (window.soundManager) window.soundManager.play('whoosh', { pitch: 0.9, volume: 0.4 });
+        if (typeof PlaytestRecorder !== 'undefined' && PlaytestRecorder.active) {
+            PlaytestRecorder.log('hold_clear_all', { turn: this.state.turn });
+        }
         if (this.domReady) this.updateAllUI();
     }
 
@@ -872,8 +912,9 @@ class GameEngine {
         // Update the state
         this.state.dice = diceCopy;
         this.state.held = heldCopy;
-        
-        Logger.trace('Dice positions shuffled');
+        if (typeof PlaytestRecorder !== 'undefined' && PlaytestRecorder.active) {
+            PlaytestRecorder.log('dice_shuffle', { turn: this.state.turn, held: [...this.state.held] });
+        }
     }
 
     checkTriggerEffects() {
@@ -927,7 +968,7 @@ class GameEngine {
      */
     promptScore(category) {
         if (this.isScoring) return;
-        if (this.state.scorecard[category] !== undefined || this.state.isAwaitingApi) return;
+        if (this.state.scorecard[category] !== undefined) return;
         if (!this.state.hasRolled) {
             if (window.soundManager) window.soundManager.play('cancel', { volume: 0.5 });
             this.showMessage("You must roll the dice first!");
@@ -964,15 +1005,55 @@ class GameEngine {
         
         let { pips, favour, isValid, fromPipeline } = this.calculateScore(category, true);
         let finalScore = 0;
+
+        if (typeof PlaytestRecorder !== 'undefined' && PlaytestRecorder.active) {
+            PlaytestRecorder.log('score_begin', {
+                category,
+                targetCategory,
+                isSwap,
+                isValid,
+                fromPipeline,
+                pips,
+                favour,
+                tempPips: this.state.tempPips,
+                tempFavour: this.state.tempFavour,
+            });
+        }
         
         if (isValid) {
             if (!fromPipeline) {
                 pips += this.state.tempPips;
                 favour += this.state.tempFavour;
                 let eventData = { category, pips, favour, favourMult: 1 };
+                const PR = typeof PlaytestRecorder !== 'undefined' && PlaytestRecorder.active;
+                const chainSteps = [];
                 this.state.boons.forEach((boon) => {
+                    const before = { p: eventData.pips, f: eventData.favour, fm: eventData.favourMult || 1 };
                     eventData = boon.onTimingEvent('before_score', this.state, eventData);
+                    if (PR) {
+                        chainSteps.push({
+                            id: boon.id,
+                            before,
+                            after: {
+                                p: eventData.pips,
+                                f: eventData.favour,
+                                fm: eventData.favourMult || 1,
+                            },
+                        });
+                    }
                 });
+                if (PR) {
+                    PlaytestRecorder.log('before_score_chain', {
+                        category,
+                        steps: chainSteps,
+                        after: {
+                            pips: eventData.pips,
+                            favour: eventData.favour,
+                            favourMult: eventData.favourMult || 1,
+                        },
+                        boonOrder: this.state.boons.map((b) => b.id),
+                    });
+                }
                 pips = eventData.pips;
                 favour = eventData.favour * (eventData.favourMult || 1);
                 pips = Math.max(0, pips);
@@ -992,6 +1073,9 @@ class GameEngine {
             });
             
         } else {
+            if (typeof PlaytestRecorder !== 'undefined' && PlaytestRecorder.active) {
+                PlaytestRecorder.log('score_scratch', { category, targetCategory, isSwap, pips, favour });
+            }
             // Scratch: with Parmenides, result goes to target slot; mark source as used
             if (isSwap) {
                 this.state.scorecard[targetCategory] = 0;
@@ -1009,6 +1093,16 @@ class GameEngine {
      * Runs bonuses, effects, and advances turn
      */
     finalizeScoring(category, pips, favour, finalScore, targetCategory) {
+        if (typeof PlaytestRecorder !== 'undefined' && PlaytestRecorder.active) {
+            PlaytestRecorder.log('score_finalized', {
+                category,
+                targetCategory,
+                pips,
+                favour,
+                finalScore,
+                state: PlaytestRecorder.captureState(this),
+            });
+        }
         // Check and award Upper Sanctum bonus (Yahtzee rule):
         // If sum of Ones..Sixes >= 63 and not yet awarded, grant +35 points
         this.checkAndAwardUpperBonus();
@@ -1228,7 +1322,7 @@ class GameEngine {
 
                 // Balatro SFX: score placed — gold_seal for satisfying stamp/completion
                 if (window.soundManager) {
-                    window.soundManager.play('gold_seal', { pitch: 0.95 + Math.random() * 0.1, volume: 0.7 });
+                    window.soundManager.play('gold_seal', { pitch: 0.95 + this.prng.random() * 0.1, volume: 0.7 });
                 }
                 // Particles only for big scores; screen shake only for rolling Eurekas (see executeRoll)
                 if (finalScore >= 200 && window.balatroEffects && scorecardEl) {
@@ -1463,7 +1557,7 @@ class GameEngine {
                     if (held[i] && result.length < 3) result.push({ dieIndex: i, label: '+3 pips' });
                 });
                 break;
-            case 'prime_time':
+            case 'prime_time': {
                 const primes = [2, 3, 5];
                 if (state.unlockedCategories?.Sevens) primes.push(7);
                 const primeDice = state.dice
@@ -1474,6 +1568,7 @@ class GameEngine {
                 const perDie = primeDice.length > 0 ? Math.round((totalBonus / primeDice.length) * 10) / 10 : 0;
                 primeDice.forEach(({ i }) => result.push({ dieIndex: i, label: `+${perDie} pips` }));
                 break;
+            }
             case 'the_locksmith':
                 state.dice.forEach((die, i) => {
                     const heldRolls = die.rollsHeld || 0;
@@ -1714,7 +1809,7 @@ class GameEngine {
             particle.style.top = centerY + 'px';
             
             const angle = (i / particleCount) * Math.PI * 2;
-            const distance = 30 + Math.random() * 40;
+            const distance = 30 + this.prng.random() * 40;
             const tx = Math.cos(angle) * distance;
             const ty = Math.sin(angle) * distance;
             
@@ -1741,7 +1836,6 @@ class GameEngine {
      * @param {string} reason - Optional reason for the change
      */
     updateGoldAnimated(change, reason = null) {
-        // Defensive: Validate inputs
         if (typeof change !== 'number' || isNaN(change)) {
             Logger.error(`Invalid gold change: ${change}`);
             return;
@@ -1764,7 +1858,7 @@ class GameEngine {
             return;
         }
         if (change > 0 && window.soundManager) {
-            window.soundManager.play(change >= 10 ? 'coin6' : 'coin3', { pitch: 0.9 + Math.random() * 0.1, volume: 0.6 });
+            window.soundManager.play(change >= 10 ? 'coin6' : 'coin3', { pitch: 0.9 + this.prng.random() * 0.1, volume: 0.6 });
         }
         goldDisplays.forEach(goldElement => {
             // Flash color
@@ -1817,8 +1911,20 @@ class GameEngine {
     /**
      * Show Balatro-style game over screen
      * @param {boolean} isVictory - True if player won, false if lost
+     * @param {{ reason?: string }} [opts]
      */
-    showGameOverScreen(isVictory) {
+    showGameOverScreen(isVictory, opts = {}) {
+        if (typeof PlaytestRecorder !== 'undefined' && PlaytestRecorder.active) {
+            PlaytestRecorder.log('game_over', {
+                won: isVictory,
+                reason: opts.reason || (isVictory ? 'victory' : 'defeat'),
+                totalScore: this.state.totalScore,
+                ante: this.state.ante,
+                gold: this.state.gold,
+                state: PlaytestRecorder.captureState(this),
+            });
+            PlaytestRecorder.maybeAutoExportOnRunEnd();
+        }
         if (window.soundManager) window.soundManager.play(isVictory ? 'win' : 'negative', { volume: 0.8 });
         // Create overlay
         const overlay = document.createElement('div');
@@ -2224,9 +2330,7 @@ class GameEngine {
         return { pips, favour, isValid, fromPipeline };
     }
 
-    getFavourForCategory(category) {
-        // Base multiplier is always 1x
-        // Worship level for the category's god is added separately in calculateScore
+    getFavourForCategory(_category) {
         return 1;
     }
 
@@ -2289,6 +2393,10 @@ class GameEngine {
         } else if (this.domReady) {
             this.updateAllUI();
         }
+
+        if (typeof PlaytestRecorder !== 'undefined' && PlaytestRecorder.active) {
+            PlaytestRecorder.log('turn_tick', PlaytestRecorder.captureState(this));
+        }
     }
 
     /**
@@ -2328,9 +2436,27 @@ class GameEngine {
         // Check if all categories are filled AND score threshold is reached
         const allCategoriesFilled = this.areAllCategoriesFilled();
         const scoreThresholdReached = this.state.totalScore >= this.state.scoreThreshold;
+
+        if (typeof PlaytestRecorder !== 'undefined' && PlaytestRecorder.active) {
+            PlaytestRecorder.log('ante_check', {
+                allCategoriesFilled,
+                scoreThresholdReached,
+                totalScore: this.state.totalScore,
+                scoreThreshold: this.state.scoreThreshold,
+                ante: this.state.ante,
+            });
+        }
         
         // Player must complete all categories AND meet the score threshold
         if (allCategoriesFilled && scoreThresholdReached) {
+            if (typeof PlaytestRecorder !== 'undefined' && PlaytestRecorder.active) {
+                PlaytestRecorder.log('ante_cleared', {
+                    ante: this.state.ante,
+                    totalScore: this.state.totalScore,
+                    scoreThreshold: this.state.scoreThreshold,
+                    state: PlaytestRecorder.captureState(this),
+                });
+            }
             if (window.soundManager) window.soundManager.play('gong', { pitch: 0.9, volume: 0.5 });
             this.showMessage(`Ante ${this.state.ante} cleared! Score: ${this.state.totalScore}/${this.state.scoreThreshold}`);
             
@@ -2356,11 +2482,10 @@ class GameEngine {
         } else if (allCategoriesFilled && !scoreThresholdReached) {
             // All categories filled but didn't meet threshold - GAME OVER
             this.state.gameOver = true;
-            
             this.showMessage(`Ante ${this.state.ante} failed! Score: ${this.state.totalScore}/${this.state.scoreThreshold}`);
             
             // Show Balatro-style game over screen
-            this.showGameOverScreen(false);
+            this.showGameOverScreen(false, { reason: 'ante_threshold_failed' });
             
             // Update statistics
             this.dataManager.updateStats({
@@ -2425,7 +2550,7 @@ class GameEngine {
                 this.state.gameOver = true;
                 
                 // Show Balatro-style victory screen
-                this.showGameOverScreen(true);
+                this.showGameOverScreen(true, { reason: 'twelve_sixes' });
                 
                 this.dataManager.updateStats({
                     won: true,
@@ -2854,16 +2979,20 @@ class GameEngine {
     
     // Shop methods (will be expanded in next file)
     openShop() {
+        if (typeof PlaytestRecorder !== 'undefined' && PlaytestRecorder.active) {
+            PlaytestRecorder.log('shop_open', { gold: this.state.gold, turn: this.state.turn, ante: this.state.ante });
+        }
         // Interest is now awarded BEFORE shop opens (in showInterestThenOpenShop)
         // This method just opens the shop UI
-        
-        // Shop logic will be handled by a separate module
         if (window.shopManager) {
             window.shopManager.openShop(this.state, this);
         }
     }
 
     closeShop() {
+        if (typeof PlaytestRecorder !== 'undefined' && PlaytestRecorder.active) {
+            PlaytestRecorder.log('shop_close', { turn: this.state.turn, ante: this.state.ante, gold: this.state.gold });
+        }
         if (window.soundManager) window.soundManager.play('cardSlide2', { pitch: 0.95, volume: 0.45 });
         if (window.shopManager) {
             window.shopManager.closeShop();
@@ -2904,12 +3033,6 @@ class GameEngine {
         // Check if dice array is valid
         if (!Array.isArray(this.state.dice) || this.state.dice.length !== 5) {
             Logger.error('Cannot save: Invalid dice array');
-            return false;
-        }
-        
-        // Check if currently animating
-        if (this.state.isAwaitingApi) {
-            Logger.debug('Cannot save: Game is processing');
             return false;
         }
         

@@ -1,98 +1,132 @@
-# Dice of Dionysus — Agent Soul
+# Dice of Dionysus — SOUL
 
-**Read this first.** Canonical entry point. Everything branches from here.
-
----
-
-## Identity
-
-Roguelike dice + Greek mythology. Vanilla JS, class-based. Single source of truth: `GameEngine.state`. 5 dice, 13 categories, boons + libations. Pips × Favour = Score.
-
-**Project stance:** Stability > novelty. Performance > elegance. Respect what works.
+**What this file is:** Laws + routing for agents and humans. **Gameplay code** lives under [`game/`](game/) (`game/js/`, `game/css/`). There is no canonical gameplay tree at repo-root `js/`.
 
 ---
 
-## Rule Identities (.cursor/rules/)
+## For Cursor (read this block first)
 
-| Rule | Identity |
+1. **Paths:** Implement under `game/js/` (see [`.cursor/PATHWAYS.md`](.cursor/PATHWAYS.md) for the map).
+2. **Workflow:** Use the project skill [`.cursor/skills/dice-ship/SKILL.md`](.cursor/skills/dice-ship/SKILL.md) for ship/cleanup tasks (verify commands, guardrails).
+3. **State:** `GameEngine.state` is the single game table; don’t duplicate run state in parallel globals.
+4. **RNG:** Anything that affects **gameplay or seeded replay** uses the run’s **`prng`** (e.g. `this.prng` on `GameEngine`). **Cosmetic-only** jitter (SFX pitch, particle variance, one-off UI fluff) may use `Math.random()` unless you intentionally want replay-identical visuals.
+5. **Rules:** Open the **smallest** `.cursor/rules/*.mdc` set for the task (narrowest number first; add **6** when shop/save/expulsion touches the change).
+6. **Verify:** After edits: `npm run lint:fix`, `npm run test`, `npm run dev`; add `npm run playtest:boons` when boons/shop/flow change. Details in the skill and **3-automation.mdc**.
+
+---
+
+## Game snapshot
+
+Vanilla JS, class-based roguelike dice + Greek myth. **5 dice**, **13 Yahtzee categories**, **Boons** (equipped), **Libations / Worship** (consumables). Score: **Pips × Favour**.
+
+**Vocabulary:** Boons, Libations, Worship, Pips, Favour, Ante. Prefer these in UI copy; avoid casual “hands” / “discards”; align new player-facing terms with the design.
+
+**Stance:** Ship stable behavior over clever rewrites. Prefer small diffs; use `Logger` instead of ad-hoc `console.log` in game code.
+
+---
+
+## Randomness (RNG)
+
+| Kind | Use |
+|------|-----|
+| **Gameplay / outcome** (rolls, shop picks from pools, proc checks, anything stored in or derived from run state for logic) | `prng` from the game/run (`this.prng` on `GameEngine`, or passed-in `prng` where appropriate). Never `Math.random()` for these. |
+| **Cosmetic** (audio pitch wobble, particle jitter, non-deterministic visuals that do not change scoring, inventory, or save payload) | `Math.random()` is acceptable; using `prng` is optional if you want stricter replay parity for VFX. |
+
+Seeded RNG implementation: [`game/js/utils/seededRNG.js`](game/js/utils/seededRNG.js).
+
+---
+
+## Non‑negotiables
+
+| Must | Must not |
 |------|----------|
-| **0-global** | Gatekeeper. SOUL-first, search before edit, [PLAN] before build. |
-| **1-mechanics** | The Judge. Hand validation, mult order (+ then ×), timing (`turn_start` in `nextTurn()`). |
-| **2-visuals** | The Artist. 16-bit pixel art, card sizing (142×190 / 140×187), no blur, dithering. |
-| **3-automation** | The Engineer. dev/build/lint/test/playtest commands. Verification protocol. |
-| **4-master-architect** | The Architect. Invoked for polish, bug-hunting, Balatro alignment. |
-| **5-architecture** | The Surveyor. File hierarchy, dependency order (data → logic → UI), pre-flight. |
-| **6-translator** | The Translator. Lua→JS mapping, owned exclusion, expulsion, save-state. |
-| **7-call-upon-able** | The Reuser. Card.render(), appendInventoryCard(). No duplicate card UI logic. |
-| **8-translator-playtest** | The Playtester. Playtest→translator bridge. `npm run playtest:boons` → report. |
+| Gameplay/outcome RNG via run `prng` | `Math.random()` for rolls, shop draws from pools, scoring procs, or other state-affecting picks |
+| Mult order: additive (+) **then** multiplicative (×) | Reorder mult pipeline without explicit design sign-off |
+| `turn_start` boon hooks from `nextTurn()` | `turn_start` from `executeRoll()` |
+| One game table: `GameEngine.state` | Second parallel “real” state for the same run |
+| Update [`.cursor/context/`](.cursor/context/) when adding cards, boons, economy, or UI patterns | Silent doc drift for new content |
 
 ---
 
-## Read Order
+## Hot files (where changes usually land)
 
-1. **SOUL.md** ← you are here
-2. **0-global.mdc** — Primary reference
-3. **ai_context.yaml** — Module map, hot paths
-4. **Task-specific rule** — e.g. shop/save parity → 6-translator
+| Area | Primary paths |
+|------|----------------|
+| Loop, state, shop flow | `game/js/game/GameEngine.js` |
+| UI wiring | `game/js/ui/UIManager.js`, renderers under `game/js/ui/renderers/` |
+| Card data | `game/js/data/gameData.js` |
+| Boon / libation / worship logic | `game/js/classes/Boon.js`, `boonTimingHandlers.js` (`before_score`), `LibationCard.js`, `WorshipCard.js` |
+| Tunables | `game/js/config/*.js` |
+| Scoring | `game/js/engine/ScoringEngine.js`, `HandEvaluator.js`, `ScoringConstants.js` |
+| Shop stock (pure logic) | `game/js/engine/ShopStockGenerator.js` |
+| Save / collection | `game/js/utils/dataManager.js` |
 
----
-
-## Critical Paths
-
-| Concern | File(s) | Do Not |
-|---------|---------|--------|
-| Game state | `game/js/game/GameEngine.js` | Split it |
-| UI | `game/js/ui/UIManager.js` | Split without request |
-| Cards | `game/js/data/gameData.js` | Add elsewhere |
-| Effects | `game/js/classes/Boon.js`, `LibationCard.js`, `WorshipCard.js` | Duplicate logic |
-| Constants | `game/js/config/*.js` | Hardcode |
-| Scoring | `game/js/engine/ScoringEngine.js`, `HandEvaluator.js` | Bypass |
+**Refactors:** Prefer minimal, behavior-preserving edits. Splitting or extracting modules from large files is fine when it **reduces risk or complexity**—keep `GameEngine.state` authoritative and run verification after structural changes.
 
 ---
 
-## Strong Opinions
+## Routing: intent → start here → rule
 
-- **Seeded RNG only.** `this.prng.random()`. Never `Math.random()`.
-- **Mult:** Additive (+) first, then multiplicative (×).
-- **`turn_start`:** In `nextTurn()`, never `executeRoll()`.
-- **Update .cursor/context/** when adding cards, boons, economy, UI patterns.
-- **Terminology:** Boons (equipped modifiers). Consumables = Libations/Worship. Pips = base. Favour = mult. Ante = difficulty.
-- **Greek theming:** No "hands," "discards." Ask before new terms.
+Rules live in `.cursor/rules/`. Use the **lowest** number that fits; stack **6** for shop/save/expulsion.
+
+| Intent | Start here | Rule(s) |
+|--------|------------|---------|
+| Boon | `game/js/data/gameData.js` → `game/js/classes/Boon.js` | **1**; **6** if shop/save |
+| Libation / Worship | `gameData.js` → `LibationCard.js` / `WorshipCard.js` | **1** |
+| Scoring / categories | `ScoringEngine.js`, `HandEvaluator.js`, `ScoringConstants.js` | **1** |
+| Economy / prices | `GameConstants.js`, `gameData.js` | **1**; **6** if shop stock |
+| Shop / packs / expulsion | `GameEngine.js`, `ShopStockGenerator.js`, `game/js/ui/ShopUI.js` | **6** |
+| Save / continue | `dataManager.js`, `GameEngine.js`; `.cursor/context/ARCHITECTURE.md` | **6** |
+| Card DOM / inventory tags | `Card.js`, `UIManager.appendInventoryCard` | **7** |
+| CSS / layout / juice | `game/css/`, `UIManager.js`, effects modules | **2** (+ **6** for CardArea / z-index) |
+| New files / layout | `.cursor/context/ARCHITECTURE.md` | **5** |
+| Polish / audit / bug sweep | whole codebase | **4** |
+| Playtest → code | map metrics to `state` | **8** |
+| Commands / CI / lint / tests | `package.json` | **3** |
+
+**Rule index:** **0** global habits · **1** mechanics · **2** visuals · **3** automation · **4** polish phases · **5** architecture · **6** translator (shop/save) · **7** call-upon-able (tags) · **8** playtest → code.
 
 ---
 
-## Decision Tree
+## Definition of done (gameplay-facing)
 
+1. Gameplay RNG and mult/timing contracts preserved—or explicitly agreed change.
+2. Shop/save/expulsion still correct if those paths were touched (**6**).
+3. Context/docs updated if you added patterns or content ([`.cursor/context/`](.cursor/context/)).
+4. `npm run dev` loads; `npm run lint:fix`; `npm run test` where coverage exists; `playtest:boons` when boon/flow warrants.
+
+**Anti-drift:** No shadow `v2` trees; no new frameworks unless the project adopts them deliberately; avoid new top-level folders without reason.
+
+---
+
+## Verification (copy-paste)
+
+```text
+npm run dev
+npm run lint:fix
+npm run test
+npm run playtest:boons
 ```
-Adding boon/libation/worship?  → game/js/data/gameData.js + class (Boon/LibationCard/WorshipCard)
-Changing economy?             → game/js/config/GameConstants.js
-Changing scoring?             → game/js/engine/ScoringEngine.js, HandEvaluator.js, game/js/config/ScoringConstants.js
-Fixing bug?                   → tracking/BUGS_FIXED_LOG.md, seed for repro
-Shop/save/expulsion parity?   → 6-translator.mdc
-Card UI (sell/buy tags)?      → 7-call-upon-able.mdc
-Optimizing?                   → Profile first. Preserve determinism.
-```
+
+More: [`.cursor/tester/TESTING.md`](.cursor/tester/TESTING.md), **3-automation.mdc**.
 
 ---
 
-## Verification
+## Doc map
 
-1. `npm run dev` — loads, no crash
-2. `npm run lint:fix` — style passes
-3. `npm run test` — if tests exist
-4. Update .cursor/context/ when adding content
-
----
-
-## Don't
-
-- Restructure without being asked
-- Add frameworks "because modern"
-- Change working code "to be cleaner"
-- Forget .cursor/context/ updates
-- Break save compatibility
-- Use Math.random()
+| Doc | Role |
+|-----|------|
+| **SOUL.md** (this file) | Laws, RNG, routing |
+| [`.cursor/skills/dice-ship/SKILL.md`](.cursor/skills/dice-ship/SKILL.md) | Default agent workflow for changes |
+| [`.cursor/PATHWAYS.md`](.cursor/PATHWAYS.md) | Repo zones + same routing table (compact) |
+| `.cursor/rules/*.mdc` | Deep topic guidance |
+| `.cursor/context/` | Architecture, module map, card references |
 
 ---
 
-*Search. Never guess paths.*
+## Don’t
+
+- Use `Math.random()` for gameplay/outcome (see RNG table).
+- Break save compatibility without bumping `dataManager` version and a migration or clear reset path.
+- Add card definitions outside `gameData.js` (then wire class behavior).
+- Guess paths—search the repo or open PATHWAYS.

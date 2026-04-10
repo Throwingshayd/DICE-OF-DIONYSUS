@@ -10,7 +10,7 @@ const PlayAreaRenderer = {
         const consumableKey = (gameState.consumables || []).map(c => c.id).join(',');
         const artifactKey = (gameState.artifacts || []).map(a => a.id).join(',');
         const hereticKey = gameState.hereticStacks ?? 0;
-        const slotsKey = `${boonKey}|${consumableKey}|${artifactKey}|${gameState.boonSlots ?? 5}|${gameState.consumableSlots ?? 2}|${hereticKey}`;
+        const slotsKey = `${boonKey}|${consumableKey}|${artifactKey}|${gameState.boonSlots ?? 5}|${gameState.consumableSlots ?? 5}|${hereticKey}`;
         if (uiManager._playAreaSlotsKey === slotsKey) return;
         uiManager._playAreaSlotsKey = slotsKey;
 
@@ -21,7 +21,7 @@ const PlayAreaRenderer = {
         const boonCount = (gameState.boons || []).length;
         const boonMax = gameState.boonSlots || (window.GAME_BALANCE?.STARTING_BOON_SLOTS ?? 5);
         const consumableCount = (gameState.consumables || []).length;
-        const consumableMax = gameState.consumableSlots ?? (window.GAME_BALANCE?.STARTING_LIBATION_SLOTS ?? 2);
+        const consumableMax = gameState.consumableSlots ?? (window.GAME_BALANCE?.STARTING_LIBATION_SLOTS ?? 5);
         if (dom.boonSlotCounter) dom.boonSlotCounter.textContent = `${boonCount}/${boonMax}`;
         if (dom.consumableSlotCounter) dom.consumableSlotCounter.textContent = `${consumableCount}/${consumableMax}`;
     },
@@ -110,6 +110,7 @@ const PlayAreaRenderer = {
                 revealOn: 'click'
             });
         });
+        uiManager.bindConsumableHorizonDrag(container);
     },
 
     updateArtifactUI(dom) {

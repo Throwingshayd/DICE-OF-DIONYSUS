@@ -31,6 +31,18 @@ function buildSevenSidedTestUrl() {
 }
 
 async function startGame(page, boonIds, options = {}) {
+  // Isolated run: clear persisted saves/settings so auto-save from a prior test cannot hijack the next.
+  // Skip first-run tutorial overlay (blocks #rollButton) — key matches dataManager.prefix + 'tutorialShown'
+  await page.addInitScript(() => {
+    try {
+      Object.keys(localStorage).forEach((k) => {
+        if (k.startsWith('diceOfDionysus_')) localStorage.removeItem(k);
+      });
+      localStorage.setItem('diceOfDionysus_tutorialShown', '1');
+    } catch (_) {
+      /* ignore */
+    }
+  });
   await page.setViewportSize(VIEWPORT);
   await page.goto(buildTestUrl(boonIds, options));
   await page.getByPlaceholder(/seed/i).fill(options.seed || SEED);
@@ -524,8 +536,27 @@ test.describe('Boon Playtests', () => {
     await expect(page.locator('#turnDisplay')).toContainText(/2/);
   });
 
+  // Matrix priority row #1 — compounding pair (human should still verify turn ≥ 10 Trojan)
+  test('Matrix #1: Journey of Perseus + Trojan Horse — smoke', async ({ page }) => {
+    await startGame(page, ['journey_of_perseus', 'trojan_horse']);
+    await expect(page.locator('.boon-slots [data-card-id="journey_of_perseus"]')).toBeVisible();
+    await expect(page.locator('.boon-slots [data-card-id="trojan_horse"]')).toBeVisible();
+    await rollAndScore(page, 'Chance');
+    await expect(page.locator('#turnDisplay')).toContainText(/2/);
+  });
+
   // --- 7-SIDED DICE: bonus Yahtzee unlocks Sevens ---
   test("7-sided dice - roll produces face 7 after bonus Yahtzee unlock", async ({ page }) => {
+    await page.addInitScript(() => {
+      try {
+        Object.keys(localStorage).forEach((k) => {
+          if (k.startsWith('diceOfDionysus_')) localStorage.removeItem(k);
+        });
+        localStorage.setItem('diceOfDionysus_tutorialShown', '1');
+      } catch (_) {
+        /* ignore */
+      }
+    });
     await page.setViewportSize(VIEWPORT);
     await page.goto(buildSevenSidedTestUrl());
     await page.getByPlaceholder(/seed/i).fill('seven_sided_test');

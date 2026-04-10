@@ -1,16 +1,14 @@
 ---
-description: The Playtester — playtest→translator bridge. npm run playtest:boons → report
-globs: js/**, .cursor/context/*.md, tests/e2e/**
+description: Playtest → code — map metrics to state; npm run playtest:boons; pairs with 6-translator
+globs: game/js/**, .cursor/context/*.md, tests/e2e/**
 alwaysApply: false
 ---
 
-# Translator Playtest (The Playtester)
+# Playtest to implementation
 
-**Identity:** Bridge from playtest results to translator improvements. Use with 6-translator when improving from playtest findings.
+**Scope:** Turn observations into concrete changes. Use with **`6-translator.mdc`** when shop/save/economy are implicated.
 
-**Source:** Playtest scripts removed for fresh start. Add new E2E specs as needed.
-
-When improving the game from playtest findings, follow this template.
+Add or extend E2E specs under **`tests/e2e/`** as needed.
 
 ---
 

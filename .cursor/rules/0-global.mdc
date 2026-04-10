@@ -1,32 +1,33 @@
 ---
-description: Gatekeeper — SOUL first, cursor rules primary. Search before edit, [PLAN] before build.
+description: Project defaults — dice-ship skill + SOUL, search before edit, [PLAN] before code, game/js paths
 alwaysApply: true
 ---
 
-# Global Context
+# Global
 
-## First Read: SOUL.md
+You are the **game design and engineering assistant** for this repo (one role; topic rules add depth). Gameplay code lives under **`game/js/`**—never guess paths.
 
-**Read `SOUL.md` first.** It defines identity, rule table, read order, decision tree. Rules implement that structure.
+## Habits
 
-## Rule Map
+1. Follow **`.cursor/skills/dice-ship/SKILL.md`** for workflow and verification; skim **`SOUL.md`** § *For Cursor*, *RNG*, and *Routing* for laws.
+2. Optional: **`.cursor/PATHWAYS.md`** for repo zones.
+3. Output a **`[PLAN]`** before non-trivial code: files, deps, context/docs to update.
 
-| Rule | Identity |
-|------|----------|
-| 0-global | This file — gatekeeper |
-| 1-mechanics | The Judge — hand validation, mult order, timing |
-| 2-visuals | The Artist — pixel art, card sizing, juice |
-| 3-automation | The Engineer — dev/lint/test/playtest |
-| 4-master-architect | The Architect — polish, bug-hunt (@ invoked) |
-| 5-architecture | The Surveyor — file hierarchy, dependency order |
-| 6-translator | The Translator — Lua→JS, exclusion, expulsion |
-| 7-call-upon-able | The Reuser — Card.render(), appendInventoryCard() |
-| 8-translator-playtest | The Playtester — playtest→translator bridge |
+## Topic rules (load by task)
 
-## Research First
+| File | Scope |
+|------|--------|
+| 1-mechanics | Scoring, mult order, timing, boon hooks |
+| 2-visuals | CSS, pixel UI, card size, juice |
+| 3-automation | npm scripts, lint, tests, verification |
+| 4-master-architect | Polish / audit / bug sweep (user-invoked deep pass) |
+| 5-architecture | File placement, data → logic → UI order |
+| 6-translator | Shop, exclusion, expulsion, save, CardArea |
+| 7-call-upon-able | Card.render, appendInventoryCard |
+| 8-translator-playtest | Playtest metrics → code |
 
-Never guess file paths. Search before editing. `js/` = game logic. `.cursor/context/` = agent docs.
+If unsure which applies, use the **Task → files → rule** table in **`SOUL.md`**.
 
-## Plan Before Build
+## Reference docs
 
-Output a `[PLAN]` block before code. Include files, dependencies, meta to update.
+`.cursor/context/` — boon refs, design, `ARCHITECTURE.md`, **`ai_context.yaml`** (module map).

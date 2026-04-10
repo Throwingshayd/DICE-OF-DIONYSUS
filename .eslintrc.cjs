@@ -22,12 +22,19 @@ module.exports = {
         // Script-tag loaded: classes/constants are globals, not imports
         'no-undef': 'off',
         'no-case-declarations': 'warn',
-        'no-unused-vars': ['warn', { argsIgnorePattern: '^_' }],
+        'no-unused-vars': ['warn', { argsIgnorePattern: '^_', varsIgnorePattern: '^_' }],
+      },
+    },
+    {
+      files: ['game/js/classes/Boon.js', 'game/js/classes/boonTimingHandlers.js'],
+      rules: {
+        // Large per-boon switches: const-in-case is scoped per arm at runtime.
+        'no-case-declarations': 'off',
       },
     },
   ],
   rules: {
-    'no-unused-vars': ['warn', { argsIgnorePattern: '^_' }],
+    'no-unused-vars': ['warn', { argsIgnorePattern: '^_', varsIgnorePattern: '^_' }],
     'no-console': 'off',
   },
 };

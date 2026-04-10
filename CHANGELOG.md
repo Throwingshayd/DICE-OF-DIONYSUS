@@ -1,5 +1,11 @@
 # Dice of Dionysus - Changelog
 
+## Agent guidance (Apr 2026)
+
+- **Unified assistant** — `SOUL.md` describes one game design + engineering role; `.cursor/rules/` are topic scopes (no separate personas).
+- **Paths** — `.cursor/PATHWAYS.md` replaces `CURSOR_SOUL.md`; `.cursor/tester/TESTING.md` replaces `tester/SOUL.md`; removed `9-overseer.mdc` (routing merged into `SOUL.md` / `0-global.mdc`).
+- **Deep scan (2026-04-10)** — `tracking/KNOWN_ISSUES.md` + `.cursor/context/ARCHITECTURE.md` refreshed (module sizes, GameEngine assessment). Removed dead `isAwaitingApi` flag. `npm test` → `vitest run`; added unit tests for RNG determinism, expulsion DOM guard, info-bar roll rules.
+
 ## Tester Identity (Feb 2025)
 
 - **Created** `.cursor/tester/SOUL.md` — Tester identity: folder map, commands, when to update tracking
