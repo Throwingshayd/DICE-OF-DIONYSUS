@@ -238,9 +238,9 @@ body::after {
 .boon-prayer-rail.inventory-panel-boons {
     position: absolute;
     top: 52px;
-    left: 521px;
-    width: 911px;
-    height: 204px;
+    left: 560px;
+    width: 700px;
+    height: 178px;
     z-index: 9;
     display: flex;
     flex-direction: column;
@@ -256,7 +256,11 @@ body::after {
 
 .boon-prayer-rail .boon-slots.card-area-squish {
     min-height: 0;
-    max-height: 196px;
+    max-height: 166px;
+    width: 100%;
+    flex: 1 1 auto;
+    justify-content: center;
+    padding: 0 8px;
 }
 
 .boon-prayer-rail .inventory-counter {
@@ -323,6 +327,11 @@ body::after {
     flex: 1;
     min-height: 95px;
     overflow: visible;
+}
+
+.boon-prayer-rail.inventory-panel-boons .boon-slots.card-area-squish {
+    justify-content: center;
+    padding: 0 8px;
 }
 
 .consumable-slots.card-area-squish,
@@ -454,6 +463,16 @@ body::after {
     margin-left: -16px !important;
 }
 
+.boon-prayer-rail.inventory-panel-boons .boon-slots.card-area-squish .card {
+    width: 116px !important;
+    height: 156px !important;
+    min-width: 116px !important;
+    min-height: 156px !important;
+    max-width: 116px !important;
+    max-height: 156px !important;
+    margin-left: -26px !important;
+}
+
 .inventory-panel-boons .boon-slots.card-area-squish .card:first-child {
     margin-left: 0 !important;
 }
@@ -567,8 +586,8 @@ body::after {
 .right-scorecard {
     position: absolute;
     top: 55px;
-    left: 1453px;
-    width: 490px;
+    left: 1270px;
+    width: 650px;
     height: 980px;
     z-index: 6;
     overflow: visible;
@@ -577,12 +596,11 @@ body::after {
 .scorecard {
     width: 100%;
     height: 100%;
-    background-image: url('/ART/column scroll new.png');
-    background-size: cover;
-    background-position: center;
-    background-repeat: no-repeat;
+    background-image: none;
+    background: linear-gradient(180deg, rgba(247, 234, 206, 0.92) 0%, rgba(235, 216, 182, 0.9) 100%);
+    border: 1px solid rgba(111, 77, 41, 0.35);
     border-radius: 8px;
-    padding: 171px 133px 76px 131.5px;
+    padding: 152px 64px 72px 62px;
     overflow: visible;
     display: flex;
     flex-direction: column;
@@ -630,7 +648,7 @@ body::after {
     position: absolute;
     top: 272px;
     left: 521px;
-    width: 911px;
+    width: 700px;
     height: 548px;
     z-index: 6;
     overflow: visible;
@@ -6846,17 +6864,17 @@ body::after {
     }
 }
 
-/* ===== PANTHEON SCORECARD VISUAL ENHANCEMENTS (Phase 2) ===== */
+/* ===== PANTHEON SCORECARD VISUAL ENHANCEMENTS (Phase 3) ===== */
 
-/* Clean score rows - no boxes or borders, extra buffer for easier clicking */
+/* Clean score rows - tactile parchment list, not a rigid grid */
 .score-row {
     border: none;
     background: transparent;
     box-shadow: none;
     position: relative;
     overflow: hidden;
-    padding: 3px 0;
-    margin-bottom: 3px;
+    padding: 0;
+    margin-bottom: 0;
 }
 
 /* Empty cells - available for scoring */
@@ -7005,6 +7023,120 @@ body::after {
 .scorecard .worship-tier {
     font-style: italic;
     font-size: 0.94em;
+}
+
+/* Pantheon polish override: less grid, more readable/tactile */
+.scorecard .score-section {
+    margin: 0;
+    padding: 4px 2px 2px;
+    border-radius: 10px;
+    background: linear-gradient(180deg, rgba(255, 246, 222, 0.18) 0%, rgba(238, 221, 188, 0.1) 100%);
+    box-shadow: inset 0 0 0 1px rgba(111, 77, 41, 0.1);
+}
+
+.scorecard .score-section h4 {
+    padding: 4px 0 7px;
+    border-bottom: 1px solid rgba(92, 62, 33, 0.26);
+    margin-bottom: 10px;
+    color: rgba(64, 41, 21, 0.7);
+    letter-spacing: 0.05em;
+}
+
+.scorecard .score-row {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: 12px;
+    padding: 7px 8px 8px 12px;
+    margin-bottom: 3px;
+    border-radius: 8px;
+    border: 1px solid rgba(99, 67, 35, 0.08);
+    background: rgba(255, 249, 232, 0.08);
+    transition: transform 0.16s ease, border-color 0.16s ease, background-color 0.16s ease, box-shadow 0.16s ease;
+}
+
+.scorecard .score-row:nth-child(odd) { background: rgba(255, 248, 227, 0.12); }
+.scorecard .score-row:nth-child(even) { background: rgba(246, 234, 207, 0.08); }
+
+/* Upper section (Ones–Sixes) vs lower section separation */
+.scorecard .score-row[data-category="Three of a Kind"] {
+    margin-top: 16px;
+}
+
+.scorecard .score-row > span:first-child {
+    display: inline-flex;
+    align-items: baseline;
+    min-width: 0;
+    gap: 8px;
+    position: relative;
+}
+
+.scorecard .score-row > span:first-child::after {
+    content: '';
+    flex: 1 1 auto;
+    min-width: 24px;
+    border-bottom: 1px dotted rgba(96, 63, 29, 0.4);
+    transform: translateY(-1px);
+}
+
+.scorecard .pantheon-label-wrap {
+    display: inline-flex;
+    align-items: baseline;
+    gap: 7px;
+    min-width: 0;
+}
+
+.scorecard .pantheon-cat { font-weight: 800; color: #2f1c10; }
+.scorecard .pantheon-divider { color: rgba(90, 61, 33, 0.65); font-size: 0.72em; }
+.scorecard .pantheon-deity {
+    font-style: italic;
+    font-weight: 600;
+    opacity: 0.92;
+    font-size: 0.9em;
+    color: rgba(90, 61, 33, 0.92);
+}
+
+.scorecard .score-details {
+    min-width: 120px;
+    width: 120px;
+    display: flex;
+    justify-content: flex-end;
+    align-items: baseline;
+    padding-left: 6px;
+}
+
+.scorecard .potential-score {
+    font-family: 'VT323', monospace;
+    font-variant-numeric: tabular-nums;
+    font-size: 1.78rem;
+    line-height: 1;
+    letter-spacing: 0.02em;
+    color: #4a2f16;
+}
+
+.scorecard .score-row.category-available-highlight {
+    border-color: rgba(66, 151, 220, 0.42);
+    background: rgba(114, 184, 241, 0.14);
+    box-shadow: inset 0 0 0 1px rgba(66, 151, 220, 0.18);
+}
+
+.scorecard .score-row.category-available-highlight > span,
+.scorecard .score-row.category-available-highlight .potential-score,
+.scorecard .score-row.category-available-highlight .score-details {
+    color: #2a6aa6 !important;
+}
+
+.scorecard .score-row:not(.used):hover {
+    transform: translateX(3px) translateY(-1px);
+    background: rgba(250, 229, 186, 0.24);
+    border-color: rgba(152, 109, 58, 0.34);
+    box-shadow: 0 2px 0 rgba(107, 73, 39, 0.2);
+}
+
+.scorecard .score-row.used {
+    opacity: 0.96;
+    border-color: rgba(102, 72, 143, 0.26);
+    background: rgba(110, 82, 153, 0.12);
 }
 
 /* ===== BALATRO-STYLE GAME OVER SCREEN ===== */
@@ -7514,5 +7646,664 @@ body::after {
 .consumable-fx-sell-right {
     --sell-dx: 140px;
     animation: consumableSellSide 0.45s ease-in forwards;
+}
+
+/* Sell into the gold stone: card shrinks and flies up-right toward the hoard. */
+@keyframes consumableSellGold {
+    0%   { transform: translate(0, 0) scale(1); opacity: 1; filter: blur(0); }
+    60%  { transform: translate(280px, -20px) scale(0.6); opacity: 0.85; }
+    100% { transform: translate(440px, 40px) scale(0.35); opacity: 0; filter: blur(1.5px); }
+}
+.consumable-fx-sell-gold {
+    animation: consumableSellGold 0.5s cubic-bezier(0.33, 0.9, 0.45, 1) forwards;
+}
+
+/* ============================================================================
+   LAYOUT V4 — TWO-TIER PANTHEON + LIVING ALTAR
+   Pantheon top · Consumables left · Boons right · Dice + Gnosis on felt (centre)
+   Overrides legacy absolute positions; keep IDs so renderers continue to bind.
+   ============================================================================ */
+
+/* ── Center game area: expanded to occupy central column ── */
+.main-game .center-game-area {
+    top: 260px;
+    left: 260px;
+    width: 1400px;
+    height: 780px;
+    overflow: visible;
+}
+
+/* ── 1. PANTHEON FRIEZE (top strip, full width) ── */
+.pantheon-frieze {
+    position: absolute;
+    top: 20px;
+    left: 20px;
+    width: 1880px;
+    height: 220px;
+    z-index: 7;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    padding: 14px 24px;
+    background: linear-gradient(180deg, rgba(247, 234, 206, 0.96) 0%, rgba(231, 210, 172, 0.94) 100%);
+    border: 1px solid rgba(111, 77, 41, 0.45);
+    border-radius: 10px;
+    box-shadow:
+        inset 0 1px 0 rgba(255, 250, 230, 0.6),
+        0 3px 10px rgba(0, 0, 0, 0.28);
+    box-sizing: border-box;
+    overflow: visible;
+}
+
+.pantheon-tier {
+    display: flex;
+    flex-direction: row;
+    align-items: stretch;
+    justify-content: center;
+    gap: 10px;
+    flex: 1;
+    min-height: 0;
+}
+
+.pantheon-family-sep {
+    width: 2px;
+    align-self: center;
+    height: 58px;
+    background: linear-gradient(180deg,
+        rgba(139, 90, 43, 0) 0%,
+        rgba(139, 90, 43, 0.55) 50%,
+        rgba(139, 90, 43, 0) 100%);
+    margin: 0 6px;
+    flex-shrink: 0;
+}
+
+/* Pantheon chips — override generic .score-row look inside the frieze */
+.pantheon-frieze .pantheon-chip {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 6px 10px;
+    min-width: 118px;
+    max-width: 190px;
+    flex: 1 1 0;
+    height: auto;
+    background: rgba(255, 248, 227, 0.55);
+    border: 1px solid rgba(111, 77, 41, 0.4);
+    border-radius: 6px;
+    cursor: pointer;
+    transition: transform 0.14s ease, box-shadow 0.14s ease, background 0.14s ease;
+    font-family: 'Cormorant Garamond', Georgia, 'Times New Roman', serif;
+    font-weight: 600;
+    text-align: center;
+    overflow: hidden;
+    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.5);
+}
+
+.pantheon-frieze .pantheon-chip:hover {
+    transform: translateY(-2px);
+    background: rgba(255, 250, 230, 0.85);
+    box-shadow: 0 3px 8px rgba(0, 0, 0, 0.22), inset 0 1px 0 rgba(255, 255, 255, 0.6);
+}
+
+.pantheon-frieze .pantheon-chip > span:first-child {
+    font-size: 13.5px;
+    line-height: 1.22;
+    color: #2f1c10;
+    letter-spacing: 0.01em;
+    padding: 0;
+    word-break: normal;
+    display: block;
+}
+
+/* Hide the score readout in Pantheon (suspended-belief rule) */
+.pantheon-frieze .pantheon-chip .score-details,
+.pantheon-frieze .pantheon-chip .potential-score {
+    display: none !important;
+}
+
+.pantheon-frieze .pantheon-chip.used {
+    background: rgba(111, 77, 41, 0.25);
+    border-color: rgba(111, 77, 41, 0.55);
+    box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.25);
+    cursor: default;
+}
+
+.pantheon-frieze .pantheon-chip.used > span:first-child {
+    color: rgba(47, 28, 16, 0.6);
+    text-decoration: line-through;
+    text-decoration-color: rgba(139, 90, 43, 0.6);
+}
+
+.pantheon-frieze .pantheon-chip.available-category,
+.pantheon-frieze .pantheon-chip.category-available-highlight {
+    background: rgba(155, 197, 120, 0.5);
+    border-color: rgba(90, 140, 60, 0.7);
+    animation: chip-available-pulse 1.4s ease-in-out infinite;
+}
+
+@keyframes chip-available-pulse {
+    0%, 100% { box-shadow: 0 0 0 rgba(90, 140, 60, 0.3), inset 0 1px 0 rgba(255, 255, 255, 0.6); }
+    50%      { box-shadow: 0 0 14px rgba(90, 140, 60, 0.6), inset 0 1px 0 rgba(255, 255, 255, 0.7); }
+}
+
+.pantheon-frieze .bonus-yahtzee-indicator {
+    position: absolute;
+    top: 8px;
+    right: 16px;
+    z-index: 2;
+}
+
+/* Eucharist targeting on the frieze mirrors the legacy .scorecard.eucharist-targeting behaviour */
+.pantheon-frieze.eucharist-targeting .pantheon-chip:not([data-category="Pandora's Box"]),
+.pantheon-frieze.eucharist-targeting .pantheon-chip.pandora-unlocked {
+    box-shadow: 0 0 12px rgba(138, 43, 226, 0.5);
+    animation: libation-target-pulse 1.5s ease-in-out infinite;
+}
+.pantheon-frieze.eucharist-targeting .pantheon-chip:not([data-category="Pandora's Box"]):hover,
+.pantheon-frieze.eucharist-targeting .pantheon-chip.pandora-unlocked:hover {
+    box-shadow: 0 0 18px rgba(138, 43, 226, 0.8);
+    transform: scale(1.02);
+}
+
+/* ── 2. LEFT CONSUMABLE BAR (vertical) ── */
+.left-consumable-bar.inventory-panel-consumables {
+    position: absolute;
+    top: 260px;
+    left: 20px;
+    right: auto;
+    width: 220px;
+    height: 780px;
+    z-index: 6;
+    flex: none;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: flex-start;
+    padding: 18px 12px 32px;
+    background: transparent;
+    border: none;
+    border-radius: 0;
+    box-sizing: border-box;
+    overflow: visible;
+}
+
+.left-consumable-bar .consumable-bar-counter {
+    position: absolute;
+    bottom: 8px;
+    right: 12px;
+    left: auto;
+    font-size: 16px;
+}
+
+/* ── 3. RIGHT BOON BAR (vertical) ── */
+.right-boon-bar.inventory-panel-boons {
+    position: absolute;
+    top: 260px;
+    left: auto;
+    right: 20px;
+    width: 220px;
+    height: 780px;
+    z-index: 6;
+    flex: none;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: flex-start;
+    padding: 18px 12px 32px;
+    background: transparent;
+    border: none;
+    border-radius: 0;
+    box-sizing: border-box;
+    overflow: visible;
+}
+
+.right-boon-bar .boon-bar-counter {
+    position: absolute;
+    bottom: 8px;
+    right: 12px;
+    left: auto;
+    font-size: 16px;
+}
+
+.right-boon-bar .boon-reorder-hint {
+    position: absolute;
+    bottom: 8px;
+    left: 12px;
+    font-size: 11px;
+    color: rgba(240, 230, 210, 0.55);
+}
+
+/* ── Vertical card-area: flip from row → column, vertical overlap ── */
+.card-area-squish.card-area-vertical {
+    flex-direction: column !important;
+    justify-content: flex-start !important;
+    align-items: center !important;
+    width: auto !important;
+    min-height: 0 !important;
+    min-width: 0 !important;
+}
+
+.right-boon-bar .boon-slots.card-area-squish.card-area-vertical .card {
+    margin-left: 0 !important;
+    margin-top: -44px !important;
+}
+.right-boon-bar .boon-slots.card-area-squish.card-area-vertical .card:first-child {
+    margin-top: 0 !important;
+}
+
+.left-consumable-bar .consumable-slots.card-area-squish.card-area-vertical .card {
+    margin-left: 0 !important;
+    margin-top: -40px !important;
+}
+.left-consumable-bar .consumable-slots.card-area-squish.card-area-vertical .card:first-child {
+    margin-top: 0 !important;
+}
+
+/* Vertical stacking z-index (7-call-upon-able mirror of horizontal rule): later cards above */
+.card-area-squish.card-area-vertical .card:nth-child(1) { z-index: 1; }
+.card-area-squish.card-area-vertical .card:nth-child(2) { z-index: 2; }
+.card-area-squish.card-area-vertical .card:nth-child(3) { z-index: 3; }
+.card-area-squish.card-area-vertical .card:nth-child(4) { z-index: 4; }
+.card-area-squish.card-area-vertical .card:nth-child(5) { z-index: 5; }
+
+/* ── 4. DICE STAGE LAYOUT
+   Vertical stack is distributed ~evenly across the 780px felt:
+     threshold (40) · dice (~130–250) · live (~290) · button (~380–548) · total (~580) · stones (~670) */
+.center-game-area #playStage {
+    justify-content: flex-start;
+    align-items: center;
+    padding: 340px 0 0;
+    overflow: visible;
+}
+.center-game-area #playStage .play-stage-spacer {
+    display: none;
+}
+
+/* ── 5. FELT LABELS: threshold (top rim) + total (below dice) ── */
+.felt-label {
+    position: absolute;
+    z-index: 8;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    font-family: 'DisneyHeroic', 'IM Fell English SC', serif;
+    color: #f5e6d3;
+    text-align: center;
+    pointer-events: none;
+    transition: opacity 0.18s ease, visibility 0.18s ease;
+}
+
+.felt-label .felt-label-name {
+    font-size: 13px;
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
+    opacity: 0.82;
+    color: rgba(245, 230, 211, 0.82);
+    margin-bottom: 2px;
+}
+
+.felt-label .felt-label-value {
+    font-size: 38px;
+    font-weight: 900;
+    line-height: 1;
+    color: #fffbe8;
+    text-shadow:
+        0 1px 0 rgba(0, 0, 0, 0.3),
+        0 2px 6px rgba(0, 0, 0, 0.55),
+        0 0 12px rgba(255, 215, 120, 0.25);
+}
+
+/* Required + Total form a pair at the top of the felt, Total on the LEFT of Required. */
+.center-game-area .felt-total {
+    top: 40px;
+    left: 460px;
+    transform: none;
+    width: 240px;
+    padding: 4px 12px;
+}
+
+.center-game-area .felt-threshold {
+    top: 40px;
+    left: 720px;
+    transform: none;
+    width: 240px;
+    padding: 4px 12px;
+}
+
+/* Live preview on felt — sits where the Cast button used to live.
+   Anti-glitch: the preview is rendered as a fixed-width grid so every cell
+   (pips / × / favour / = / score) holds the same x-position regardless of
+   how the number text inside it changes. Nothing reflows during count-up. */
+.center-game-area .live-score-display.felt-live {
+    position: absolute;
+    top: 470px;
+    left: 50%;
+    transform: translateX(-50%);
+    margin: 0;
+    z-index: 8;
+    pointer-events: none;
+
+    width: 360px;
+    min-width: 360px;
+    max-width: 360px;
+}
+
+.center-game-area .live-score-display.felt-live .gnosis-category-name {
+    width: 360px;
+    max-width: 360px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.center-game-area .live-score-display.felt-live .gnosis-row {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    width: 360px;
+    min-width: 360px;
+    max-width: 360px;
+    overflow: hidden;
+}
+
+.center-game-area .live-score-display.felt-live .pips-cell,
+.center-game-area .live-score-display.felt-live .favour-cell {
+    flex: 0 0 96px;
+    width: 96px;
+    min-width: 96px;
+    max-width: 96px;
+}
+
+.center-game-area .live-score-display.felt-live .pips-line,
+.center-game-area .live-score-display.felt-live .favour-line {
+    width: 96px;
+    min-width: 96px;
+    max-width: 96px;
+    justify-content: center;
+    overflow: hidden;
+}
+
+.center-game-area .live-score-display.felt-live .multiply-symbol,
+.center-game-area .live-score-display.felt-live .equals-symbol {
+    flex: 0 0 20px;
+    width: 20px;
+    min-width: 20px;
+    max-width: 20px;
+    text-align: center;
+}
+
+.center-game-area .live-score-display.felt-live .score-preview {
+    flex: 0 0 84px;
+    width: 84px;
+    min-width: 84px;
+    max-width: 84px;
+    display: inline-block;
+    text-align: left;
+}
+
+/* Keep the hidden extras in layout — swap display:none for visibility:hidden
+   so every cell is always present and the row never resizes. */
+.center-game-area .live-score-display.felt-live .live-extra[hidden],
+.center-game-area .live-score-display.felt-live .live-add[hidden] {
+    display: inline-flex !important;
+    visibility: hidden;
+    opacity: 0;
+    pointer-events: none;
+}
+
+/* ── 6. STONES (rolls / ante / gold / turn) ── */
+.felt-stone {
+    position: absolute;
+    z-index: 8;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    min-width: 140px;
+    height: 64px;
+    padding: 6px 14px;
+    background: linear-gradient(180deg, rgba(228, 210, 176, 0.96) 0%, rgba(194, 170, 128, 0.96) 100%);
+    border: 2px solid rgba(90, 62, 36, 0.8);
+    border-radius: 4px;
+    box-shadow:
+        inset 0 1px 0 rgba(255, 248, 220, 0.55),
+        inset 0 -2px 2px rgba(0, 0, 0, 0.18),
+        0 2px 4px rgba(0, 0, 0, 0.32);
+    font-family: 'DisneyHeroic', 'IM Fell English SC', serif;
+    color: #2f1c10;
+    transition: opacity 0.18s ease, visibility 0.18s ease, transform 0.18s ease, box-shadow 0.18s ease;
+}
+
+.felt-stone .felt-stone-label {
+    font-size: 11px;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    opacity: 0.75;
+}
+
+.felt-stone .felt-stone-value {
+    font-size: 22px;
+    font-weight: 800;
+    line-height: 1.05;
+}
+
+.felt-stone .felt-stone-suffix {
+    font-size: 14px;
+    font-weight: 700;
+    opacity: 0.85;
+    margin-left: 2px;
+}
+
+/* Rolls stone hosts the legacy #rollsLeft span — strip its yellow pill look inside the stone */
+.felt-stone-rolls .rolls-left {
+    display: block;
+    background: transparent;
+    border: none;
+    padding: 0;
+    font-size: 18px;
+    font-weight: 800;
+    color: #2f1c10;
+    box-shadow: none;
+}
+
+/* Stone layout:
+     Outer row (beside the dice): Rolls (left) · Turn (right) at top 355
+     Inner row (pulled diagonally in toward the dice, ~2 die widths): Gold · Ante at top 565 */
+.center-game-area .felt-stone-rolls { top: 355px; left: 140px;  width: 160px; }
+.center-game-area .felt-stone-turn  { top: 355px; left: 1080px; width: 180px; }
+.center-game-area .felt-stone-gold  { top: 589px; left: 251px;  width: 180px; flex-direction: row; gap: 4px; }
+.center-game-area .felt-stone-ante  { top: 589px; left: 969px;  width: 160px; }
+
+/* Gold stone acts as the sell drop target (glow while dragging a consumable) */
+.main-game.consumable-drag-active .felt-stone-gold {
+    box-shadow:
+        inset 0 1px 0 rgba(255, 248, 220, 0.55),
+        0 0 12px rgba(255, 215, 0, 0.45);
+}
+.main-game.consumable-drag-active .felt-stone-gold.drop-target-sell {
+    transform: scale(1.08);
+    box-shadow:
+        inset 0 1px 0 rgba(255, 248, 220, 0.6),
+        0 0 20px rgba(255, 215, 0, 0.85),
+        0 0 32px rgba(255, 180, 90, 0.6);
+}
+
+/* ── 7. ROLLING CONTROLS (single action button + cost badge) ──
+   Sits between Live Preview (above) and the Stones row (below). */
+.center-game-area .rolling-controls,
+.center-game-area .rollingControls {
+    position: absolute;
+    top: 580px;
+    bottom: auto;
+    left: 50%;
+    transform: translateX(-50%);
+    margin: 0;
+    padding: 0;
+    z-index: 9;
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    gap: 12px;
+    background: transparent;
+    overflow: visible;
+    width: auto;
+}
+
+/* Cast/Reroll button: anchored at top:580 (see .rolling-controls above).
+   When the size is bumped we keep the top pinned, so the button grows
+   downward only and nothing else on the felt needs to move. */
+.center-game-area .rolling-controls .roll-button {
+    width: 300px;
+    height: 180px;
+    font-size: 28px;
+}
+.main-game.shop-active .center-game-area .rolling-controls .roll-button {
+    font-size: 28px;
+}
+
+.action-cost-badge {
+    position: absolute;
+    left: 100%;
+    top: 50%;
+    transform: translate(14px, -50%);
+    padding: 6px 10px;
+    min-width: 50px;
+    background: linear-gradient(180deg, #f7d23b 0%, #d79820 100%);
+    color: #2f1c10;
+    border: 2px solid #8b5a2b;
+    border-radius: 4px;
+    font-family: 'DisneyHeroic', sans-serif;
+    font-size: 17px;
+    font-weight: 800;
+    text-align: center;
+    box-shadow:
+        inset 0 1px 0 rgba(255, 255, 255, 0.55),
+        0 2px 4px rgba(0, 0, 0, 0.35);
+    pointer-events: none;
+    white-space: nowrap;
+    z-index: 10;
+}
+.action-cost-badge.hidden { display: none !important; }
+
+/* Shop mode reveals the button label (in play, the art says "Cast the Bones") */
+.main-game.shop-active .roll-button {
+    color: #fffbe8;
+    font-family: 'DisneyHeroic', 'VT323', sans-serif;
+    font-size: 44px;
+    letter-spacing: 0.04em;
+    text-shadow:
+        0 2px 0 rgba(0, 0, 0, 0.45),
+        0 3px 8px rgba(0, 0, 0, 0.55);
+}
+
+/* ── 8. SHOP CONTINUE (top-right corner of shop stage) ── */
+.shop-continue-corner {
+    position: absolute;
+    top: 14px;
+    right: 16px;
+    z-index: 30;
+    font-size: 0.95rem;
+    padding: 8px 18px;
+}
+
+/* Reserve bottom padding inside shopStage so shop content doesn't hide behind the Reroll button */
+.main-game .center-game-area #shopStage {
+    padding-top: 56px;
+    padding-bottom: 200px;
+}
+
+/* In shop mode, move the Reroll button back to the bottom of the felt so it
+   doesn't overlap shop content (shop replaces the dice column entirely). */
+.main-game.shop-active .center-game-area .rolling-controls {
+    top: auto;
+    bottom: 20px;
+}
+
+/* ── 9. SHOP-ACTIVE STATE — hide felt widgets, keep Gold + Ante ── */
+.main-game.shop-active .felt-label,
+.main-game.shop-active .felt-stone-rolls,
+.main-game.shop-active .felt-stone-turn,
+.main-game.shop-active .live-score-display.felt-live {
+    opacity: 0;
+    visibility: hidden;
+    pointer-events: none;
+}
+
+.main-game.shop-active .gnosis-message {
+    display: none;
+}
+
+/* ── 10. DRAG ZONES (relative to .center-game-area) ── */
+/* worship → pantheon strip (which is outside center area, so zone extends upward/outward) */
+.center-game-area .consumable-zone-worship {
+    top: -240px;
+    left: -240px;
+    width: 1880px;
+    height: 220px;
+    right: auto;
+    bottom: auto;
+    background: linear-gradient(180deg, rgba(147, 197, 255, 0.3) 0%, rgba(147, 197, 255, 0) 100%);
+    border: 2px dashed rgba(147, 197, 255, 0.55);
+    border-radius: 10px;
+}
+
+/* libation → dice felt (oval-ish band centred on the tray) */
+.center-game-area .consumable-zone-libation {
+    top: 60px;
+    left: 50%;
+    transform: translateX(-50%);
+    right: auto;
+    bottom: auto;
+    width: 900px;
+    height: 260px;
+    background: radial-gradient(ellipse at center, rgba(190, 140, 255, 0.3) 0%, rgba(190, 140, 255, 0) 72%);
+    border: 2px dashed rgba(190, 140, 255, 0.5);
+    border-radius: 9999px;
+}
+
+/* ── 11. FELT BACKGROUND PLACEHOLDER (plain, art swap later) ── */
+.center-game-area .game-board-bg {
+    background-color: transparent;
+    background-image: url('/ART/dice table.png');
+    background-size: 78% 126%;
+    background-position: center center;
+    background-repeat: no-repeat;
+    opacity: 0.95;
+}
+
+/* ── 12. GNOSIS MESSAGE under the action button ── */
+.center-game-area .gnosis-message {
+    position: absolute;
+    bottom: 4px;
+    left: 50%;
+    transform: translateX(-50%);
+    max-width: 720px;
+    text-align: center;
+    font-family: 'DisneyHeroic', sans-serif;
+    font-size: 14px;
+    color: #f0e6d2;
+    z-index: 11;
+    pointer-events: none;
+}
+
+/* ── 13. Live score display on the felt: tune colour for dark felt background ── */
+.center-game-area .live-score-display.felt-live .gnosis-category-name {
+    color: #f5e6d3;
+    text-shadow: 0 1px 3px rgba(0, 0, 0, 0.6);
+}
+.center-game-area .live-score-display.felt-live .gnosis-pips-bonus,
+.center-game-area .live-score-display.felt-live .gnosis-mult-bonus {
+    color: rgba(245, 230, 211, 0.88);
+}
+.center-game-area .live-score-display.felt-live .plus-symbol,
+.center-game-area .live-score-display.felt-live .multiply-symbol,
+.center-game-area .live-score-display.felt-live .equals-symbol {
+    color: #fffbe8;
+    text-shadow: 0 1px 3px rgba(0, 0, 0, 0.55);
 }
 

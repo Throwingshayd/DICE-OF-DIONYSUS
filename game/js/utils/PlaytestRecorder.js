@@ -356,9 +356,11 @@ const PlaytestRecorder = {
             const dice = s.dice || [];
             for (let i = 0; i < dice.length; i++) {
                 const d = dice[i];
-                diceFaces.push(
-                    typeof d.getEffectiveFace === 'function' ? d.getEffectiveFace() : (d.face ?? d.currentFace ?? null)
-                );
+                if (typeof DieFaceUtils !== 'undefined') {
+                    diceFaces.push(DieFaceUtils.resolveFace(d, null));
+                } else {
+                    diceFaces.push(typeof d.getEffectiveFace === 'function' ? d.getEffectiveFace() : (d.face ?? d.currentFace ?? null));
+                }
             }
         } catch (_) {
             diceFaces = [];

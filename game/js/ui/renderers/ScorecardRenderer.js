@@ -57,9 +57,10 @@ const ScorecardRenderer = {
                 const worshipLevel = gameState.worshipLevels?.["Pandora's Box"] || 0;
                 const categorySpan = row.querySelector('span');
                 if (categorySpan && isUnlocked && worshipLevel > 0) {
-                    categorySpan.innerHTML = `<span class="pantheon-cat">Pandora's Box</span> <span class="pantheon-deity">(Lv.${worshipLevel})</span>`;
+                    const displayLevel = worshipLevel + 1;
+                    categorySpan.innerHTML = `<span class="pantheon-cat">Pandora's Box</span> <span class="worship-tier" data-level="${displayLevel}">(Pandora Lv.${displayLevel})</span>`;
                 } else if (categorySpan && isUnlocked) {
-                    categorySpan.innerHTML = '<span class="pantheon-cat">Pandora\'s Box</span>';
+                    categorySpan.innerHTML = `<span class="pantheon-cat">Pandora's Box</span> <span class="pantheon-deity">(Pandora)</span>`;
                 }
                 row.querySelector('.potential-score').textContent = combined > 0 ? combined : '-';
                 row.style.cursor = isUnlocked ? 'pointer' : 'default';

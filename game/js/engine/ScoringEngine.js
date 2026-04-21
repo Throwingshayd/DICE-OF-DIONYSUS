@@ -9,6 +9,11 @@
 // Maps score category → god for worship/favour lookups
 
 const PHASE_ORDER = ['dice', 'hand', 'inventory'];
+const resolveDieFace = (die, fallback = 0) => (
+    typeof DieFaceUtils !== 'undefined'
+        ? DieFaceUtils.resolveFace(die, fallback)
+        : (typeof die?.getEffectiveFace === 'function' ? die.getEffectiveFace() : (die?.face ?? die?.currentFace ?? fallback))
+);
 
 const ScoringEngine = {
     /**
@@ -58,7 +63,7 @@ const ScoringEngine = {
 
         const diceSubstitutions = state.diceSubstitutions || {};
         const faces = state.dice.map((d) => {
-            let face = typeof d.getEffectiveFace === 'function' ? d.getEffectiveFace() : (d.currentFace || 0);
+            let face = resolveDieFace(d, 0);
             if (typeof face !== 'number' || isNaN(face)) face = 0;
             if (diceSubstitutions.foursAsFives && face === 4) face = 5;
             return face;
@@ -148,7 +153,7 @@ const ScoringEngine = {
         favourMult = Math.max(1, eventData.favourMult ?? 1);
 
         if (applyGlobalBonuses && state.globalBonuses && state.globalBonuses.fivesToAll && state.dice) {
-            const fivesCount = state.dice.filter((d) => (d.getEffectiveFace ? d.getEffectiveFace() : d.currentFace) === 5).length;
+            const fivesCount = state.dice.filter((d) => resolveDieFace(d, 0) === 5).length;
             pips += fivesCount * 5;
         }
 

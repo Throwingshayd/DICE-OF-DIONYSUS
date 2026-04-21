@@ -63,6 +63,53 @@ Synced with **deep scan (2026-04-10)** and `tracking/KNOWN_ISSUES.md`. Replace r
 
 ---
 
+## Resume here (2026-04-21) — layout overhaul + live-score glitch pending
+
+**Context:** big UI rework (Pantheon frieze on top, vertical Consumables/Boons
+sidebars, felt layout with dice → live → Cast → stones cluster, dice-table
+asset as felt art). Shop state unchanged mechanically; Cast doubles as Reroll.
+Changes span `game/index.html`, `game/css/styles.css`, `UIManager`, `ShopUI`,
+`GameEngine`, `InfoBarRenderer`, and new `game/js/utils/NumberFormat.js`.
+
+**Open bug — live score preview shift (carry over to next session)**
+
+- **Symptom:** during `animateSequentialScoring`, the `pips × favour = score`
+  row still appears to drift rightward between the first dice tick and the
+  final count-up, even with fixed-width cells and the Balatro-style tiered
+  `NumberFormat` funnel.
+- **What's already done** (see `CSS §6-7 (LAYOUT V4)` and `GameEngine.formatDisplay`):
+    - `.center-game-area .live-score-display.felt-live` container locked at
+      `width/min-width/max-width: 360px`.
+    - `.gnosis-row` locked at 360px, `justify-content: center`.
+    - Every cell (`pips-cell`, `favour-cell`, `pips-line`, `favour-line`,
+      `multiply-symbol`, `equals-symbol`, `score-preview`) has
+      `flex: 0 0 Npx` + matching width/min/max.
+    - `[hidden]` on `.live-extra` / `.live-add` swapped to `visibility:hidden`
+      (scoped to `.felt-live`) so they stay in layout.
+    - Category name clamped with `nowrap + ellipsis`.
+    - All pips/favour/score text writes go through `NumberFormat.display` /
+      `.favour` / `.contrib` / `.favourContrib` so digit count is bounded.
+- **Next step (pick up here):**
+    1. Instrument the glitch — add a temporary `MutationObserver` on
+       `#liveScoreDisplay` that logs child `offsetLeft` + `textContent` at
+       each animation tick to confirm *which* cell is actually moving.
+    2. Check for a competing CSS rule outside `LAYOUT V4` (grep
+       `live-score-display` / `gnosis-row` for any width override beyond the
+       felt section; base rule has `width:100%; max-width:280px` which should
+       be beaten by our 360px override — verify specificity at runtime).
+    3. If the row itself is stable but pips/favour visibly slide inside their
+       cells, add the optional font-shrink hook noted at the end of the chat
+       (clamp `.pips` / `.favour` `font-size` by `textContent.length`).
+    4. Consider switching `.gnosis-row` to `display: grid` with
+       `grid-template-columns: 96px 20px 96px 20px 84px` and
+       `justify-items: center` — removes flex redistribution entirely.
+
+**Read first on resume:** this block, `game/js/utils/NumberFormat.js`
+(formatter contract), and the `LAYOUT V4 / ── 5/6/7` sections in
+`game/css/styles.css` (the single source of truth for felt positions).
+
+---
+
 ## Resume here (2026-04-10) — for the next session
 
 **Read first:** `tracking/KNOWN_ISSUES.md` (snapshot + soft-lock triage), `tracking/BOON_PLAYTEST_PROTOCOL.md` §7 (playtest log).

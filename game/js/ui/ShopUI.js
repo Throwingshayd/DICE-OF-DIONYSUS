@@ -50,10 +50,6 @@ class ShopUI {
         this.shopState.openedPacks = new Set();
 
         this.uiManager.ensureShopElementsBound?.();
-        const rerollBtn = document.getElementById('rerollShop');
-        if (rerollBtn && typeof GAME_BALANCE !== 'undefined') {
-            rerollBtn.textContent = `Reroll (${GAME_BALANCE.SHOP_REROLL_COST}g)`;
-        }
 
         const playStage = this.dom.playStage || document.getElementById('playStage');
         const shopStage = this.dom.shopStage || document.getElementById('shopStage');
@@ -65,6 +61,9 @@ class ShopUI {
             Logger.error('Shop stage not found, cannot open shop');
             return;
         }
+
+        this.applyShopActionButton(gameState, true);
+        document.querySelector('.main-game')?.classList.add('shop-active');
 
         if (window.GameStateManager) window.GameStateManager.setState(window.GAME_STATES?.SHOP || 'SHOP');
         if (window.soundManager) window.soundManager.setMusicContext('shop');
@@ -88,9 +87,37 @@ class ShopUI {
         shopStage?.classList.add('hidden');
         packOpeningView?.classList.add('hidden');
         shopDefaultView?.classList.remove('hidden');
+        document.querySelector('.main-game')?.classList.remove('shop-active');
+        this.applyShopActionButton(null, false);
         if (window.soundManager) window.soundManager.setMusicContext('play');
         if (window.GameStateManager) window.GameStateManager.setState(window.GAME_STATES?.ROUND || 'ROUND');
         window.balatroEffects?.hideAllTooltips();
+    }
+
+    /**
+     * Swap the single action button (#rollButton) between play ("Cast the Bones") and shop ("Reroll"),
+     * and toggle the tiny cost badge sibling so the price is visible but not on the button art.
+     * @param {Object|null} gameState - needed to compute free-reroll label; null on close
+     * @param {boolean} shopOpen - true = shop mode, false = play mode
+     */
+    applyShopActionButton(gameState, shopOpen) {
+        const rollBtn = document.getElementById('rollButton');
+        const badge = document.getElementById('actionCostBadge');
+        if (!rollBtn) return;
+        if (shopOpen) {
+            rollBtn.textContent = 'Reroll';
+            const hasFreeReroll = !!(gameState?.artifacts?.some(a => a.id === 'sundial_plus') && !gameState?.usedFreeReroll);
+            const cost = typeof GAME_BALANCE !== 'undefined' ? GAME_BALANCE.SHOP_REROLL_COST : 4;
+            const canAfford = hasFreeReroll || (gameState?.gold ?? 0) >= cost;
+            rollBtn.disabled = !canAfford;
+            if (badge) {
+                badge.textContent = hasFreeReroll ? 'Free' : `${cost}g`;
+                badge.classList.remove('hidden');
+            }
+        } else {
+            rollBtn.textContent = 'Cast the Bones';
+            if (badge) badge.classList.add('hidden');
+        }
     }
 
     renderStock(gameState, gameEngine) {
@@ -141,25 +168,55 @@ class ShopUI {
     }
 
     attachShopEventListeners() {
-        const closeShopBtn = document.getElementById('closeShop');
-        const rerollShopBtn = document.getElementById('rerollShop');
-
-        if (closeShopBtn) {
-            const newBtn = closeShopBtn.cloneNode(true);
-            closeShopBtn.parentNode.replaceChild(newBtn, closeShopBtn);
+        // Reroll is handled by #rollButton in shop mode (see GameEngine roll-button listener).
+        // Only the corner Continue button needs its click wired here.
+        const continueBtn = document.getElementById('shopContinueBtn');
+        if (continueBtn) {
+            const newBtn = continueBtn.cloneNode(true);
+            continueBtn.parentNode.replaceChild(newBtn, continueBtn);
             newBtn.addEventListener('click', () => {
                 if (window.game) window.game.closeShop();
                 else this.closeShop();
             });
         }
-        if (rerollShopBtn) {
-            const newBtn = rerollShopBtn.cloneNode(true);
-            rerollShopBtn.parentNode.replaceChild(newBtn, rerollShopBtn);
-            newBtn.addEventListener('click', () => {
-                if (window.game) window.game.rerollShop();
-                else if (window.uiManager?.shopUI) window.uiManager.shopUI.rerollShop(window.game?.state, window.game);
-            });
-        }
+    }
+
+    hasTantalusSpendBlock(gameState, gameEngine, message, playCancel = true) {
+        const hasTantalusCurse = gameState.boons?.some(j => j.id === 'tantalus_curse');
+        if (!hasTantalusCurse) return false;
+        if (playCancel && window.soundManager) window.soundManager.play('cancel', { volume: 0.55 });
+        gameEngine.showMessage(message);
+        return true;
+    }
+
+    ensureCanAfford(gameState, effectiveCost, gameEngine, message) {
+        if (gameState.gold >= effectiveCost) return true;
+        if (window.soundManager) window.soundManager.play('cancel', { volume: 0.55 });
+        gameEngine.showMessage(message);
+        return false;
+    }
+
+    refillDirectSales(gameState, gameEngine, directSalesContainer) {
+        if (!directSalesContainer) return;
+        directSalesContainer.innerHTML = '<h4>Wares</h4>';
+        this.shopItemIndex = 0;
+        const items = ShopStockGenerator.generateDirectSalesOnly(gameState, gameEngine.prng, new Set());
+        items.forEach(({ cardData }) => {
+            const el = this.createCardElement(cardData, 'direct', gameState, gameEngine);
+            if (!el) return;
+            el.dataset.cardId = cardData.id;
+            el.classList.add('shop-item-slide-in');
+            el.style.animationDelay = `${this.shopItemIndex++ * 0.08}s`;
+            directSalesContainer.appendChild(el);
+        });
+    }
+
+    logRerollStock(paid, directSalesContainer) {
+        if (typeof PlaytestRecorder === 'undefined' || !PlaytestRecorder.active) return;
+        const ids = Array.from(directSalesContainer?.querySelectorAll('[data-card-id]') || [])
+            .map((el) => el.dataset.cardId)
+            .filter(Boolean);
+        PlaytestRecorder.log('shop_stock_after_reroll', { paid, directSaleIds: ids });
     }
 
     createCardElement(cardData, type, gameState, gameEngine) {
@@ -346,17 +403,9 @@ class ShopUI {
 
     buyArtifact(artifactData, gameState, gameEngine, element) {
         window.balatroEffects?.hideAllTooltips();
-        const hasTantalusCurse = gameState.boons?.some(j => j.id === 'tantalus_curse');
-        if (hasTantalusCurse) {
-            gameEngine.showMessage("💰 Tantalus' Curse: Cannot spend gold!");
-            return;
-        }
+        if (this.hasTantalusSpendBlock(gameState, gameEngine, "💰 Tantalus' Curse: Cannot spend gold!", false)) return;
         const effectiveCost = this.getShopPrice(artifactData.baseCost ?? artifactData.cost ?? 10, gameState);
-        if (gameState.gold < effectiveCost) {
-            if (window.soundManager) window.soundManager.play('cancel', { volume: 0.55 });
-            gameEngine.showMessage("Not enough gold for this artifact!");
-            return;
-        }
+        if (!this.ensureCanAfford(gameState, effectiveCost, gameEngine, "Not enough gold for this artifact!")) return;
         if (window.dataManager) window.dataManager.unlockItem('artifacts', artifactData.id);
         if (window.soundManager) window.soundManager.play('card1', { pitch: 0.9, volume: 0.6 });
         gameEngine.updateGoldAnimated(-effectiveCost, "artifact purchase");
@@ -380,18 +429,9 @@ class ShopUI {
 
     buyCard(card, gameState, gameEngine, element) {
         window.balatroEffects?.hideAllTooltips();
-        const hasTantalusCurse = gameState.boons?.some(j => j.id === 'tantalus_curse');
-        if (hasTantalusCurse) {
-            if (window.soundManager) window.soundManager.play('cancel', { volume: 0.55 });
-            gameEngine.showMessage("💰 Tantalus' Curse: Cannot spend gold!");
-            return;
-        }
+        if (this.hasTantalusSpendBlock(gameState, gameEngine, "💰 Tantalus' Curse: Cannot spend gold!")) return;
         const effectiveCost = this.getShopPrice(card.baseCost ?? card.cost, gameState);
-        if (gameState.gold < effectiveCost) {
-            if (window.soundManager) window.soundManager.play('cancel', { volume: 0.55 });
-            gameEngine.showMessage("Not enough gold!");
-            return;
-        }
+        if (!this.ensureCanAfford(gameState, effectiveCost, gameEngine, "Not enough gold!")) return;
         if (window.soundManager) window.soundManager.play('coin3', { pitch: 0.95 + Math.random() * 0.1, volume: 0.6 });
         gameEngine.updateGoldAnimated(-effectiveCost, "card purchase");
         if (typeof PlaytestRecorder !== 'undefined' && PlaytestRecorder.active) {
@@ -472,6 +512,7 @@ class ShopUI {
     }
 
     rerollShop(gameState, gameEngine) {
+        const directSalesContainer = document.getElementById('shopDirectSales');
         const hasChronosHourglass = gameState.artifacts?.some(a => a.id === 'sundial_plus');
         if (hasChronosHourglass && !gameState.usedFreeReroll) {
             gameState.usedFreeReroll = true;
@@ -480,27 +521,9 @@ class ShopUI {
             if (typeof PlaytestRecorder !== 'undefined' && PlaytestRecorder.active) {
                 PlaytestRecorder.log('shop_reroll', { paid: false, reason: 'chronos_hourglass', gold: gameState.gold });
             }
-            const directSalesContainer = document.getElementById('shopDirectSales');
-            if (directSalesContainer) {
-                directSalesContainer.innerHTML = '<h4>Wares</h4>';
-                this.shopItemIndex = 0;
-                const items = ShopStockGenerator.generateDirectSalesOnly(gameState, gameEngine.prng, new Set());
-                items.forEach(({ cardData }) => {
-                    const el = this.createCardElement(cardData, 'direct', gameState, gameEngine);
-                    if (el) {
-                        el.dataset.cardId = cardData.id;
-                        el.classList.add('shop-item-slide-in');
-                        el.style.animationDelay = `${this.shopItemIndex++ * 0.08}s`;
-                        directSalesContainer.appendChild(el);
-                    }
-                });
-            }
-            if (typeof PlaytestRecorder !== 'undefined' && PlaytestRecorder.active) {
-                const ids = Array.from(directSalesContainer?.querySelectorAll('[data-card-id]') || [])
-                    .map((el) => el.dataset.cardId)
-                    .filter(Boolean);
-                PlaytestRecorder.log('shop_stock_after_reroll', { paid: false, directSaleIds: ids });
-            }
+            this.refillDirectSales(gameState, gameEngine, directSalesContainer);
+            this.logRerollStock(false, directSalesContainer);
+            this.applyShopActionButton(gameState, true);
             return;
         }
 
@@ -511,7 +534,6 @@ class ShopUI {
         }
 
         if (window.soundManager) window.soundManager.play('whoosh', { pitch: 0.9 + Math.random() * 0.1, volume: 0.5 });
-        const directSalesContainer = document.getElementById('shopDirectSales');
         const items = directSalesContainer?.querySelectorAll('.card') || [];
         items.forEach((item, i) => {
             item.classList.add('shop-item-flip-out');
@@ -527,26 +549,8 @@ class ShopUI {
                     goldAfter: gameState.gold,
                 });
             }
-            if (directSalesContainer) {
-                directSalesContainer.innerHTML = '<h4>Wares</h4>';
-                this.shopItemIndex = 0;
-                const newItems = ShopStockGenerator.generateDirectSalesOnly(gameState, gameEngine.prng, new Set());
-                newItems.forEach(({ cardData }) => {
-                    const el = this.createCardElement(cardData, 'direct', gameState, gameEngine);
-                    if (el) {
-                        el.dataset.cardId = cardData.id;
-                        el.classList.add('shop-item-slide-in');
-                        el.style.animationDelay = `${this.shopItemIndex++ * 0.08}s`;
-                        directSalesContainer.appendChild(el);
-                    }
-                });
-            }
-            if (typeof PlaytestRecorder !== 'undefined' && PlaytestRecorder.active) {
-                const ids = Array.from(directSalesContainer?.querySelectorAll('[data-card-id]') || [])
-                    .map((el) => el.dataset.cardId)
-                    .filter(Boolean);
-                PlaytestRecorder.log('shop_stock_after_reroll', { paid: true, directSaleIds: ids });
-            }
+            this.refillDirectSales(gameState, gameEngine, directSalesContainer);
+            this.logRerollStock(true, directSalesContainer);
         }, 400);
     }
 

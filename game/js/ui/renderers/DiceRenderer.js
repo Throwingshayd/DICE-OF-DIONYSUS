@@ -4,16 +4,6 @@
  */
 
 const DiceRenderer = {
-    getEnhancementSymbol(enhancement) {
-        const symbols = { parchment: '📜', iron: '⚔️', gold: '💰', mother_of_pearl: '🦪', wild: '🎲', cursed: '💀', divine: '✨', chaos: '🌀' };
-        return symbols[enhancement] || '?';
-    },
-
-    getEnhancementColor(enhancement) {
-        const colors = { parchment: '#8B4513', iron: '#696969', gold: '#FFD700', mother_of_pearl: '#E6E6FA', wild: '#FF69B4', cursed: '#8B0000', divine: '#FFD700', chaos: '#9932CC' };
-        return colors[enhancement] || '#666666';
-    },
-
     getEnhancementDisplayName(enh) {
         const names = { parchment: 'Parchment', iron: 'Iron', gold: 'Gold', mother_of_pearl: 'Mother of Pearl', mirror: 'Mirror', wild: 'Wild', lucky: 'Lucky', cursed: 'Cursed', divine: 'Divine', chaos: 'Chaos' };
         return names[enh] || enh;
@@ -125,24 +115,16 @@ const DiceRenderer = {
                 if (targeting) {
                     window.balatroEffects?.hideAllTooltips();
                     const { libation } = targeting;
-                    const targetFace = gameState.hasRolled ? die.getEffectiveFace() : (die.currentFace || (index % 6) + 1);
-                    libation.applyEnhancementToDie(gameState, index, targeting.enhancementType, targetFace, game);
-                    libation.use();
-                    if (typeof PlaytestRecorder !== 'undefined' && PlaytestRecorder.active) {
-                        PlaytestRecorder.log('libation_die_applied', {
-                            libationId: libation.id,
-                            dieIndex: index,
-                            enhancementType: targeting.enhancementType,
-                            targetFace,
-                            turn: gameState.turn,
-                        });
-                    }
-                    if (window.soundManager) window.soundManager.play('foil1', { pitch: 0.95 + Math.random() * 0.1, volume: 0.55 });
-                    const idx = gameState.consumables.findIndex(c => c.id === libation.id);
-                    if (idx !== -1) gameState.consumables.splice(idx, 1);
-                    game.state.libationTargetingMode = null;
-                    game.updateAllUI();
-                    window.balatroEffects?.hideAllTooltips();
+                    const applied = window.uiManager?.applyLibationEnhancementToDie?.(
+                        libation,
+                        index,
+                        gameState,
+                        game,
+                        targeting.enhancementType,
+                        'die_click'
+                    );
+                    if (applied) return;
+                    game.showMessage?.('Cannot apply libation right now.');
                     return;
                 }
                 game.toggleHold(index);

@@ -391,11 +391,15 @@ class GameEngine {
     }
 
     setupDOMEventListeners() {
-        // Roll button (Balatro: button SFX)
+        // Single action button: Cast the Bones in play mode, Reroll in shop mode (see ShopUI.applyShopActionButton).
+        // The stage-check lets one button serve both without swapping listeners mid-session.
         if (this.dom.rollButton) {
             this.dom.rollButton.addEventListener('click', () => {
                 if (window.soundManager) window.soundManager.play('button', { volume: 0.5 });
-                this.rollDice();
+                const shopStage = document.getElementById('shopStage');
+                const shopOpen = shopStage && !shopStage.classList.contains('hidden');
+                if (shopOpen) this.rerollShop();
+                else this.rollDice();
             });
         }
 
@@ -436,19 +440,13 @@ class GameEngine {
             });
         }
         
-        // Shop buttons - Note: Event listeners also attached by UIManager when shop is restored
-        const closeShopBtn = document.getElementById('closeShop');
-        if (closeShopBtn) {
-            closeShopBtn.addEventListener('click', () => {
-                Logger.debug('Close shop clicked from GameEngine listener');
+        // Shop corner Continue — ShopUI.attachShopEventListeners also rebinds on each openShop,
+        // so this is a safety net for the initial bind.
+        const continueBtn = document.getElementById('shopContinueBtn');
+        if (continueBtn) {
+            continueBtn.addEventListener('click', () => {
+                Logger.debug('Shop continue clicked from GameEngine listener');
                 this.closeShop();
-            });
-        }
-        
-        const rerollShopBtn = document.getElementById('rerollShop');
-        if (rerollShopBtn) {
-            rerollShopBtn.addEventListener('click', () => {
-                this.rerollShop();
             });
         }
 
@@ -767,7 +765,7 @@ class GameEngine {
 
             const counts = {};
             this.state.dice.forEach((d) => {
-                const f = typeof d.getEffectiveFace === 'function' ? d.getEffectiveFace() : (d.face ?? 0);
+                const f = this.getDieFaceValue(d, 0);
                 counts[f] = (counts[f] || 0) + 1;
             });
             const rolledYahtzee = Object.values(counts).some((c) => c >= 5);
@@ -792,9 +790,7 @@ class GameEngine {
         doPostPhysicsRoll();
 
         if (typeof PlaytestRecorder !== 'undefined' && PlaytestRecorder.active) {
-            const faces = this.state.dice.map((d) =>
-                typeof d.getEffectiveFace === 'function' ? d.getEffectiveFace() : (d.face ?? d.currentFace)
-            );
+            const faces = this.state.dice.map((d) => this.getDieFaceValue(d, 0));
             PlaytestRecorder.log('roll', {
                 turn: this.state.turn,
                 rollsAfter: this.state.rollsLeft,
@@ -855,9 +851,7 @@ class GameEngine {
         this.state.held[index] = !this.state.held[index];
         if (window.soundManager) window.soundManager.play('highlight1', { pitch: 0.95 + this.prng.random() * 0.1, volume: 0.5 });
         if (typeof PlaytestRecorder !== 'undefined' && PlaytestRecorder.active) {
-            const faces = this.state.dice.map((d) =>
-                typeof d.getEffectiveFace === 'function' ? d.getEffectiveFace() : (d.face ?? d.currentFace)
-            );
+            const faces = this.state.dice.map((d) => this.getDieFaceValue(d, 0));
             PlaytestRecorder.log('hold_toggle', {
                 index,
                 held: [...this.state.held],
@@ -917,6 +911,12 @@ class GameEngine {
         }
     }
 
+    getDieFaceValue(die, fallback = 0) {
+        if (typeof DieFaceUtils !== 'undefined') return DieFaceUtils.resolveFace(die, fallback);
+        if (typeof die?.getEffectiveFace === 'function') return die.getEffectiveFace();
+        return die?.face ?? die?.currentFace ?? fallback;
+    }
+
     checkTriggerEffects() {
         // Check for four fours effect
         if (this.state.triggerEffects.fourFoursReroll) {
@@ -947,7 +947,7 @@ class GameEngine {
     // Bonus Yahtzee unlocks 7s/8s/9s on roll — 2nd/3rd/4th Yahtzee rolled unlocks 7s/8s/9s.
     // No need to score in Yahtzee slot; just rolling five of a kind counts.
     previewUnlockBonusCategoriesOnRoll() {
-        const faces = this.state.dice.map(d => (typeof d.getEffectiveFace === 'function' ? d.getEffectiveFace() : d.face) ?? 1);
+        const faces = this.state.dice.map((d) => this.getDieFaceValue(d, 1));
         const counts = faces.reduce((acc, val) => { acc[val] = (acc[val] || 0) + 1; return acc; }, {});
         const rolledYahtzee = Object.values(counts).some(c => c >= 5);
         if (!rolledYahtzee) return;
@@ -1059,7 +1059,7 @@ class GameEngine {
                 pips = Math.max(0, pips);
                 favour = Math.max(0.1, favour);
                 if (this.state.globalBonuses.fivesToAll) {
-                    const fivesCount = this.state.dice.filter((die) => (die.getEffectiveFace ? die.getEffectiveFace() : die.currentFace) === 5).length;
+                    const fivesCount = this.state.dice.filter((die) => this.getDieFaceValue(die, 0) === 5).length;
                     pips += fivesCount * 5;
                 }
             }
@@ -1210,7 +1210,7 @@ class GameEngine {
         let delay = 0;
 
         // Start
-        up({ pips: '0', pipsAdd: false, favour: this.formatFavour(categoryBaseFavour), favourAdd: false, showEquals: false, scorePreview: '' });
+        up({ pips: this.formatDisplay(0), pipsAdd: false, favour: this.formatFavour(categoryBaseFavour), favourAdd: false, showEquals: false, scorePreview: '' });
         liveScoreEl.classList.add('visible');
 
         // Step 1: Dice adding pips — stacked: base+iron+pearl combined per die; gold shown as +1G on die
@@ -1228,7 +1228,7 @@ class GameEngine {
                 }
                 if (window.soundManager) window.soundManager.play('chips1', { pitch: 0.9 + this.prng.random() * 0.15, volume: 0.45 });
 
-                up({ pips: String(currentPips), pipsAdd: false, pipsPulse: true, favour: this.formatFavour(currentFavour), favourAdd: false });
+                up({ pips: this.formatDisplay(currentPips), pipsAdd: false, pipsPulse: true, favour: this.formatFavour(currentFavour), favourAdd: false });
             }, delay);
         });
 
@@ -1240,7 +1240,7 @@ class GameEngine {
             setTimeout(() => {
                 currentPips += categoryBonus;
                 if (window.soundManager) window.soundManager.play('paper1', { pitch: 0.95, volume: 0.5 });
-                up({ pips: String(currentPips), pipsAdd: false, pipsPulse: true, favour: this.formatFavour(currentFavour), favourAdd: false });
+                up({ pips: this.formatDisplay(currentPips), pipsAdd: false, pipsPulse: true, favour: this.formatFavour(currentFavour), favourAdd: false });
             }, delay);
         }
 
@@ -1285,16 +1285,16 @@ class GameEngine {
                 }
 
                 if (contrib.pips > 0 && contrib.favour > 0) {
-                    up({ pips: String(Math.floor(currentPips)), pipsAdd: true, pipsContrib: String(contrib.pips), pipsPulse: true, favour: this.formatFavour(prevFavour), favourAdd: true, favourContrib: this.formatFavourContrib(contrib.favour) });
+                    up({ pips: this.formatDisplay(currentPips), pipsAdd: true, pipsContrib: (window.NumberFormat ? window.NumberFormat.contrib(contrib.pips) : String(contrib.pips)), pipsPulse: true, favour: this.formatFavour(prevFavour), favourAdd: true, favourContrib: this.formatFavourContrib(contrib.favour) });
                     setTimeout(() => {
-                        up({ pips: String(Math.floor(currentPips)), pipsAdd: false, favour: this.formatFavour(currentFavour), favourAdd: false, favourPulse: true });
+                        up({ pips: this.formatDisplay(currentPips), pipsAdd: false, favour: this.formatFavour(currentFavour), favourAdd: false, favourPulse: true });
                     }, this.scaleDelay(140));
                 } else if (contrib.pips > 0) {
-                    up({ pips: String(Math.floor(currentPips)), pipsAdd: false, pipsPulse: true, favour: this.formatFavour(currentFavour), favourAdd: false });
+                    up({ pips: this.formatDisplay(currentPips), pipsAdd: false, pipsPulse: true, favour: this.formatFavour(currentFavour), favourAdd: false });
                 } else if (contrib.favour > 0) {
-                    up({ pips: String(Math.floor(currentPips)), pipsAdd: false, favour: this.formatFavour(prevFavour), favourAdd: true, favourContrib: this.formatFavourContrib(contrib.favour) });
+                    up({ pips: this.formatDisplay(currentPips), pipsAdd: false, favour: this.formatFavour(prevFavour), favourAdd: true, favourContrib: this.formatFavourContrib(contrib.favour) });
                     setTimeout(() => {
-                        up({ pips: String(Math.floor(currentPips)), pipsAdd: false, favour: this.formatFavour(currentFavour), favourAdd: false, favourPulse: true });
+                        up({ pips: this.formatDisplay(currentPips), pipsAdd: false, favour: this.formatFavour(currentFavour), favourAdd: false, favourPulse: true });
                     }, this.scaleDelay(140));
                 }
             }, delay);
@@ -1303,7 +1303,7 @@ class GameEngine {
         // Step 3: × favour then final score count up
         delay += this.scaleDelay(350);
         setTimeout(() => {
-            up({ pips: String(Math.floor(pips)), pipsAdd: false, favour: this.formatFavour(favour), favourAdd: false, showEquals: true, scorePreview: '0' });
+            up({ pips: this.formatDisplay(pips), pipsAdd: false, favour: this.formatFavour(favour), favourAdd: false, showEquals: true, scorePreview: this.formatDisplay(0) });
             if (window.juiceManager) window.juiceManager.juiceUp(liveScoreEl, 0.2);
             const finalSpan = liveScoreEl.querySelector('[data-live="score-preview"]');
 
@@ -1373,31 +1373,32 @@ class GameEngine {
         // Validate numbers
         if (typeof start !== 'number' || typeof end !== 'number' || isNaN(start) || isNaN(end)) {
             Logger.error(`Invalid numbers for animation: start=${start}, end=${end}`);
-            element.textContent = end || 0;
+            element.textContent = this.formatDisplay(end || 0);
             if (callback) callback();
             return;
         }
-        
+
         // Steppier animation: discrete steps instead of smooth interpolation
         const difference = end - start;
         const stepCount = Math.max(8, Math.min(20, Math.abs(difference)));
         const stepDuration = duration / stepCount;
         let currentStep = 0;
-        
+
+        const fmt = (n) => this.formatDisplay(n);
         const step = () => {
             currentStep++;
             const progress = currentStep / stepCount;
             const current = Math.floor(start + (difference * Math.min(progress, 1)));
-            element.textContent = current;
-            
+            element.textContent = fmt(current);
+
             if (currentStep < stepCount) {
                 setTimeout(step, stepDuration);
             } else {
-                element.textContent = end;
+                element.textContent = fmt(end);
                 if (callback) callback();
             }
         };
-        
+
         step();
     }
     
@@ -1561,7 +1562,7 @@ class GameEngine {
                 const primes = [2, 3, 5];
                 if (state.unlockedCategories?.Sevens) primes.push(7);
                 const primeDice = state.dice
-                    .map((d, i) => ({ i, face: d.getEffectiveFace ? d.getEffectiveFace() : d.face }))
+                    .map((d, i) => ({ i, face: this.getDieFaceValue(d, 0) }))
                     .filter(({ face }) => primes.includes(face));
                 const primeBonusSeq = [0, 1, 2, 3, 5, 7];
                 const totalBonus = primeDice.length > 0 ? (primeBonusSeq[primeDice.length] || 0) : 0;
@@ -1608,29 +1609,8 @@ class GameEngine {
      * @param {string} [label] - Optional label (e.g. 'Iron', 'Pearl')
      */
     showPipPopupOnDie(dieIndex, pips, label = '') {
-        const dieElements = document.querySelectorAll('.die');
-        const dieElement = dieElements[dieIndex];
-        if (!dieElement) return;
-        
-        const rect = dieElement.getBoundingClientRect();
-        const centerX = rect.left + rect.width / 2;
-        const topY = rect.top - 8;
-        
-        const popup = document.createElement('div');
-        popup.className = 'die-pip-popup';
         const text = label ? `${label}+${pips}` : `+${pips}`;
-        popup.textContent = text;
-        
-        popup.style.position = 'fixed';
-        popup.style.left = `${centerX}px`;
-        popup.style.top = `${topY}px`;
-        popup.style.transform = 'translate(-50%, 0)';
-        popup.style.zIndex = '10000';
-        popup.style.pointerEvents = 'none';
-        
-        document.body.appendChild(popup);
-        
-        setTimeout(() => popup.remove(), 900);
+        this.showDiePopup(dieIndex, text, 'die-pip-popup');
     }
     
     /**
@@ -1639,22 +1619,7 @@ class GameEngine {
      * @param {string} label - Label to show (e.g. '×0.5 favour')
      */
     showFavourPopupOnDie(dieIndex, label) {
-        const dieElements = document.querySelectorAll('.die');
-        const dieElement = dieElements[dieIndex];
-        if (!dieElement) return;
-        
-        const rect = dieElement.getBoundingClientRect();
-        const popup = document.createElement('div');
-        popup.className = 'die-pip-popup boon-dice-favour';
-        popup.textContent = label;
-        popup.style.position = 'fixed';
-        popup.style.left = `${rect.left + rect.width / 2}px`;
-        popup.style.top = `${rect.top - 8}px`;
-        popup.style.transform = 'translate(-50%, 0)';
-        popup.style.zIndex = '10000';
-        popup.style.pointerEvents = 'none';
-        document.body.appendChild(popup);
-        setTimeout(() => popup.remove(), 900);
+        this.showDiePopup(dieIndex, label, 'die-pip-popup boon-dice-favour');
     }
     
     /**
@@ -1663,21 +1628,25 @@ class GameEngine {
      * @param {number} gold - Gold amount (e.g. 1)
      */
     showGoldPopupOnDie(dieIndex, gold) {
+        this.showDiePopup(dieIndex, `+${gold}G`, 'die-pip-popup die-gold-popup', -24, '#FFD700');
+    }
+
+    showDiePopup(dieIndex, text, className, yOffset = -8, color = '') {
         const dieElements = document.querySelectorAll('.die');
         const dieElement = dieElements[dieIndex];
         if (!dieElement) return;
-        
+
         const rect = dieElement.getBoundingClientRect();
         const popup = document.createElement('div');
-        popup.className = 'die-pip-popup die-gold-popup';
-        popup.textContent = `+${gold}G`;
+        popup.className = className;
+        popup.textContent = text;
         popup.style.position = 'fixed';
         popup.style.left = `${rect.left + rect.width / 2}px`;
-        popup.style.top = `${rect.top - 24}px`;
+        popup.style.top = `${rect.top + yOffset}px`;
         popup.style.transform = 'translate(-50%, 0)';
         popup.style.zIndex = '10000';
         popup.style.pointerEvents = 'none';
-        popup.style.color = '#FFD700';
+        if (color) popup.style.color = color;
         document.body.appendChild(popup);
         setTimeout(() => popup.remove(), 900);
     }
@@ -3268,9 +3237,7 @@ class GameEngine {
      * @returns {string} Formatted favour string (integer)
      */
     formatFavour(favour) {
-        const n = Number(favour);
-        if (Number.isNaN(n) || n <= 0) return '1';
-        return String(Math.round(n));
+        return (window.NumberFormat ? window.NumberFormat.favour(favour) : String(Math.round(Number(favour) || 1)));
     }
 
     /**
@@ -3280,8 +3247,17 @@ class GameEngine {
      * @returns {string} Formatted favour string (preserves decimals)
      */
     formatFavourContrib(favour) {
-        const n = Number(favour);
-        if (Number.isNaN(n) || n <= 0) return '0';
-        return n === Math.floor(n) ? String(n) : (Math.round(n * 10) / 10).toFixed(1);
+        return (window.NumberFormat ? window.NumberFormat.favourContrib(favour) : String(Math.round((Number(favour) || 0) * 10) / 10));
+    }
+
+    /**
+     * Balatro-style tiered display format for pips / score-preview / total.
+     * Routes through window.NumberFormat so tier boundaries and commas/scientific
+     * are centralised in one place (see game/js/utils/NumberFormat.js).
+     * @param {number} n
+     * @returns {string}
+     */
+    formatDisplay(n) {
+        return (window.NumberFormat ? window.NumberFormat.display(n) : String(Math.trunc(Number(n) || 0)));
     }
 }

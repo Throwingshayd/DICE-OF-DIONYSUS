@@ -91,8 +91,8 @@ class UIManager {
             this.dom.shopStage = document.getElementById('shopStage');
             this.dom.shopDefaultView = document.getElementById('shopDefaultView');
             this.dom.packOpeningView = document.getElementById('packOpeningView');
-            this.dom.closeShop = document.getElementById('closeShop');
-            this.dom.rerollShop = document.getElementById('rerollShop');
+            this.dom.shopContinueBtn = document.getElementById('shopContinueBtn');
+            this.dom.actionCostBadge = document.getElementById('actionCostBadge');
             Logger.debug('Shop stage DOM elements rebound');
         }
     }
@@ -199,6 +199,10 @@ class UIManager {
         this.updateScorecardUI(gameState, gameEngine);
         this.updatePlayAreaSlots(gameState, gameEngine);
         this.updateBlindUI(gameState, gameEngine);
+        // Keep the single action button (#rollButton) synced with shop state: label + cost badge + affordability.
+        if (this.shopUI && document.querySelector('.main-game')?.classList.contains('shop-active')) {
+            this.shopUI.applyShopActionButton(gameState, true);
+        }
     }
 
     updateInfoUI(gameState, _gameEngine) {
@@ -289,7 +293,8 @@ class UIManager {
         const DRAG_THRESHOLD = 16;
         const getZones = () => ({
             worship: document.getElementById('consumableZoneWorship'),
-            sellWide: document.getElementById('consumableZoneSellWide'),
+            libation: document.getElementById('consumableZoneLibation'),
+            sellStone: document.getElementById('goldStone'),
             main: container.closest('.main-game'),
         });
         const pointIn = (px, py, el) => {
@@ -344,6 +349,7 @@ class UIManager {
                 }
             }
             if (main) main.classList.remove('consumable-drag-active');
+            document.getElementById('goldStone')?.classList.remove('drop-target-sell');
             if (cancelled && cardEl) {
                 cardEl.style.removeProperty('transform');
             }
@@ -407,6 +413,8 @@ class UIManager {
             }
             if (st.dragging) {
                 st.cardEl.style.transform = `translate(${dx}px, ${dy}px)`;
+                const sellStone = getZones().sellStone;
+                if (sellStone) sellStone.classList.toggle('drop-target-sell', pointIn(e.clientX, e.clientY, sellStone));
             }
         });
 
@@ -435,7 +443,7 @@ class UIManager {
 
             const doSell = () => {
                 endDrag(st, false);
-                runCloneFx(st.cardEl, 'consumable-fx-sell-left', () => {
+                runCloneFx(st.cardEl, 'consumable-fx-sell-gold', () => {
                     this.sellCard(card, gameState, gameEngine);
                 });
             };
@@ -446,7 +454,45 @@ class UIManager {
                 });
             };
 
-            if (pointIn(px, py, z.sellWide)) {
+            const isAwaitingPickSameCard = () => (
+                pendingLib?.libation === card || pendingEuch?.libation === card
+            );
+            const applyLibationToDie = (dieEl, enhancementType) => {
+                if (!dieEl || !gameState.hasRolled) return false;
+                const dieIndex = parseInt(dieEl.dataset.dieIndex, 10);
+                if (Number.isNaN(dieIndex)) return false;
+                endDrag(st, false);
+                runCloneFx(st.cardEl, 'consumable-fx-libation-dice', () => {
+                    this.applyLibationEnhancementToDieFromDrag(card, dieIndex, gameState, gameEngine, enhancementType);
+                });
+                return true;
+            };
+            const handleWorshipZoneDrop = () => {
+                if (isWorship) {
+                    doUse('consumable-fx-worship-pantheon');
+                } else if (isLibation) {
+                    endDrag(st, false);
+                    gameEngine?.showMessage?.('Libations flow onto the altar — drag onto the dice.');
+                } else {
+                    endDrag(st, false);
+                }
+            };
+            const handleLibationZoneDrop = () => {
+                if (isLibation) {
+                    if (isAwaitingPickSameCard()) {
+                        endDrag(st, true);
+                        return;
+                    }
+                    doUse('consumable-fx-libation-artifacts');
+                } else if (isWorship) {
+                    endDrag(st, false);
+                    gameEngine?.showMessage?.('Worship ascends to the Pantheon — drag up.');
+                } else {
+                    endDrag(st, false);
+                }
+            };
+
+            if (pointIn(px, py, z.sellStone)) {
                 doSell();
                 return;
             }
@@ -502,47 +548,29 @@ class UIManager {
             }
 
             const dieElTargeting = findDieUnderPointer(px, py, st.cardEl);
-            if (pendingLib?.libation === card && isLibation && dieElTargeting && gameState.hasRolled) {
-                const dieIndexPending = parseInt(dieElTargeting.dataset.dieIndex, 10);
-                if (!Number.isNaN(dieIndexPending)) {
-                    const enhPending = pendingLib.enhancementType;
-                    endDrag(st, false);
-                    runCloneFx(st.cardEl, 'consumable-fx-libation-dice', () => {
-                        this.applyLibationEnhancementToDieFromDrag(card, dieIndexPending, gameState, gameEngine, enhPending);
-                    });
-                    return;
-                }
+            if (pendingLib?.libation === card && isLibation && applyLibationToDie(dieElTargeting, pendingLib.enhancementType)) {
+                return;
             }
 
             if (pointIn(px, py, z.worship)) {
-                if (isWorship) {
-                    doUse('consumable-fx-worship-pantheon');
-                } else if (isLibation) {
-                    endDrag(st, false);
-                    gameEngine?.showMessage?.('Libations apply on the table — drag onto a die or the dice area.');
-                } else {
-                    endDrag(st, false);
-                }
+                handleWorshipZoneDrop();
+                return;
+            }
+
+            if (pointIn(px, py, z.libation)) {
+                handleLibationZoneDrop();
                 return;
             }
 
             const enhType = isLibation && typeof LibationCard !== 'undefined'
                 ? LibationCard.getDieFaceEnhancementType(card)
                 : null;
-            if (isLibation && enhType && dieElTargeting && gameState.hasRolled) {
-                const dieIndex = parseInt(dieElTargeting.dataset.dieIndex, 10);
-                if (!Number.isNaN(dieIndex)) {
-                    endDrag(st, false);
-                    runCloneFx(st.cardEl, 'consumable-fx-libation-dice', () => {
-                        this.applyLibationEnhancementToDieFromDrag(card, dieIndex, gameState, gameEngine, enhType);
-                    });
-                    return;
-                }
+            if (isLibation && enhType && applyLibationToDie(dieElTargeting, enhType)) {
+                return;
             }
 
-            const awaitingPickSameCard = pendingLib?.libation === card || pendingEuch?.libation === card;
             if (isLibation && pointInDicePlayArea(px, py)) {
-                if (awaitingPickSameCard) {
+                if (isAwaitingPickSameCard()) {
                     endDrag(st, true);
                     return;
                 }
@@ -552,7 +580,7 @@ class UIManager {
 
             if (isWorship && pointInDicePlayArea(px, py)) {
                 endDrag(st, false);
-                gameEngine?.showMessage?.('Worship ascends to the Pantheon — drag right.');
+                gameEngine?.showMessage?.('Worship ascends to the Pantheon — drag up.');
                 return;
             }
 
@@ -582,7 +610,24 @@ class UIManager {
             gameEngine?.showMessage?.('Roll the dice first, then target a die.');
             return;
         }
-        const targetFace = die.getEffectiveFace();
+        this.applyLibationEnhancementToDie(libation, dieIndex, gameState, gameEngine, enhancementType, 'consumable_drag');
+    }
+
+    /**
+     * Shared libation die-application path used by drag and die-click targeting.
+     * @param {LibationCard} libation
+     * @param {number} dieIndex
+     * @param {Object} gameState
+     * @param {Object} gameEngine
+     * @param {string} enhancementType
+     * @param {string} [via='direct_targeting']
+     * @returns {boolean}
+     */
+    applyLibationEnhancementToDie(libation, dieIndex, gameState, gameEngine, enhancementType, via = 'direct_targeting') {
+        const die = gameState?.dice?.[dieIndex];
+        if (!die || !(libation instanceof LibationCard) || !libation.canUse()) return false;
+        if (!gameState.hasRolled) return false;
+        const targetFace = typeof die.getEffectiveFace === 'function' ? die.getEffectiveFace() : (die.face ?? die.currentFace ?? 1);
         libation.applyEnhancementToDie(gameState, dieIndex, enhancementType, targetFace, gameEngine);
         libation.use();
         if (typeof PlaytestRecorder !== 'undefined' && PlaytestRecorder.active) {
@@ -592,7 +637,7 @@ class UIManager {
                 enhancementType,
                 targetFace,
                 turn: gameState.turn,
-                via: 'consumable_drag',
+                via,
             });
         }
         if (window.soundManager) window.soundManager.play('foil1', { pitch: 0.95 + Math.random() * 0.1, volume: 0.55 });
@@ -601,6 +646,7 @@ class UIManager {
         if (gameEngine?.state) gameEngine.state.libationTargetingMode = null;
         gameEngine?.updateAllUI?.();
         window.balatroEffects?.hideAllTooltips();
+        return true;
     }
 
     /**
@@ -700,14 +746,4 @@ class UIManager {
         }, 600);
     }
 
-    /**
-     * Add success animation to button on purchase
-     * @param {HTMLElement} button - The button element
-     */
-    playPurchaseAnimation(button) {
-        button.classList.add('purchasing');
-        setTimeout(() => {
-            button.classList.remove('purchasing');
-        }, 400);
-    }
 }
