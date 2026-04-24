@@ -28,7 +28,11 @@ const MUSIC_MASTER_BODY_Q = 1;
 
 class SoundManager {
     constructor() {
-        this.soundBase = 'sounds/';  // SFX from game/public/sounds/ (Vite serves public at root)
+        // Prefer Vite-served root paths; fallback supports Live Server from /game.
+        this._sfxBaseCandidates = ['sounds/', 'public/sounds/'];
+        this._musicPrefixCandidates = ['', 'public/'];
+        this._resolvedSfxBase = null;
+        this._resolvedMusicPrefix = null;
         this.musicVolume = 0.6;
         this.sfxVolume = 0.8;
         this.audioContext = null;
@@ -175,15 +179,53 @@ class SoundManager {
         return out;
     }
 
+    _getSfxPaths(soundCode) {
+        if (this._resolvedSfxBase) {
+            return [`${this._resolvedSfxBase}${soundCode}.ogg`];
+        }
+        return this._sfxBaseCandidates.map(base => `${base}${soundCode}.ogg`);
+    }
+
+    _getMusicPaths(trackPath) {
+        if (this._resolvedMusicPrefix != null) {
+            return [`${this._resolvedMusicPrefix}${trackPath}`];
+        }
+        return this._musicPrefixCandidates.map(prefix => `${prefix}${trackPath}`);
+    }
+
+    async _fetchFirstAudioBuffer(paths) {
+        let lastError = null;
+        for (const path of paths) {
+            try {
+                const res = await fetch(path);
+                if (!res.ok) {
+                    lastError = new Error(`HTTP ${res.status} for ${path}`);
+                    continue;
+                }
+
+                if (path.endsWith('.ogg')) {
+                    const slash = path.lastIndexOf('/') + 1;
+                    this._resolvedSfxBase = path.slice(0, slash);
+                } else if (path.includes('ART/Music/')) {
+                    this._resolvedMusicPrefix = path.startsWith('public/') ? 'public/' : '';
+                }
+
+                return await res.arrayBuffer();
+            } catch (err) {
+                lastError = err;
+            }
+        }
+        throw lastError || new Error('Audio fetch failed');
+    }
+
     /** Play SFX (Balatro: play_sound) */
     play(soundCode, options = {}) {
         this.ensureReady();
         if (!this.audioContext) return;
         const pitch = options.pitch ?? 1;
         const volume = options.volume ?? 1;
-        const path = `${this.soundBase}${soundCode}.ogg`;
-        fetch(path)
-            .then(r => r.arrayBuffer())
+        const paths = this._getSfxPaths(soundCode);
+        this._fetchFirstAudioBuffer(paths)
             .then(buf => this.audioContext.decodeAudioData(buf))
             .then(buffer => {
                 const src = this.audioContext.createBufferSource();
@@ -276,9 +318,8 @@ class SoundManager {
 
     async _loadTrackBuffer(trackId) {
         const path = MUSIC_TRACKS[trackId] || MUSIC_TRACKS.music1;
-        const res = await fetch(path);
-        if (!res.ok) throw new Error(`HTTP ${res.status}`);
-        const buf = await res.arrayBuffer();
+        const candidatePaths = this._getMusicPaths(path);
+        const buf = await this._fetchFirstAudioBuffer(candidatePaths);
         return this.audioContext.decodeAudioData(buf);
     }
 

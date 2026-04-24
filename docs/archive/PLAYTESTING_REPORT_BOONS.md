@@ -402,7 +402,7 @@ const RECKLESS_ABANDON_PIPS_BONUS = 50;
 ```javascript
 const GOD_CATEGORY_MAP = {
     'Artemis': 'Ones', 
-    'Persephone': 'Twos',
+    'Aphrodite': 'Twos',
     // etc...
 };
 ```

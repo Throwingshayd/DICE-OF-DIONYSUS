@@ -1,6 +1,6 @@
 card_type,id,name,rarity,cost,sell_value,effect,flavor,,gods,score associated
 boon,hestias_hearth,Hestia's Hearth,vibrant ,3,1,If all 5 of your dice are odd or all 5 are even the hand gains +3 Favour.,,,Artemis,Ones
-boon,charons_ferry_fare,Charon's Ferry Fare,vibrant ,3,1,Gain +1 Gold after scoring any hand (does not trigger on a scratch).,,,Persephone,Twos
+boon,charons_ferry_fare,Charon's Ferry Fare,vibrant ,3,1,Gain +1 Gold after scoring any hand (does not trigger on a scratch).,,,Aphrodite,Twos
 boon,achilles_heel,Achilles' Heel,rustic,3,1,All scores gain +10 Pips but you lose 1 Gold at the start of each roll,,,Morpheus,Threes
 boon,midas_touch,Midas Touch,rustic,4,2,Gain +5 pips for every 10 Gold you have when scoring.,,,Hera,Fours
 boon,icarus_wings,Icarus' Wings,vibrant ,4,2,Each unused re-roll at the end of a turn gives +10 Pips to the score. Chance to break after turn 1 in 6,,,Athena,Fives
@@ -11,7 +11,7 @@ boon,chaos_primordial,Chaos Primordial,epic,10,8,All Favour gains are doubled bu
 boon,mt_olympus,Mt Olympus,epic,8,2,Gain +1 Favour for each Worship card you have used this run.,,,,
 boon,parmenides_die,Parmenides Die,epic,8,2,Scores swap between upper and lower pantheon.,,,Parmenides,
 worship,worship_artemis,Blessing of Artemis,planet,3,,+1 Favour when scoring Ones.,,,,
-worship,worship_persephone,Blessing of Persephone,planet,3,,+1 Favour when scoring Twos.,,,,
+worship,worship_aphrodite,Blessing of Aphrodite,planet,3,,+1 Favour when scoring Twos.,,,,
 worship,worship_morpheus,Blessing of Morpheus,planet,3,,+1 Favour when scoring Threes.,,,,
 worship,worship_hera,Blessing of Hera,planet,3,,+1 Favour when scoring Fours.,,,,
 worship,worship_athena,Blessing of Athena,planet,3,,+1 Favour when scoring Fives.,,,,
@@ -153,7 +153,7 @@ function Card:calculate_joker(context),,,,,,,,,,
                 },,,,,,,,,,
             end,,,,,,,,,,
             ,,,,,,,,,,
-"            if self.ability.name == ""Blessing of Persephone"" and context.scoring_name == ""Twos"" then",,,,,,,,,,
+"            if self.ability.name == ""Blessing of Aphrodite"" and context.scoring_name == ""Twos"" then",,,,,,,,,,
                 return {,,,,,,,,,,
 "                    message = ""+1 Favour""", ,,,,,,,,,
                     favour_mod = 1,,,,,,,,,,

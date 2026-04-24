@@ -49,7 +49,7 @@ class WorshipCard extends Card {
         const hasCycle = gameState.boons?.some(j => j.id === 'cycle_of_seasons');
         if (hasCycle) {
             // Build list of available gods (excluding current and locked categories)
-            const baseGods = ['Artemis', 'Persephone', 'Morpheus', 'Hera', 'Athena', 
+            const baseGods = ['Artemis', 'Aphrodite', 'Morpheus', 'Hera', 'Athena', 
                              'Heracles', 'Hephaestus', 'Ares', 'Dionysus', 'Hermes', 
                              'Apollo', 'Zeus', 'Nyx'];
             
@@ -92,7 +92,7 @@ class WorshipCard extends Card {
                 gameState.diceEffects.firstDieLockTo1 = true;
                 break;
                 
-            case 'persephone_2': // Spring's Return  
+            case 'aphrodite_2': // Twos pip blessing
                 // Twos give +2 Pips each
                 gameState.pipsBonuses = gameState.pipsBonuses || {};
                 gameState.pipsBonuses.twosBonus = 2;
@@ -133,7 +133,7 @@ class WorshipCard extends Card {
                 gameState.doubleScoringAllowed.push('Ones');
                 break;
                 
-            case 'persephone_3': // Underworld Queen
+            case 'aphrodite_3': // Gold per 2 rolled
                 // Gain +1 Gold per 2 rolled
                 gameState.goldPerDie = gameState.goldPerDie || {};
                 gameState.goldPerDie[2] = 1;
@@ -195,7 +195,7 @@ class WorshipCard extends Card {
         // Basic worship cards provide +1 Favour when scoring their category
         const worshipEffects = {
             'worship_artemis': 'Ones',
-            'worship_persephone': 'Twos',
+            'worship_aphrodite': 'Twos',
             'worship_morpheus': 'Threes',
             'worship_hera': 'Fours',
             'worship_athena': 'Fives',
@@ -245,8 +245,8 @@ class WorshipCard extends Card {
     // Check if this worship card has special ongoing effects
     hasOngoingEffects() {
         const ongoingEffects = [
-            'artemis_2', 'persephone_2', 'morpheus_2', 'hera_2',
-            'athena_2', 'heracles_2', 'artemis_3', 'persephone_3',
+            'artemis_2', 'aphrodite_2', 'morpheus_2', 'hera_2',
+            'athena_2', 'heracles_2', 'artemis_3', 'aphrodite_3',
             'morpheus_3', 'hera_3', 'athena_3', 'heracles_3',
             'zeus_3', 'apollo_3', 'nyx_3'
         ];
@@ -257,13 +257,13 @@ class WorshipCard extends Card {
     getOngoingEffectDescription() {
         const descriptions = {
             'artemis_2': 'First die each turn automatically becomes 1',
-            'persephone_2': 'Each 2 provides +2 extra pips when scoring',
+            'aphrodite_2': 'Each 2 provides +2 extra pips when scoring',
             'morpheus_2': 'Can reroll any 3s once per turn for free',
             'hera_2': 'All 4s count as 5s for scoring purposes',
             'athena_2': 'Can preview next dice roll before choosing holds',
             'heracles_2': 'Each 6 provides +10 extra pips when scoring',
             'artemis_3': 'Ones category can be scored multiple times',
-            'persephone_3': 'Gain 1 gold for each 2 rolled this turn',
+            'aphrodite_3': 'Gain 1 gold for each 2 rolled this turn',
             'morpheus_3': 'All dice start as 3s each turn',
             'hera_3': 'Rolling four 4s triggers a free reroll',
             'athena_3': 'Fives add their value to every score',
@@ -279,7 +279,7 @@ class WorshipCard extends Card {
     getGodDomain() {
         const domains = {
             'Artemis': 'Hunt & Moon',
-            'Persephone': 'Underworld & Spring',
+            'Aphrodite': 'Love & Beauty',
             'Morpheus': 'Dreams & Sleep',
             'Poseidon': 'Sea & Earthquakes',
             'Athena': 'Wisdom & War',
@@ -303,7 +303,7 @@ class WorshipCard extends Card {
             
             // Complementary god synergies
             const synergies = {
-                'Artemis': ['Persephone'], // 1s and 2s
+                'Artemis': ['Aphrodite'], // 1s and 2s
                 'Morpheus': ['Hera'],      // 3s and 4s
                 'Athena': ['Heracles'],    // 5s and 6s
                 'Hephaestus': ['Ares'],    // 3 and 4 of a kind

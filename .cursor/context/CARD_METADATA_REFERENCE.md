@@ -117,7 +117,7 @@ Boons trigger at specific game moments via `onTimingEvent(timing, gameState, eve
 
 ```javascript
 // Category → God (GOD_TO_CATEGORY)
-'Ones' → 'Artemis', 'Twos' → 'Persephone', 'Threes' → 'Morpheus',
+'Ones' → 'Artemis', 'Twos' → 'Aphrodite', 'Threes' → 'Morpheus',
 'Fours' → 'Hera', 'Fives' → 'Athena', 'Sixes' → 'Heracles',
 'Three of a Kind' → 'Hephaestus', 'Four of a Kind' → 'Ares', 'Full House' → 'Dionysus',
 'Small Straight' → 'Hermes', 'Large Straight' → 'Apollo', 'Yahtzee' → 'Zeus', 'Chance' → 'Nyx',
@@ -127,7 +127,7 @@ Boons trigger at specific game moments via `onTimingEvent(timing, gameState, eve
 ### God Gender Metadata
 **See:** `js/config/GameConstants.js` → `GOD_METADATA`
 
-**Female Gods (8):** Artemis, Athena, Hera, Nyx, Persephone, The Pleiades, The Nine Muses
+**Female Gods (8):** Artemis, Aphrodite, Athena, Hera, Nyx, The Pleiades, The Nine Muses
 
 **Male Gods (9):** Apollo, Ares, Dionysus, Hephaestus, Heracles, Hermes, Morpheus, Poseidon, Zeus
 

@@ -113,7 +113,7 @@ const ENHANCEMENT_CHANCES = {
  * @const {Object.<string,string>}
  */
 const GOD_TO_CATEGORY = {
-    'Ones': 'Artemis', 'Twos': 'Persephone', 'Threes': 'Morpheus',
+    'Ones': 'Artemis', 'Twos': 'Aphrodite', 'Threes': 'Morpheus',
     'Fours': 'Hera', 'Fives': 'Athena', 'Sixes': 'Heracles',
     'Sevens': 'The Pleiades', 'Eights': 'Poseidon', 'Nines': 'The Nine Muses',
     'Three of a Kind': 'Hephaestus', 'Four of a Kind': 'Ares', 'Full House': 'Dionysus',
@@ -129,7 +129,7 @@ const GOD_TO_CATEGORY = {
 const GOD_METADATA = {
     // Upper Sanctum (Ones through Sixes)
     'Artemis': { gender: 'female', domain: 'hunt', category: 'Ones' },
-    'Persephone': { gender: 'female', domain: 'spring/underworld', category: 'Twos' },
+    'Aphrodite': { gender: 'female', domain: 'love/beauty', category: 'Twos' },
     'Morpheus': { gender: 'male', domain: 'dreams', category: 'Threes' },
     'Hera': { gender: 'female', domain: 'marriage', category: 'Fours' },
     'Athena': { gender: 'female', domain: 'wisdom', category: 'Fives' },

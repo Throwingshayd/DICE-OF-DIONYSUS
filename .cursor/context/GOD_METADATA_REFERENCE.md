@@ -9,7 +9,7 @@ The `GOD_METADATA` constant in `js/config/GameConstants.js` contains comprehensi
 
 ### Female Deities (8 total)
 - **Artemis** - Goddess of the Hunt (Ones)
-- **Persephone** - Goddess of Spring/Underworld (Twos)
+- **Aphrodite** - Goddess of Love/Beauty (Twos)
 - **Hera** - Queen of the Gods (Fours)
 - **Athena** - Goddess of Wisdom (Fives)
 - **Nyx** - Goddess of Night (Chance)
@@ -105,7 +105,7 @@ Test in browser console:
 ```javascript
 // Get all female gods
 GodUtils.getFemaleGods()
-// ["Aphrodite", "Artemis", "Athena", "Hera", "Nyx", "Persephone", "The Pleiades", "The Nine Muses"]
+// ["Aphrodite", "Artemis", "Athena", "Hera", "Nyx", "The Pleiades", "The Nine Muses"]
 
 // Get all male gods
 GodUtils.getMaleGods()

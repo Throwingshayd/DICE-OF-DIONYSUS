@@ -655,7 +655,7 @@ const CardData = {
     worship: [
         // Worship cards from CSV database only
         { id: "worship_artemis", name: "Blessing of Artemis", god: "Artemis", rarity: "worship", cost: 3, effect: "+1 Favour when scoring Ones." },
-        { id: "worship_persephone", name: "Blessing of Persephone", god: "Persephone", rarity: "worship", cost: 3, effect: "+1 Favour when scoring Twos." },
+        { id: "worship_aphrodite", name: "Blessing of Aphrodite", god: "Aphrodite", rarity: "worship", cost: 3, effect: "+1 Favour when scoring Twos." },
         { id: "worship_morpheus", name: "Blessing of Morpheus", god: "Morpheus", rarity: "worship", cost: 3, effect: "+1 Favour when scoring Threes." },
         { id: "worship_hera", name: "Blessing of Hera", god: "Hera", rarity: "worship", cost: 3, effect: "+1 Favour when scoring Fours." },
         { id: "worship_athena", name: "Blessing of Athena", god: "Athena", rarity: "worship", cost: 3, effect: "+1 Favour when scoring Fives." },

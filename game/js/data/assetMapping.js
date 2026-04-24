@@ -19,7 +19,7 @@ const AssetMapping = {
     // Worship Card Assets
     worship: {
         'worship_artemis': 'artemis bow.png',
-        'worship_persephone': 'persephone pomegranate.png',
+        'worship_aphrodite': 'persephone pomegranate.png',
         'worship_morpheus': 'morpheus poppy.png',
         'worship_hera': 'worship hera.png',
         'worship_athena': 'worship athena.png',
@@ -114,7 +114,7 @@ const AssetMapping = {
     gods: {
         // Upper Sanctum (1–6)
         'Artemis': 'artemis bow.png',
-        'Persephone': 'persephone pomegranate.png',
+        'Aphrodite': 'persephone pomegranate.png',
         'Morpheus': 'morpheus poppy.png',
         'Hera': 'heras peacock.png',
         'Athena': 'athena owl.png',

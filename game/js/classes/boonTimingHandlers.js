@@ -528,7 +528,7 @@ const BoonTimingHandlers = {
                     // Pick a random god to seduce (75% male preference)
                     const maleGods = ['Ares', 'Apollo', 'Zeus', 'Hermes', 'Heracles', 
                                      'Hephaestus', 'Dionysus', 'Morpheus'];
-                    const femaleGods = ['Artemis', 'Persephone', 'Hera', 'Athena', 'Nyx'];
+                    const femaleGods = ['Artemis', 'Aphrodite', 'Hera', 'Athena', 'Nyx'];
                     
                     // Add unlocked gods
                     if (gameState.unlockedCategories?.Eights) maleGods.push('Poseidon');

@@ -56,37 +56,37 @@ const ScorecardRenderer = {
                 row.classList.remove('used');
                 const worshipLevel = gameState.worshipLevels?.["Pandora's Box"] || 0;
                 const categorySpan = row.querySelector('span');
-                if (categorySpan && isUnlocked && worshipLevel > 0) {
-                    const displayLevel = worshipLevel + 1;
-                    categorySpan.innerHTML = `<span class="pantheon-cat">Pandora's Box</span> <span class="worship-tier" data-level="${displayLevel}">(Pandora Lv.${displayLevel})</span>`;
-                } else if (categorySpan && isUnlocked) {
-                    categorySpan.innerHTML = `<span class="pantheon-cat">Pandora's Box</span> <span class="pantheon-deity">(Pandora)</span>`;
+                if (categorySpan) {
+                    let deityText = 'Pandora';
+                    if (isUnlocked && worshipLevel > 0) {
+                        const displayLevel = worshipLevel + 1;
+                        deityText = `Pandora Lv.${displayLevel}`;
+                    }
+                    categorySpan.innerHTML = `<span class="pantheon-cat">Pandora's Box</span><span class="pantheon-deity">${deityText}</span>`;
                 }
-                row.querySelector('.potential-score').textContent = combined > 0 ? combined : '-';
+                row.querySelector('.potential-score').textContent = combined > 0 ? String(combined) : '';
                 row.style.cursor = isUnlocked ? 'pointer' : 'default';
                 return;
             }
             const categorySpan = row.querySelector('span');
             if (categorySpan) {
-                const godMapping = { 'Ones': 'Artemis', 'Twos': 'Persephone', 'Threes': 'Morpheus', 'Fours': 'Hera', 'Fives': 'Athena', 'Sixes': 'Heracles', 'Three of a Kind': 'Hephaestus', 'Four of a Kind': 'Ares', 'Full House': 'Dionysus', 'Small Straight': 'Hermes', 'Large Straight': 'Apollo', 'Yahtzee': 'Zeus', 'Chance': 'Nyx', 'Sevens': 'The Pleiades', 'Eights': 'Poseidon', 'Nines': 'The Nine Muses' };
+                const godMapping = { 'Ones': 'Artemis', 'Twos': 'Aphrodite', 'Threes': 'Morpheus', 'Fours': 'Hera', 'Fives': 'Athena', 'Sixes': 'Heracles', 'Three of a Kind': 'Hephaestus', 'Four of a Kind': 'Ares', 'Full House': 'Dionysus', 'Small Straight': 'Hermes', 'Large Straight': 'Apollo', 'Yahtzee': 'Zeus', 'Chance': 'Nyx', 'Sevens': 'The Pleiades', 'Eights': 'Poseidon', 'Nines': 'The Nine Muses' };
                 const displayCategory = category === 'Yahtzee' ? 'Heureka' : category;
                 const god = godMapping[category];
                 const worshipLevel = gameState.worshipLevels?.[god] || 0;
                 const displayLevel = worshipLevel + 1;
-                if (worshipLevel > 0) {
-                    categorySpan.innerHTML = `<span class="pantheon-cat">${displayCategory}</span> <span class="worship-tier" data-level="${displayLevel}">(${god} Lv.${displayLevel})</span>`;
-                } else {
-                    categorySpan.innerHTML = `<span class="pantheon-cat">${displayCategory}</span> <span class="pantheon-deity">(${god})</span>`;
-                }
+                const deityText = worshipLevel > 0 ? `${god} Lv.${displayLevel}` : god;
+                categorySpan.innerHTML = `<span class="pantheon-cat">${displayCategory}</span><span class="pantheon-deity">${deityText}</span>`;
             }
             const scoreDisplay = row.querySelector('.potential-score');
             if (gameState.scorecard[category] !== undefined) {
                 row.classList.add('used');
                 row.classList.remove('available-category');
-                scoreDisplay.textContent = Math.round(gameState.scorecard[category]);
+                const rounded = Math.round(gameState.scorecard[category]);
+                scoreDisplay.textContent = rounded === 0 ? 'X' : String(rounded);
             } else {
                 row.classList.remove('used');
-                scoreDisplay.textContent = '-';
+                scoreDisplay.textContent = '';
                 if (gameState.hasRolled && window.game) {
                     let showGreen;
                     if (highlightCache[category] !== undefined) showGreen = highlightCache[category];

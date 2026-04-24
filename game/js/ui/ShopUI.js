@@ -105,15 +105,12 @@ class ShopUI {
         const badge = document.getElementById('actionCostBadge');
         if (!rollBtn) return;
         if (shopOpen) {
-            rollBtn.textContent = 'Reroll';
+            rollBtn.textContent = 'Cast the Bones';
             const hasFreeReroll = !!(gameState?.artifacts?.some(a => a.id === 'sundial_plus') && !gameState?.usedFreeReroll);
             const cost = typeof GAME_BALANCE !== 'undefined' ? GAME_BALANCE.SHOP_REROLL_COST : 4;
             const canAfford = hasFreeReroll || (gameState?.gold ?? 0) >= cost;
             rollBtn.disabled = !canAfford;
-            if (badge) {
-                badge.textContent = hasFreeReroll ? 'Free' : `${cost}g`;
-                badge.classList.remove('hidden');
-            }
+            if (badge) badge.classList.add('hidden');
         } else {
             rollBtn.textContent = 'Cast the Bones';
             if (badge) badge.classList.add('hidden');
