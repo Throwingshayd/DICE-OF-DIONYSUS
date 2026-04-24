@@ -482,7 +482,7 @@ body::after {
     position: absolute;
     bottom: -18px;
     left: 50%;
-    transform: translateX(-50%);
+    transform: translateX(-50%) rotate(var(--chip-rot, 0deg));
     font-size: 0.7rem;
     color: rgba(255, 255, 255, 0.5);
     font-family: 'DisneyHeroic', 'VT323', sans-serif;
@@ -682,7 +682,7 @@ body::after {
 }
 
 #shopStage {
-    background: url('/ART/shopfront new (1).png') center center / cover no-repeat;
+    background: url('/ART/shopfront new (1).png') center center / 75% no-repeat;
     padding: 12px 16px;
     overflow: hidden;
     display: flex;
@@ -807,7 +807,7 @@ body::after {
     position: absolute;
     bottom: -36px;
     left: 50%;
-    transform: translateX(-50%);
+    transform: translateX(-50%) rotate(var(--chip-rot, 0deg));
     margin-top: 8px;
     padding: 6px 14px;
     font-size: 12px;
@@ -1203,17 +1203,16 @@ body::after {
 }
 .live-score-display .gnosis-cashout-content {
     display: none;
-    flex-direction: column;
     align-items: center;
-    gap: 8px;
     text-align: center;
-    padding: 8px 0;
+    padding: 4px 0;
 }
 .live-score-display .gnosis-cashout-content.hidden {
     display: none !important;
 }
 .live-score-display.cashout-mode .gnosis-cashout-content {
     display: flex !important;
+    justify-content: center;
 }
 .live-score-display.cashout-mode .gnosis-cashout-content.hidden {
     display: none !important;
@@ -1232,24 +1231,15 @@ body::after {
     0%, 100% { color: #4A90E2; text-shadow: 0 0 12px rgba(74, 144, 226, 0.8); }
     50% { color: #2ecc71; text-shadow: 0 0 16px rgba(46, 204, 113, 0.9); }
 }
-.live-score-display .gnosis-cashout-title,
-.live-score-display .gnosis-cashout-lines,
 .live-score-display .gnosis-cashout-line {
     font-family: 'DisneyHeroic', sans-serif;
-    font-size: 22px;
+    font-size: 24px;
     font-weight: bold;
-    letter-spacing: 1px;
-    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    text-transform: none;
     line-height: 1.3;
 }
-.live-score-display .gnosis-cashout-title {
-    font-size: 26px;
-    letter-spacing: 3px;
-    color: #4A90E2;
-    animation: cashout-flash-blue 1.2s ease-in-out infinite;
-}
 .live-score-display .gnosis-cashout-line {
-    font-size: 20px;
     color: #4A90E2;
     margin: 4px 0;
     animation: cashout-flash-blue 1.2s ease-in-out infinite;
@@ -1263,81 +1253,6 @@ body::after {
 }
 .live-score-display .gnosis-cashout-line.gnosis-pantheon-value.pantheon-success-flash {
     animation: pantheon-success-flash 0.8s ease-in-out infinite;
-}
-.live-score-display .gnosis-cashout-sub {
-    font-family: 'DisneyHeroic', sans-serif;
-    color: rgba(74, 144, 226, 0.85);
-    font-size: 16px;
-    margin: 6px 0 0 0;
-}
-
-/* Cashout in score panel: hide Total score, show pantheon/cashout with flash */
-.gnosis-score-panel.cashout-mode .gnosis-score-label,
-.gnosis-score-panel.cashout-mode .gnosis-score-value {
-    display: none;
-}
-.gnosis-score-panel .gnosis-cashout-content {
-    display: none;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    gap: 6px;
-    text-align: center;
-    padding: 4px 0;
-    overflow: visible;
-    min-height: 100px;
-}
-.gnosis-score-panel .gnosis-cashout-content.hidden {
-    display: none !important;
-}
-.gnosis-score-panel.cashout-mode .gnosis-cashout-content {
-    display: flex !important;
-}
-.gnosis-score-panel.cashout-mode .gnosis-cashout-content.hidden {
-    display: none !important;
-}
-.gnosis-score-panel .gnosis-cashout-title,
-.gnosis-score-panel .gnosis-cashout-lines,
-.gnosis-score-panel .gnosis-cashout-line {
-    font-family: 'DisneyHeroic', sans-serif;
-    font-size: 22px;
-    font-weight: bold;
-    letter-spacing: 1px;
-    text-transform: uppercase;
-    line-height: 1.3;
-    overflow: visible;
-}
-.gnosis-score-panel .gnosis-cashout-lines {
-    overflow: visible;
-    padding: 4px 0;
-}
-.gnosis-score-panel .gnosis-cashout-title {
-    font-size: 26px;
-    letter-spacing: 3px;
-    color: #4A90E2;
-    animation: cashout-flash-blue 1.2s ease-in-out infinite;
-}
-.gnosis-score-panel .gnosis-cashout-line {
-    font-size: 20px;
-    color: #4A90E2;
-    margin: 4px 0;
-    animation: cashout-flash-blue 1.2s ease-in-out infinite;
-}
-.gnosis-score-panel .gnosis-cashout-line.gnosis-pantheon-value {
-    font-size: 42px;
-    font-family: 'DisneyHeroic', sans-serif;
-    color: #9b59b6;
-    text-shadow: 0 2px 8px rgba(0,0,0,0.4);
-    animation: pantheon-flash-purple 1.2s ease-in-out infinite;
-}
-.gnosis-score-panel .gnosis-cashout-line.gnosis-pantheon-value.pantheon-success-flash {
-    animation: pantheon-success-flash 0.8s ease-in-out infinite;
-}
-.gnosis-score-panel .gnosis-cashout-sub {
-    font-family: 'DisneyHeroic', sans-serif;
-    color: rgba(74, 144, 226, 0.85);
-    font-size: 16px;
-    margin: 6px 0 0 0;
 }
 
 /* Fixed-height cells – lock height so "+ contribution" animation doesn't shift layout */
@@ -5199,120 +5114,6 @@ body::after {
     border-color: var(--border-color);
 }
 
-/* Cash Out Screen Styles */
-#cashOutOverlay {
-    background: rgba(0, 0, 0, 0.8);
-    backdrop-filter: blur(5px);
-}
-
-.cash-out-modal {
-    background: linear-gradient(135deg, var(--bg-dark-green), var(--bg-light-green));
-    border: 3px solid var(--accent-gold);
-    box-shadow: var(--shadow-heavy), 0 0 30px var(--glow-gold);
-    max-width: 500px;
-    width: 90%;
-    animation: cashOutSlideIn 0.5s cubic-bezier(0.4, 0, 0.2, 1);
-}
-
-@keyframes cashOutSlideIn {
-    0% {
-        transform: translateY(-50px) scale(0.9);
-        opacity: 0;
-    }
-    100% {
-        transform: translateY(0) scale(1);
-        opacity: 1;
-    }
-}
-
-.cash-out-header {
-    text-align: center;
-    margin-bottom: 24px;
-    padding-bottom: 16px;
-    border-bottom: 2px solid rgba(255, 215, 0, 0.3);
-}
-
-.cash-out-title {
-    color: var(--accent-gold);
-    font-size: 2.5rem;
-    margin: 0 0 8px 0;
-    text-shadow: 0 0 10px var(--glow-gold);
-    font-weight: bold;
-}
-
-.cash-out-subtitle {
-    color: var(--text-light);
-    opacity: 0.8;
-    font-size: 1.1rem;
-    margin: 0;
-}
-
-.cash-out-content {
-    padding: 0 16px;
-}
-
-.cash-out-breakdown {
-    margin-bottom: 24px;
-}
-
-.cash-out-row {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    padding: 8px 0;
-    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
-}
-
-.cash-out-row:last-child {
-    border-bottom: none;
-}
-
-.cash-out-row.bonus {
-    color: var(--accent-green);
-}
-
-.cash-out-row.total {
-    color: var(--accent-gold);
-    font-weight: bold;
-    font-size: 1.2rem;
-    border-top: 2px solid var(--accent-gold);
-    margin-top: 8px;
-    padding-top: 12px;
-}
-
-.cash-out-label {
-    color: var(--text-light);
-    font-size: 1rem;
-}
-
-.cash-out-value {
-    font-weight: bold;
-    font-size: 1.1rem;
-}
-
-.cash-out-actions {
-    display: flex;
-    gap: 12px;
-    justify-content: center;
-    margin-top: 24px;
-}
-
-.cash-out-button {
-    background: linear-gradient(135deg, var(--accent-gold), #ffd700);
-    color: var(--bg-dark-green);
-    font-weight: bold;
-    border: 2px solid var(--accent-gold);
-    box-shadow: 0 0 15px var(--glow-gold);
-    transition: all 0.3s ease;
-    flex: 1;
-}
-
-.cash-out-button:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 0 20px var(--glow-gold);
-    background: linear-gradient(135deg, #ffd700, var(--accent-gold));
-}
-
 .secondary-button {
     background: var(--bg-dark-green);
     border: 2px solid var(--accent-green);
@@ -5323,43 +5124,6 @@ body::after {
 .secondary-button:hover {
     background: var(--accent-green);
     color: var(--bg-dark-green);
-}
-
-/* Cash Out Button in UI */
-.cash-out-ui-button {
-    background: linear-gradient(135deg, var(--accent-gold), #ffd700);
-    color: var(--bg-dark-green);
-    font-weight: bold;
-    border: 2px solid var(--accent-gold);
-    box-shadow: 0 0 10px var(--glow-gold);
-    transition: all 0.3s ease;
-    padding: 8px 16px;
-    border-radius: 8px;
-}
-
-.cash-out-ui-button:hover {
-    transform: translateY(-1px);
-    box-shadow: 0 0 15px var(--glow-gold);
-}
-
-/* Coin Explosion Animation */
-@keyframes coinExplosion {
-    0% {
-        transform: scale(0) rotate(0deg);
-        opacity: 1;
-    }
-    50% {
-        transform: scale(1.5) rotate(180deg);
-        opacity: 0.8;
-    }
-    100% {
-        transform: scale(2) rotate(360deg);
-        opacity: 0;
-    }
-}
-
-.cash-out-coins {
-    animation: coinExplosion 2s ease-out forwards;
 }
 
 /* ===== BALATRO-STYLE LIBATION ENHANCEMENT OVERLAY ===== */
@@ -6897,8 +6661,8 @@ body::after {
     transition: all 0.3s ease;
 }
 
-/* Simple hover effect - just slight movement */
-.score-row:not(.used):hover {
+/* Simple hover effect - slight movement (not pantheon chips: they use translateX(-50%) + rotation) */
+.score-row:not(.used):not(.pantheon-chip):hover {
     transform: translateX(4px);
     background: transparent;
     transition: all 0.2s ease;
@@ -6915,6 +6679,12 @@ body::after {
 
 .score-row.used:hover {
     transform: none;
+    cursor: default;
+}
+
+/* Pantheon chips are centered with translateX(-50%); global used:hover must not strip that */
+.pantheon-frieze .pantheon-chip.used:hover {
+    transform: translateX(-50%) rotate(var(--chip-rot, 0deg));
     cursor: default;
 }
 
@@ -7673,36 +7443,59 @@ body::after {
     overflow: visible;
 }
 
-/* ── 1. PANTHEON FRIEZE (top strip, full width) ── */
+/* ── 1. PANTHEON — free-floating tokens on a smooth arc (no frieze panel; no per-chip spin) ── */
 .pantheon-frieze {
     position: absolute;
-    top: 20px;
-    left: 20px;
-    width: 1880px;
-    height: 220px;
-    z-index: 7;
+    /* Same horizontal band as .center-game-area (1400px @ 260); keep band above felt Total/Required (~y260+) */
+    /* Move pantheon up as one unit so entered scores clear Total / Required */
+    top: -24px;
+    left: 260px;
+    width: 1400px;
+    height: auto;
+    min-height: 0;
+    z-index: 10;
     display: flex;
     flex-direction: column;
-    gap: 8px;
-    padding: 14px 24px;
-    background: linear-gradient(180deg, rgba(247, 234, 206, 0.96) 0%, rgba(231, 210, 172, 0.94) 100%);
-    border: 1px solid rgba(111, 77, 41, 0.45);
-    border-radius: 10px;
-    box-shadow:
-        inset 0 1px 0 rgba(255, 250, 230, 0.6),
-        0 3px 10px rgba(0, 0, 0, 0.28);
+    justify-content: flex-start;
+    align-items: stretch;
+    gap: 0;
+    padding: 0;
+    margin: 0;
+    background: none;
+    border: none;
+    border-radius: 0;
+    box-shadow: none;
     box-sizing: border-box;
     overflow: visible;
+    pointer-events: none;
+}
+
+/* Chips stay clickable (frieze is pointer-events: none) */
+.pantheon-frieze .pantheon-chip,
+.pantheon-frieze .bonus-yahtzee-indicator {
+    pointer-events: auto;
 }
 
 .pantheon-tier {
-    display: flex;
-    flex-direction: row;
-    align-items: stretch;
-    justify-content: center;
-    gap: 10px;
-    flex: 1;
+    position: relative;
+    width: 100%;
+    flex: 0 0 auto;
     min-height: 0;
+    margin: 0;
+    padding: 0;
+    overflow: visible;
+}
+
+/* Upper fan sits above lower; slight overlap reads as one amphitheater sweep */
+.pantheon-frieze .pantheon-tier-upper {
+    height: 218px;
+    margin-bottom: -40px;
+}
+
+/* Lower fan: centre HIGHER (smaller --py) than wings; Threes/Fours over Total / Required */
+.pantheon-frieze .pantheon-tier-lower {
+    height: 108px;
+    margin-top: 0;
 }
 
 .pantheon-family-sep {
@@ -7717,75 +7510,205 @@ body::after {
     flex-shrink: 0;
 }
 
-/* Pantheon chips — override generic .score-row look inside the frieze */
+/* Family separators removed from Pantheon lane layout */
+.pantheon-frieze .pantheon-family-sep {
+    display: none;
+}
+
+/* Pantheon chips — absolute seats on a symmetric parabola (text stays upright) */
 .pantheon-frieze .pantheon-chip {
-    position: relative;
+    position: absolute;
     display: flex;
     flex-direction: column;
     align-items: center;
     justify-content: center;
-    padding: 6px 10px;
-    min-width: 118px;
-    max-width: 190px;
-    flex: 1 1 0;
+    box-sizing: border-box;
+    padding: 8px 10px;
+    /* Uniform tablet size (match former “straight” width for every seat) */
+    width: 152px;
+    min-width: 152px;
+    max-width: 152px;
+    flex: none;
     height: auto;
-    background: rgba(255, 248, 227, 0.55);
-    border: 1px solid rgba(111, 77, 41, 0.4);
-    border-radius: 6px;
+    left: var(--px, 50%);
+    top: var(--py, 0px);
+    transform: translateX(-50%) rotate(var(--chip-rot, 0deg));
+    --chip-bg: #fff8e3;
+    --chip-border: #8f6a45;
+    --chip-inset: inset 0 1px 0 #fffef5;
+    border-radius: 10px;
     cursor: pointer;
     transition: transform 0.14s ease, box-shadow 0.14s ease, background 0.14s ease;
     font-family: 'Cormorant Garamond', Georgia, 'Times New Roman', serif;
     font-weight: 600;
     text-align: center;
-    overflow: hidden;
-    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.5);
+    overflow: visible;
+    box-shadow: none;
+    z-index: 1;
+    isolation: isolate;
 }
 
-.pantheon-frieze .pantheon-chip:hover {
-    transform: translateY(-2px);
-    background: rgba(255, 250, 230, 0.85);
-    box-shadow: 0 3px 8px rgba(0, 0, 0, 0.22), inset 0 1px 0 rgba(255, 255, 255, 0.6);
+/* Rounded trapezoid tablet panel (narrower toward bottom via perspective) */
+.pantheon-frieze .pantheon-chip::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    border-radius: 10px;
+    border: 1px solid var(--chip-border);
+    background: var(--chip-bg);
+    box-shadow: var(--chip-inset);
+    transform-origin: top center;
+    /* Stronger wedge: bottom narrows toward center */
+    transform: perspective(360px) rotateX(-16deg);
+    z-index: -1;
+    pointer-events: none;
+}
+
+/* --- Upper fan: spine (Zeus/Dionysus) → mid row Chance | Straights | Pandora → ToK/FoK on lower gap midpoints --- */
+/* Heureka sits above Full House with a real gap (no overlap at larger uniform cell size) */
+.pantheon-frieze .pantheon-tier-upper .pantheon-chip[data-category="Yahtzee"] { --px: 50%; --py: 28px; z-index: 8; }
+.pantheon-frieze .pantheon-tier-upper .pantheon-chip[data-category="Full House"] { --px: 50%; --py: 112px; z-index: 7; }
+/* Straights/ends lowered slightly to tighten spacing to lower tier (Heureka + Full House untouched) */
+.pantheon-frieze .pantheon-tier-upper .pantheon-chip[data-category="Small Straight"] { --px: 38%; --py: 118px; z-index: 6; }
+.pantheon-frieze .pantheon-tier-upper .pantheon-chip[data-category="Large Straight"] { --px: 62%; --py: 118px; z-index: 6; }
+.pantheon-frieze .pantheon-tier-upper .pantheon-chip[data-category="Chance"] { --px: 11%; --py: 158px; z-index: 5; }
+.pantheon-frieze .pantheon-tier-upper .pantheon-chip[data-category="Pandora's Box"] { --px: 89%; --py: 158px; z-index: 5; }
+/* ToK/FoK: outer lower gap midpoints */
+.pantheon-frieze .pantheon-tier-upper .pantheon-chip[data-category="Three of a Kind"] { --px: 25%; --py: 146px; z-index: 5; }
+.pantheon-frieze .pantheon-tier-upper .pantheon-chip[data-category="Four of a Kind"] { --px: 75%; --py: 146px; z-index: 5; }
+/* Lower row: even horizontal ladder (18→82, step 13); Threes/Fours peak; symmetric wing --py */
+.pantheon-frieze .pantheon-tier-lower .pantheon-chip[data-category="Ones"] { --px: 18%; --py: 86px; z-index: 3; }
+.pantheon-frieze .pantheon-tier-lower .pantheon-chip[data-category="Twos"] { --px: 31%; --py: 62px; z-index: 4; }
+.pantheon-frieze .pantheon-tier-lower .pantheon-chip[data-category="Threes"] { --px: 44%; --py: 34px; z-index: 6; }
+.pantheon-frieze .pantheon-tier-lower .pantheon-chip[data-category="Fours"] { --px: 56%; --py: 34px; z-index: 6; }
+.pantheon-frieze .pantheon-tier-lower .pantheon-chip[data-category="Fives"] { --px: 69%; --py: 62px; z-index: 4; }
+.pantheon-frieze .pantheon-tier-lower .pantheon-chip[data-category="Sixes"] { --px: 82%; --py: 86px; z-index: 3; }
+.pantheon-frieze .pantheon-tier-lower .pantheon-chip[data-category="Sevens"] { --px: 85%; --py: 70px; z-index: 2; }
+.pantheon-frieze .pantheon-tier-lower .pantheon-chip[data-category="Eights"] { --px: 88%; --py: 74px; z-index: 2; }
+.pantheon-frieze .pantheon-tier-lower .pantheon-chip[data-category="Nines"] { --px: 91%; --py: 78px; z-index: 2; }
+
+/* Inward cant toward Cast the Bones centerline (resting orientation) */
+.pantheon-frieze .pantheon-chip[data-category="Chance"] { --chip-rot: -8deg; }
+.pantheon-frieze .pantheon-chip[data-category="Three of a Kind"] { --chip-rot: -4deg; }
+.pantheon-frieze .pantheon-chip[data-category="Small Straight"] { --chip-rot: -2deg; }
+.pantheon-frieze .pantheon-chip[data-category="Twos"] { --chip-rot: -1.5deg; }
+.pantheon-frieze .pantheon-chip[data-category="Ones"] { --chip-rot: -2.5deg; }
+
+.pantheon-frieze .pantheon-chip[data-category="Pandora's Box"] { --chip-rot: 8deg; }
+.pantheon-frieze .pantheon-chip[data-category="Four of a Kind"] { --chip-rot: 4deg; }
+.pantheon-frieze .pantheon-chip[data-category="Large Straight"] { --chip-rot: 2deg; }
+.pantheon-frieze .pantheon-chip[data-category="Fives"] { --chip-rot: 1.5deg; }
+.pantheon-frieze .pantheon-chip[data-category="Sixes"] { --chip-rot: 2.5deg; }
+
+.pantheon-frieze .pantheon-chip:hover:not(.used) {
+    --chip-bg: #fffaea;
+    --chip-inset: inset 0 1px 0 #fff;
+    box-shadow: 0 3px 8px rgba(0, 0, 0, 0.22);
+}
+
+.pantheon-frieze .pantheon-chip.available-category:hover:not(.used),
+.pantheon-frieze .pantheon-chip.category-available-highlight:hover:not(.used) {
+    --chip-bg: #fffaea;
+    box-shadow: 0 3px 8px rgba(0, 0, 0, 0.2), inset 0 0 0 1px rgba(74, 144, 226, 0.55);
 }
 
 .pantheon-frieze .pantheon-chip > span:first-child {
-    font-size: 13.5px;
-    line-height: 1.22;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 1px;
+    width: 100%;
     color: #2f1c10;
-    letter-spacing: 0.01em;
     padding: 0;
-    word-break: normal;
-    display: block;
+    word-break: break-word;
+    overflow-wrap: break-word;
+    text-align: center;
 }
 
-/* Hide the score readout in Pantheon (suspended-belief rule) */
-.pantheon-frieze .pantheon-chip .score-details,
+.pantheon-frieze .pantheon-chip .pantheon-cat {
+    display: block;
+    font-size: 12.8px;
+    line-height: 1.2;
+    font-weight: 700;
+    color: #2f1c10;
+    text-shadow: 0 1px 0 #fffcee;
+}
+
+.pantheon-frieze .pantheon-chip .pantheon-deity {
+    display: block;
+    font-size: 12.1px;
+    line-height: 1.08;
+    font-style: italic;
+    font-weight: 600;
+    color: #54371c;
+}
+
+.pantheon-frieze .pantheon-chip .score-details {
+    display: flex;
+    min-width: 0;
+    width: 100%;
+    min-height: 1.5em;
+    justify-content: center;
+    align-items: center;
+    margin-top: 5px;
+}
+
 .pantheon-frieze .pantheon-chip .potential-score {
-    display: none !important;
+    display: block;
+    font-family: 'Cormorant Garamond', Georgia, 'Times New Roman', serif;
+    font-size: 1.35rem;
+    font-weight: 700;
+    font-variant-numeric: tabular-nums;
+    line-height: 1;
+    color: #4a2f16;
+    letter-spacing: 0.03em;
+    min-height: 1em;
+}
+
+/* Keep score slot height stable even when score text is blank */
+.pantheon-frieze .pantheon-chip .potential-score:empty::before {
+    content: '\00a0';
+}
+
+.pantheon-frieze .pantheon-chip.used .potential-score {
+    font-family: 'DisneyHeroic', sans-serif;
+    color: #5a3d8a;
 }
 
 .pantheon-frieze .pantheon-chip.used {
-    background: rgba(111, 77, 41, 0.25);
-    border-color: rgba(111, 77, 41, 0.55);
-    box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.25);
+    --chip-bg: #c9b896;
+    --chip-border: #6f4d29;
+    --chip-inset: inset 0 2px 4px rgba(0, 0, 0, 0.22);
     cursor: default;
 }
 
 .pantheon-frieze .pantheon-chip.used > span:first-child {
     color: rgba(47, 28, 16, 0.6);
-    text-decoration: line-through;
-    text-decoration-color: rgba(139, 90, 43, 0.6);
 }
 
+/* Available: legacy list-style blue emphasis (text), not green fill */
 .pantheon-frieze .pantheon-chip.available-category,
 .pantheon-frieze .pantheon-chip.category-available-highlight {
-    background: rgba(155, 197, 120, 0.5);
-    border-color: rgba(90, 140, 60, 0.7);
-    animation: chip-available-pulse 1.4s ease-in-out infinite;
+    --chip-bg: #fff8e3;
+    --chip-border: #4a90e2;
+    --chip-inset: inset 0 1px 0 #fffef5;
+    animation: pantheon-available-pulse 1.4s ease-in-out infinite;
 }
 
-@keyframes chip-available-pulse {
-    0%, 100% { box-shadow: 0 0 0 rgba(90, 140, 60, 0.3), inset 0 1px 0 rgba(255, 255, 255, 0.6); }
-    50%      { box-shadow: 0 0 14px rgba(90, 140, 60, 0.6), inset 0 1px 0 rgba(255, 255, 255, 0.7); }
+.pantheon-frieze .pantheon-chip.available-category .pantheon-cat,
+.pantheon-frieze .pantheon-chip.category-available-highlight .pantheon-cat,
+.pantheon-frieze .pantheon-chip.available-category .pantheon-deity,
+.pantheon-frieze .pantheon-chip.category-available-highlight .pantheon-deity,
+.pantheon-frieze .pantheon-chip.available-category .potential-score,
+.pantheon-frieze .pantheon-chip.category-available-highlight .potential-score {
+    color: #2a6aa6;
+    font-weight: 700;
+    text-shadow: 0 1px 1px rgba(0, 0, 0, 0.18);
+}
+
+@keyframes pantheon-available-pulse {
+    0%, 100% { box-shadow: 0 0 0 rgba(74, 144, 226, 0.25), inset 0 1px 0 #fffef5; }
+    50%      { box-shadow: 0 0 12px rgba(74, 144, 226, 0.45), inset 0 1px 0 #fff; }
 }
 
 .pantheon-frieze .bonus-yahtzee-indicator {
@@ -7804,7 +7727,37 @@ body::after {
 .pantheon-frieze.eucharist-targeting .pantheon-chip:not([data-category="Pandora's Box"]):hover,
 .pantheon-frieze.eucharist-targeting .pantheon-chip.pandora-unlocked:hover {
     box-shadow: 0 0 18px rgba(138, 43, 226, 0.8);
-    transform: scale(1.02);
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .pantheon-frieze .pantheon-chip {
+        transition: none;
+    }
+}
+
+/* Narrower host window: six-chip ladder 13→80 (~13.4% step) leaves room for 7/8/9; upper tracks gap midpoints */
+@media (max-width: 1680px) {
+    /* End caps pulled slightly past 11/89 so ToK/FoK @ 20/74 keep ≥~11% centre spacing from straights */
+    .pantheon-frieze .pantheon-tier-upper .pantheon-chip[data-category="Chance"] { --px: 9%; }
+    .pantheon-frieze .pantheon-tier-upper .pantheon-chip[data-category="Pandora's Box"] { --px: 91%; }
+    .pantheon-frieze .pantheon-tier-upper .pantheon-chip[data-category="Three of a Kind"] { --px: 20%; }
+    .pantheon-frieze .pantheon-tier-upper .pantheon-chip[data-category="Four of a Kind"] { --px: 74%; }
+    .pantheon-frieze .pantheon-tier-upper .pantheon-chip[data-category="Small Straight"] { --px: 34%; }
+    .pantheon-frieze .pantheon-tier-upper .pantheon-chip[data-category="Large Straight"] { --px: 61%; }
+    .pantheon-frieze .pantheon-tier-lower .pantheon-chip[data-category="Ones"] { --px: 13%; }
+    .pantheon-frieze .pantheon-tier-lower .pantheon-chip[data-category="Twos"] { --px: 27%; }
+    .pantheon-frieze .pantheon-tier-lower .pantheon-chip[data-category="Threes"] { --px: 40%; }
+    .pantheon-frieze .pantheon-tier-lower .pantheon-chip[data-category="Fours"] { --px: 54%; }
+    .pantheon-frieze .pantheon-tier-lower .pantheon-chip[data-category="Fives"] { --px: 67%; }
+    .pantheon-frieze .pantheon-tier-lower .pantheon-chip[data-category="Sixes"] { --px: 80%; }
+    .pantheon-frieze .pantheon-tier-lower .pantheon-chip[data-category="Sevens"] { --px: 86%; }
+    .pantheon-frieze .pantheon-tier-lower .pantheon-chip[data-category="Eights"] { --px: 90%; }
+    .pantheon-frieze .pantheon-tier-lower .pantheon-chip[data-category="Nines"] { --px: 94%; }
+}
+
+/* Shop: keep Pantheon behind the shop stage so chips don’t intercept clicks / cover UI */
+.main-game.shop-active .pantheon-frieze {
+    z-index: 5;
 }
 
 /* ── 2. LEFT CONSUMABLE BAR (vertical) ── */
@@ -7973,10 +7926,7 @@ body::after {
     padding: 4px 12px;
 }
 
-/* Live preview on felt — sits where the Cast button used to live.
-   Anti-glitch: the preview is rendered as a fixed-width grid so every cell
-   (pips / × / favour / = / score) holds the same x-position regardless of
-   how the number text inside it changes. Nothing reflows during count-up. */
+/* Live preview on felt — two-column grid; pips/favour inherit global live row typography. */
 .center-game-area .live-score-display.felt-live {
     position: absolute;
     top: 470px;
@@ -7985,75 +7935,131 @@ body::after {
     margin: 0;
     z-index: 8;
     pointer-events: none;
+    overflow: visible;
+    /* Global .live-score-display locks height:108px — allow multi-line offering title. */
+    height: auto;
+    min-height: 108px;
+    max-height: none;
 
-    width: 360px;
-    min-width: 360px;
-    max-width: 360px;
+    width: min(520px, calc(100% - 24px));
+    min-width: 280px;
+    max-width: min(520px, calc(100% - 24px));
 }
 
 .center-game-area .live-score-display.felt-live .gnosis-category-name {
-    width: 360px;
-    max-width: 360px;
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
+    display: block;
+    width: 100%;
+    max-width: none;
+    white-space: normal;
+    overflow: visible;
+    text-overflow: unset;
+    word-wrap: break-word;
+    overflow-wrap: break-word;
+    text-align: center;
+    line-height: 1.28;
+    padding: 0 6px;
+    box-sizing: border-box;
 }
 
 .center-game-area .live-score-display.felt-live .gnosis-row {
-    display: flex;
-    flex-direction: row;
-    align-items: center;
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    align-items: stretch;
     justify-content: center;
-    gap: 8px;
-    width: 360px;
-    min-width: 360px;
-    max-width: 360px;
-    overflow: hidden;
+    gap: 12px;
+    width: 100%;
+    max-width: 100%;
+    overflow: visible;
 }
 
 .center-game-area .live-score-display.felt-live .pips-cell,
 .center-game-area .live-score-display.felt-live .favour-cell {
-    flex: 0 0 96px;
-    width: 96px;
-    min-width: 96px;
-    max-width: 96px;
+    width: 100%;
+    min-width: 0;
+    max-width: none;
 }
 
 .center-game-area .live-score-display.felt-live .pips-line,
 .center-game-area .live-score-display.felt-live .favour-line {
-    width: 96px;
-    min-width: 96px;
-    max-width: 96px;
+    width: 100%;
+    min-width: 0;
+    max-width: none;
     justify-content: center;
     overflow: hidden;
+    min-height: 38px;
 }
 
-.center-game-area .live-score-display.felt-live .multiply-symbol,
-.center-game-area .live-score-display.felt-live .equals-symbol {
-    flex: 0 0 20px;
-    width: 20px;
-    min-width: 20px;
-    max-width: 20px;
-    text-align: center;
-}
-
-.center-game-area .live-score-display.felt-live .score-preview {
-    flex: 0 0 84px;
-    width: 84px;
-    min-width: 84px;
-    max-width: 84px;
-    display: inline-block;
-    text-align: left;
+/* Two columns on felt — no chrome boxes; numbers use same face as .live-score-display. */
+.center-game-area .live-score-display.felt-live .live-metric-cell {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 2px;
+    min-height: 58px;
+    padding: 0;
+    border: none;
+    border-radius: 0;
+    background: none;
+    box-shadow: none;
 }
 
 /* Keep the hidden extras in layout — swap display:none for visibility:hidden
    so every cell is always present and the row never resizes. */
-.center-game-area .live-score-display.felt-live .live-extra[hidden],
 .center-game-area .live-score-display.felt-live .live-add[hidden] {
     display: inline-flex !important;
     visibility: hidden;
     opacity: 0;
     pointer-events: none;
+}
+
+/* Live-score stability fix (2026-04-21): take .live-add out of flow.
+   The "+N" chip was flashing in flex flow and dragging the main pips/favour
+   number left as successive boon contributions wrote different textContent
+   values into the hidden chip. Making it absolute means the main number
+   centers purely on its own text and is anchored regardless of chip state. */
+.center-game-area .live-score-display.felt-live .pips-cell,
+.center-game-area .live-score-display.felt-live .favour-cell {
+    position: relative;
+    overflow: visible;
+    contain: none;
+}
+
+.center-game-area .live-score-display.felt-live .pips-line,
+.center-game-area .live-score-display.felt-live .favour-line {
+    position: relative;
+    overflow: visible;
+}
+
+.center-game-area .live-score-display.felt-live .live-add {
+    position: absolute;
+    right: 2px;
+    top: 4px;
+    transform: none;
+    z-index: 3;
+    pointer-events: none;
+    white-space: nowrap;
+    padding: 1px 6px;
+    border-radius: 6px;
+    background: rgba(47, 28, 16, 0.82);
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.35);
+    gap: 3px;
+}
+
+.center-game-area .live-score-display.felt-live .live-add .plus-symbol,
+.center-game-area .live-score-display.felt-live .live-add .pip-contribution,
+.center-game-area .live-score-display.felt-live .live-add .favour-contribution {
+    font-size: 14px;
+    line-height: 1.1;
+    color: #fffbe8;
+    text-shadow: 0 1px 2px rgba(0, 0, 0, 0.6);
+}
+
+/* Prevent scale animations from making the felt preview appear to drift. */
+.center-game-area .live-score-display.felt-live.calculating,
+.center-game-area .live-score-display.felt-live.mega-score {
+    animation: none;
+    filter: brightness(1.05);
 }
 
 /* ── 6. STONES (rolls / ante / gold / turn) ── */
@@ -8190,15 +8196,10 @@ body::after {
 }
 .action-cost-badge.hidden { display: none !important; }
 
-/* Shop mode reveals the button label (in play, the art says "Cast the Bones") */
+/* Keep button art-only in shop too (no text overlay). */
 .main-game.shop-active .roll-button {
-    color: #fffbe8;
-    font-family: 'DisneyHeroic', 'VT323', sans-serif;
-    font-size: 44px;
-    letter-spacing: 0.04em;
-    text-shadow:
-        0 2px 0 rgba(0, 0, 0, 0.45),
-        0 3px 8px rgba(0, 0, 0, 0.55);
+    color: transparent;
+    text-shadow: none;
 }
 
 /* ── 8. SHOP CONTINUE (top-right corner of shop stage) ── */
@@ -8295,6 +8296,14 @@ body::after {
 .center-game-area .live-score-display.felt-live .gnosis-category-name {
     color: #f5e6d3;
     text-shadow: 0 1px 3px rgba(0, 0, 0, 0.6);
+}
+/* Same typeface as global live row; slightly stronger shadow on dark felt. */
+.center-game-area .live-score-display.felt-live .pips,
+.center-game-area .live-score-display.felt-live .favour {
+    font-family: 'DisneyHeroic', sans-serif;
+    text-shadow:
+        0 1px 2px rgba(0, 0, 0, 0.35),
+        0 2px 6px rgba(0, 0, 0, 0.45);
 }
 .center-game-area .live-score-display.felt-live .gnosis-pips-bonus,
 .center-game-area .live-score-display.felt-live .gnosis-mult-bonus {

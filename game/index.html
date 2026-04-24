@@ -84,10 +84,21 @@
                         <span class="bonus-text">Bonus Heureka!</span>
                         <span class="bonus-count" id="bonusCount">0</span>
                     </div>
-                    <!-- Upper tier: numeric gods -->
+                    <!-- Upper tier: harder combo gods -->
                     <div class="pantheon-tier pantheon-tier-upper">
+                        <div class="score-row pantheon-chip" data-category="Three of a Kind"><span>Three of a Kind (Hephaestus)</span><div class="score-details"><span class="potential-score">-</span></div></div>
+                        <div class="score-row pantheon-chip" data-category="Four of a Kind"><span>Four of a Kind (Ares)</span><div class="score-details"><span class="potential-score">-</span></div></div>
+                        <div class="score-row pantheon-chip" data-category="Full House"><span>Full House (Dionysus)</span><div class="score-details"><span class="potential-score">-</span></div></div>
+                        <div class="score-row pantheon-chip" data-category="Small Straight"><span>Small Straight (Hermes)</span><div class="score-details"><span class="potential-score">-</span></div></div>
+                        <div class="score-row pantheon-chip" data-category="Large Straight"><span>Large Straight (Apollo)</span><div class="score-details"><span class="potential-score">-</span></div></div>
+                        <div class="score-row pantheon-chip" data-category="Yahtzee"><span>Heureka (Zeus)</span><div class="score-details"><span class="potential-score">-</span></div></div>
+                        <div class="score-row pantheon-chip" data-category="Chance"><span>Chance (Nyx)</span><div class="score-details"><span class="potential-score">-</span></div></div>
+                        <div class="score-row pantheon-chip" data-category="Pandora's Box"><span>Pandora's Box</span><div class="score-details"><span class="potential-score">-</span></div></div>
+                    </div>
+                    <!-- Lower tier: numeric gods -->
+                    <div class="pantheon-tier pantheon-tier-lower">
                         <div class="score-row pantheon-chip" data-category="Ones"><span>Ones (Artemis)</span><div class="score-details"><span class="potential-score">-</span></div></div>
-                        <div class="score-row pantheon-chip" data-category="Twos"><span>Twos (Persephone)</span><div class="score-details"><span class="potential-score">-</span></div></div>
+                        <div class="score-row pantheon-chip" data-category="Twos"><span>Twos (Aphrodite)</span><div class="score-details"><span class="potential-score">-</span></div></div>
                         <div class="score-row pantheon-chip" data-category="Threes"><span>Threes (Morpheus)</span><div class="score-details"><span class="potential-score">-</span></div></div>
                         <div class="score-row pantheon-chip" data-category="Fours"><span>Fours (Hera)</span><div class="score-details"><span class="potential-score">-</span></div></div>
                         <div class="score-row pantheon-chip" data-category="Fives"><span>Fives (Athena)</span><div class="score-details"><span class="potential-score">-</span></div></div>
@@ -95,21 +106,6 @@
                         <div class="score-row pantheon-chip" data-category="Sevens" style="display: none;"><span>Sevens (The Pleiades)</span><div class="score-details"><span class="potential-score">-</span></div></div>
                         <div class="score-row pantheon-chip" data-category="Eights" style="display: none;"><span>Eights (Poseidon)</span><div class="score-details"><span class="potential-score">-</span></div></div>
                         <div class="score-row pantheon-chip" data-category="Nines" style="display: none;"><span>Nines (The Nine Muses)</span><div class="score-details"><span class="potential-score">-</span></div></div>
-                    </div>
-                    <!-- Lower tier: combo gods (grouped by family: matches · full house · straights · heureka · wildcards) -->
-                    <div class="pantheon-tier pantheon-tier-lower">
-                        <div class="score-row pantheon-chip" data-category="Three of a Kind"><span>Three of a Kind (Hephaestus)</span><div class="score-details"><span class="potential-score">-</span></div></div>
-                        <div class="score-row pantheon-chip" data-category="Four of a Kind"><span>Four of a Kind (Ares)</span><div class="score-details"><span class="potential-score">-</span></div></div>
-                        <div class="pantheon-family-sep" aria-hidden="true"></div>
-                        <div class="score-row pantheon-chip" data-category="Full House"><span>Full House (Dionysus)</span><div class="score-details"><span class="potential-score">-</span></div></div>
-                        <div class="pantheon-family-sep" aria-hidden="true"></div>
-                        <div class="score-row pantheon-chip" data-category="Small Straight"><span>Small Straight (Hermes)</span><div class="score-details"><span class="potential-score">-</span></div></div>
-                        <div class="score-row pantheon-chip" data-category="Large Straight"><span>Large Straight (Apollo)</span><div class="score-details"><span class="potential-score">-</span></div></div>
-                        <div class="pantheon-family-sep" aria-hidden="true"></div>
-                        <div class="score-row pantheon-chip" data-category="Yahtzee"><span>Heureka (Zeus)</span><div class="score-details"><span class="potential-score">-</span></div></div>
-                        <div class="pantheon-family-sep" aria-hidden="true"></div>
-                        <div class="score-row pantheon-chip" data-category="Chance"><span>Chance (Nyx)</span><div class="score-details"><span class="potential-score">-</span></div></div>
-                        <div class="score-row pantheon-chip" data-category="Pandora's Box"><span>Pandora's Box</span><div class="score-details"><span class="potential-score">-</span></div></div>
                     </div>
                 </div>
 
@@ -143,34 +139,29 @@
                     <div class="felt-label felt-total" id="gnosisScorePanel" data-felt="total">
                         <span class="felt-label-name">Total</span>
                         <span class="felt-label-value" id="totalScore">0</span>
-                        <div class="gnosis-cashout-content hidden" id="gnosisCashoutContent">
-                            <span class="gnosis-cashout-title" id="gnosisCashoutTitle"></span>
-                            <div class="gnosis-cashout-lines" id="gnosisCashoutLines" role="region" aria-live="polite"></div>
-                            <p class="gnosis-cashout-sub">— Off to the shop —</p>
-                        </div>
                     </div>
 
                     <!-- Live score: printed on felt, under the dice -->
                     <div id="liveScoreDisplay" class="live-score-display felt-live visible" data-live-root>
                         <span class="gnosis-category-name" data-live="category">Offering</span>
+                        <div class="gnosis-cashout-content hidden" id="liveCashoutContent" aria-live="polite">
+                            <span class="gnosis-cashout-line" id="liveCashoutLine"></span>
+                        </div>
                         <div class="gnosis-row" data-live="row">
-                            <span class="pips-cell">
+                            <span class="pips-cell live-metric-cell">
                                 <span class="pips-line">
                                     <span class="pips" data-live="pips">0</span>
                                     <span class="live-add" data-live="pips-add" hidden><span class="plus-symbol">+</span><span class="pips pip-contribution" data-live="pips-contrib"></span></span>
                                 </span>
-                                <span class="gnosis-pips-bonus" data-live="pips-label">0 pips</span>
+                                <span class="gnosis-pips-bonus" data-live="pips-label">pips</span>
                             </span>
-                            <span class="multiply-symbol">×</span>
-                            <span class="favour-cell">
+                            <span class="favour-cell live-metric-cell">
                                 <span class="favour-line">
                                     <span class="favour" data-live="favour">0</span>
                                     <span class="live-add" data-live="favour-add" hidden><span class="plus-symbol">+</span><span class="favour favour-contribution" data-live="favour-contrib"></span></span>
                                 </span>
                                 <span class="gnosis-mult-bonus" data-live="favour-label">favour</span>
                             </span>
-                            <span class="equals-symbol live-extra" data-live="equals" hidden>=</span>
-                            <span class="score-preview live-extra" data-live="score-preview" hidden>0</span>
                         </div>
                         <div class="gnosis-row gnosis-row-na" data-live="row-na" hidden><span class="n-letter">N</span><span class="slash-symbol">/</span><span class="a-letter">A</span></div>
                     </div>

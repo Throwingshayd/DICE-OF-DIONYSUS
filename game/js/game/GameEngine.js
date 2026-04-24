@@ -68,7 +68,7 @@ class GameEngine {
             
             // Worship system (gods from GOD_TO_CATEGORY / GOD_METADATA)
             worshipLevels: {
-                'Artemis': 0, 'Persephone': 0, 'Morpheus': 0, 'Hera': 0,
+                'Artemis': 0, 'Aphrodite': 0, 'Morpheus': 0, 'Hera': 0,
                 'Athena': 0, 'Heracles': 0, 'Hephaestus': 0, 'Ares': 0,
                 'Dionysus': 0, 'Hermes': 0, 'Apollo': 0, 'Zeus': 0, 'Nyx': 0,
                 'The Pleiades': 0, 'Poseidon': 0, 'The Nine Muses': 0,
@@ -328,14 +328,13 @@ class GameEngine {
 
     bindDOMElements() {
         this.dom = {
+            playStage: document.getElementById('playStage'),
             diceContainer: document.getElementById('diceContainer'),
             diceRollZone: document.getElementById('diceRollZone'),
             rollButton: document.getElementById('rollButton'),
             liveScoreDisplay: document.getElementById('liveScoreDisplay'),
-            gnosisScorePanel: document.getElementById('gnosisScorePanel'),
-            gnosisCashoutContent: document.getElementById('gnosisCashoutContent'),
-            gnosisCashoutTitle: document.getElementById('gnosisCashoutTitle'),
-            gnosisCashoutLines: document.getElementById('gnosisCashoutLines'),
+            liveCashoutContent: document.getElementById('liveCashoutContent'),
+            liveCashoutLine: document.getElementById('liveCashoutLine'),
             gnosisMessage: document.getElementById('gnosisMessage'),
             
             // Info displays
@@ -403,9 +402,10 @@ class GameEngine {
             });
         }
 
-        // Right-click on dice area: unhold all dice
-        if (this.dom.diceContainer) {
-            this.dom.diceContainer.addEventListener('contextmenu', (e) => {
+        // Right-click anywhere on the felt play stage (spacers + dice): unhold all dice
+        const diceStage = this.dom.playStage || this.dom.diceContainer;
+        if (diceStage) {
+            diceStage.addEventListener('contextmenu', (e) => {
                 e.preventDefault();
                 this.unholdAllDice();
             });
@@ -866,7 +866,7 @@ class GameEngine {
     }
 
     /**
-     * Unhold all dice (right-click on dice area)
+     * Unhold all dice (right-click on #playStage, including spacers around dice)
      */
     unholdAllDice() {
         if (!this.state.hasRolled) return;
@@ -1190,27 +1190,22 @@ class GameEngine {
      */
     animateSequentialScoring(category, pips, favour, finalScore, targetCategory, liveScoreEl, scorecardEl, callback) {
         this.isScoring = true;
+        const categoryLabel = this.getLiveOfferingTitle(category, true);
         const god = this.getGodForCategory(category);
-        const offeringName = category === 'Yahtzee' ? 'Heureka' : category;
-        const levelBonus = this.getCategoryLevelBonuses(category);
-        const labelPips = Math.floor(levelBonus.pips);
-        const categoryLabel = god ? `Offering of ${offeringName} made to ${god}` : (category === 'Yahtzee' ? 'HEUREKA' : category).toUpperCase().replace(/\s+/g, ' ');
         const basePips = this.calculateBasePips(category);
         const worshipLevel = god ? (this.state.worshipLevels?.[god] || 0) : 0;
         // Category base favour = 1 + worship level (matches ScoringEngine pipeline)
         const categoryBaseFavour = 1 + worshipLevel;
         const diceContributions = this.getDiceContributions(category);
         const boonContributions = this.getBoonContributions(category, basePips, categoryBaseFavour);
-        const favourLabel = worshipLevel > 0 ? `favour (Lv.${worshipLevel})` : 'favour';
-
-        const up = (o) => this.updateLiveScoreValues(liveScoreEl, { ...o, category: categoryLabel, pipsLabel: `${labelPips} pips`, favourLabel, showNa: false });
+        const up = (o) => this.updateLiveScoreValues(liveScoreEl, { ...o, category: categoryLabel, pipsLabel: 'pips', favourLabel: 'favour', showNa: false });
 
         let currentPips = 0;
         let currentFavour = categoryBaseFavour;
         let delay = 0;
 
         // Start
-        up({ pips: this.formatDisplay(0), pipsAdd: false, favour: this.formatFavour(categoryBaseFavour), favourAdd: false, showEquals: false, scorePreview: '' });
+        up({ pips: this.formatDisplay(0), pipsAdd: false, favour: this.formatFavour(categoryBaseFavour), favourAdd: false });
         liveScoreEl.classList.add('visible');
 
         // Step 1: Dice adding pips — stacked: base+iron+pearl combined per die; gold shown as +1G on die
@@ -1300,16 +1295,14 @@ class GameEngine {
             }, delay);
         });
 
-        // Step 3: × favour then final score count up
+        // Step 3: lock final pips/favour values, then resolve score into Pantheon
         delay += this.scaleDelay(350);
         setTimeout(() => {
-            up({ pips: this.formatDisplay(pips), pipsAdd: false, favour: this.formatFavour(favour), favourAdd: false, showEquals: true, scorePreview: this.formatDisplay(0) });
-            if (window.juiceManager) window.juiceManager.juiceUp(liveScoreEl, 0.2);
-            const finalSpan = liveScoreEl.querySelector('[data-live="score-preview"]');
-
-            // Step 4: Count up
-            this.animateNumberCount(finalSpan, 0, finalScore, this.scaleDelay(900), () => {
-                // Step 5: Update game state (Parmenides: store in target, mark source used)
+            up({ pips: this.formatDisplay(pips), pipsAdd: false, favour: this.formatFavour(favour), favourAdd: false });
+            const juiceRow = liveScoreEl.querySelector('[data-live="row"]');
+            if (window.juiceManager && juiceRow) window.juiceManager.juiceUp(juiceRow, 0.2);
+            setTimeout(() => {
+                // Step 4: Update game state (Parmenides: store in target, mark source used)
                 const storeCategory = targetCategory || category;
                 if (storeCategory !== category) {
                     this.state.scorecard[storeCategory] = finalScore;
@@ -1328,30 +1321,28 @@ class GameEngine {
                 if (finalScore >= 200 && window.balatroEffects && scorecardEl) {
                     this.createScoreParticles(scorecardEl, finalScore);
                 }
-                
-                // Place final number in pantheon scorecard (after brief pause)
+
+                // Defer updateAllUI + isScoring=false until count-up ends (same DOM as ScorecardRenderer).
                 setTimeout(() => {
+                    const afterResolve = () => {
+                        this.isScoring = false;
+                        setTimeout(() => {
+                            this.updateLiveScoreDisplay(null);
+                        }, this.scaleDelay(2500));
+                        this.updateAllUI();
+                        callback();
+                    };
                     if (scorecardEl) {
-                        scorecardEl.innerHTML = finalScore;
+                        this.animateNumberCount(scorecardEl, 0, finalScore, this.scaleDelay(650), afterResolve);
                         scorecardEl.classList.add('score-flash');
-                        
                         setTimeout(() => {
                             scorecardEl.classList.remove('score-flash');
                         }, this.scaleDelay(400));
+                    } else {
+                        afterResolve();
                     }
-                    
-                    // Clear scoring flag to allow hover previews again
-                    this.isScoring = false;
-
-                    // Keep "Offering of [category] made to [god]" and final score visible for 2.5s
-                    setTimeout(() => {
-                        this.updateLiveScoreDisplay(null);
-                    }, this.scaleDelay(2500));
-
-                    this.updateAllUI();
-                    callback();
                 }, this.scaleDelay(300));
-            });
+            }, this.scaleDelay(900));
         }, delay);
     }
     
@@ -2322,6 +2313,22 @@ class GameEngine {
         return typeof GodUtils !== 'undefined' ? GodUtils.getGodForCategory(category) : null;
     }
 
+    /**
+     * Gnosis live line: preview hover vs completed pantheon slot ("Offering Sixes" / "Offering made to Dionysus").
+     * @param {string|null|undefined} category
+     * @param {boolean} filledSlot - category already has a score on the card (or scoring animation: treat as made)
+     */
+    getLiveOfferingTitle(category, filledSlot) {
+        if (!category) return 'Offering';
+        if (filledSlot) {
+            const g = this.getGodForCategory(category);
+            const godShown = g === "Pandora's Box" ? 'Pandora' : (g || '—');
+            return `Offering made to ${godShown}`;
+        }
+        const scoreName = category === 'Yahtzee' ? 'Heureka' : category;
+        return `Offering ${scoreName}`;
+    }
+
     // Turn and ante progression
     nextTurn() {
         // Apply TURN_END boon effects before advancing turn (Balatro-inspired timing)
@@ -2686,9 +2693,9 @@ class GameEngine {
     }
 
     /**
-     * Procedural live score update – textContent only, no innerHTML. Balatro-style smooth updates.
+     * Procedural live score update – textContent only, no innerHTML.
      * @param {HTMLElement} el - Live score display root
-     * @param {Object} o - Values: category, pips, pipsLabel, pipsAdd, pipsContrib, favour, favourLabel, favourAdd, favourContrib, showEquals, scorePreview, showNa
+     * @param {Object} o - Values: category, pips, pipsLabel, pipsAdd, pipsContrib, favour, favourLabel, favourAdd, favourContrib, showNa
      */
     updateLiveScoreValues(el, o) {
         if (!el || !el.hasAttribute('data-live-root')) return;
@@ -2714,19 +2721,12 @@ class GameEngine {
         set('favour-label', o.favourLabel);
 
         if (o.pipsAdd != null) {
-            set('pips-contrib', o.pipsContrib);
+            set('pips-contrib', o.pipsAdd ? o.pipsContrib : '');
             o.pipsAdd ? show('pips-add') : hide('pips-add');
         }
         if (o.favourAdd != null) {
-            set('favour-contrib', o.favourContrib);
+            set('favour-contrib', o.favourAdd ? o.favourContrib : '');
             o.favourAdd ? show('favour-add') : hide('favour-add');
-        }
-        if (o.showEquals != null) {
-            o.showEquals ? show('equals') : hide('equals');
-        }
-        if (o.scorePreview != null) {
-            set('score-preview', o.scorePreview);
-            o.scorePreview !== '' ? show('score-preview') : hide('score-preview');
         }
         if (o.pipsPulse) {
             const p = q('pips');
@@ -2742,26 +2742,24 @@ class GameEngine {
         if (!this.domReady || !this.dom.liveScoreDisplay) return;
         if (this.liveScoreAnimationTimeout) clearTimeout(this.liveScoreAnimationTimeout);
         const el = this.dom.liveScoreDisplay;
-        if (window.juiceManager) window.juiceManager.cancelJuice(el);
+        if (window.juiceManager) {
+            window.juiceManager.cancelJuice(el);
+            const row = el.querySelector('[data-live="row"]');
+            if (row) window.juiceManager.cancelJuice(row);
+        }
 
-        const god = category ? this.getGodForCategory(category) : null;
-        const godLabel = god || '—';
-        const catName = category ? (category === 'Yahtzee' ? 'HEUREKA' : category).toUpperCase().replace(/\s+/g, ' ') : 'Offering';
+        const slotFilled = !!(category && this.state.scorecard[category] !== undefined);
 
         if (!category || !this.state.hasRolled) {
             const levelBonus = category ? this.getCategoryLevelBonuses(category) : { pips: 0, mult: 1 };
-            const worshipLevel = category && god ? (this.state.worshipLevels?.[god] || 0) : 0;
-            const favourLabel = worshipLevel > 0 ? `favour (Lv.${worshipLevel})` : 'favour';
             this.updateLiveScoreValues(el, {
-                category: catName,
+                category: this.getLiveOfferingTitle(category, slotFilled),
                 pips: '0',
-                pipsLabel: `${Math.floor(levelBonus.pips)} pips`,
+                pipsLabel: 'pips',
                 pipsAdd: false,
                 favour: category ? this.formatFavour(levelBonus.mult) : '0',
-                favourLabel,
+                favourLabel: 'favour',
                 favourAdd: false,
-                showEquals: false,
-                scorePreview: '',
                 showNa: false
             });
             el.classList.add('visible');
@@ -2773,7 +2771,8 @@ class GameEngine {
         const { pips, favour, isValid, fromPipeline } = this.calculateScore(category);
 
         if (!isValid) {
-            this.updateLiveScoreValues(el, { category: catName, showNa: true });
+            const filled = this.state.scorecard[category] !== undefined;
+            this.updateLiveScoreValues(el, { category: this.getLiveOfferingTitle(category, filled), showNa: true });
             el.classList.add('visible');
             return;
         }
@@ -2788,30 +2787,26 @@ class GameEngine {
             f = eventData.favour * (eventData.favourMult || 1);
         }
 
-        const levelBonus = this.getCategoryLevelBonuses(category);
-        const offeringName = category === 'Yahtzee' ? 'Heureka' : category;
         const isScored = this.state.scorecard[category] !== undefined;
-        const categoryLabel = isScored ? `Offering of ${offeringName} made to ${godLabel}` : catName;
-        const worshipLevel = god ? (this.state.worshipLevels?.[god] || 0) : 0;
-        const favourLabel = worshipLevel > 0 ? `favour (Lv.${worshipLevel})` : 'favour';
-
+        const categoryLabel = this.getLiveOfferingTitle(category, isScored);
         this.updateLiveScoreValues(el, {
             category: categoryLabel,
             pips: String(Math.floor(p)),
-            pipsLabel: `${Math.floor(levelBonus.pips)} pips`,
+            pipsLabel: 'pips',
             pipsAdd: false,
             favour: this.formatFavour(f),
-            favourLabel,
+            favourLabel: 'favour',
             favourAdd: false,
-            showEquals: false,
-            scorePreview: '',
             showNa: false
         });
         el.classList.add('visible');
 
         if (window.juiceManager && (this.lastPreviewPips !== undefined || this.lastPreviewFavour !== undefined)) {
             const dP = p - (this.lastPreviewPips ?? 0), dF = f - (this.lastPreviewFavour ?? 0);
-            if (dP !== 0 || dF !== 0) window.juiceManager.juiceUp(el, 0.12);
+            if (dP !== 0 || dF !== 0) {
+                const row = el.querySelector('[data-live="row"]');
+                if (row) window.juiceManager.juiceUp(row, 0.12);
+            }
         }
         this.lastPreviewPips = p;
         this.lastPreviewFavour = f;
@@ -2850,7 +2845,7 @@ class GameEngine {
         );
     }
 
-    // Unified pre-shop overlay: pantheon total (if end of ante) + interest/cashout, then open shop
+    // Pre-shop sentence ticker in live-score area, then open shop.
     showInterestThenOpenShop(opts = {}) {
         if (this._cashoutInProgress) return;
         this._cashoutInProgress = true;
@@ -2860,15 +2855,17 @@ class GameEngine {
         const pantheonTotal = opts.pantheonTotal;
         const scoresCount = this.state.scoresThisRound || 0;
         const scoresGold = scoresCount * GAME_BALANCE.GOLD_PER_SCORE;
-        // Interest on (gold + scores) — we'll award all at once at end
+        // Interest on (gold + scores).
         const goldAfterScores = this.state.gold + scoresGold;
         const interest = this.calculateInterestOnAmount(goldAfterScores);
         const roundGained = scoresGold + interest;
+        let payoutAwarded = false;
 
         const doOpenShop = () => {
-            // Award all gold at once when cashout finishes (no staggered steps)
-            if (roundGained > 0) {
+            // Fallback payout (normal path awards during the payout sentence beat).
+            if (!payoutAwarded && roundGained > 0) {
                 this.updateGoldAnimated(roundGained, "cashout");
+                payoutAwarded = true;
             }
             this.state.scoresThisRound = 0;
             if (opts.pantheonTotal != null) {
@@ -2880,63 +2877,58 @@ class GameEngine {
             this.openShop();
         };
 
-        const scorePanel = this.dom.gnosisScorePanel;
-        const cashoutContent = this.dom.gnosisCashoutContent;
-        const cashoutTitle = this.dom.gnosisCashoutTitle;
-        const cashoutLinesEl = this.dom.gnosisCashoutLines;
-        if (!this.domReady || !scorePanel || !cashoutContent || !cashoutTitle || !cashoutLinesEl) {
+        const liveScoreDisplay = this.dom.liveScoreDisplay;
+        const cashoutContent = this.dom.liveCashoutContent;
+        const cashoutLine = this.dom.liveCashoutLine;
+        if (!this.domReady || !liveScoreDisplay || !cashoutContent || !cashoutLine) {
             doOpenShop();
             return;
         }
 
-        // Build simplified steps: pantheon (if any), then gold total
+        const drachmaWord = (n) => (Math.abs(n) === 1 ? 'drachma' : 'drachmae');
+
+        // Single-slot sentence ticker: each beat replaces the previous text.
         const steps = [];
         if (pantheonTotal != null) {
-            steps.push({ type: 'pantheon', value: pantheonTotal });
+            steps.push({ type: 'pantheon', text: `Pantheon reckoning: ${pantheonTotal}` });
         }
-        if (roundGained > 0) {
-            steps.push({ type: 'gold', value: roundGained });
-        }
-
-        if (steps.length === 0) {
-            doOpenShop();
-            return;
-        }
+        steps.push({ type: 'offerings', text: `Offerings made: +${scoresGold} ${drachmaWord(scoresGold)}` });
+        steps.push({ type: 'surplus', text: `Surplus of the gods: +${interest} ${drachmaWord(interest)}` });
+        steps.push({ type: 'payout', text: `Drachma received: +${roundGained} ${drachmaWord(roundGained)}` });
+        steps.push({ type: 'footer', text: 'Off to market' });
 
         let i = 0;
-        const stepMs = this.scaleDelay(750);
+        const stepMs = this.scaleDelay(850);
 
         const renderStep = (stepIndex) => {
             const s = steps[stepIndex];
-            const isPantheon = s.type === 'pantheon';
-            const isGold = s.type === 'gold';
-            cashoutTitle.textContent = isPantheon ? 'Pantheon Total' : 'Cashout';
-            cashoutTitle.style.display = '';
+            cashoutLine.textContent = s.text;
+            cashoutLine.classList.remove('gnosis-pantheon-value', 'pantheon-success-flash');
 
-            if (isPantheon) {
-                const scoreExceedsRequired = opts.pantheonThreshold != null && s.value >= opts.pantheonThreshold;
-                const successClass = scoreExceedsRequired ? ' pantheon-success-flash' : '';
-                cashoutLinesEl.innerHTML = `<div class="gnosis-cashout-line gnosis-pantheon-value${successClass}">${s.value}</div>`;
-            } else if (isGold) {
-                cashoutLinesEl.innerHTML = `<div class="gnosis-cashout-line">Gold: +${s.value}g</div>`;
+            if (s.type === 'pantheon') {
+                const scoreExceedsRequired = opts.pantheonThreshold != null && pantheonTotal >= opts.pantheonThreshold;
+                cashoutLine.classList.add('gnosis-pantheon-value');
+                if (scoreExceedsRequired) cashoutLine.classList.add('pantheon-success-flash');
             }
-
+            if (s.type === 'payout' && !payoutAwarded && roundGained > 0) {
+                this.updateGoldAnimated(roundGained, "cashout");
+                payoutAwarded = true;
+            }
             cashoutContent.classList.remove('hidden');
-            scorePanel.classList.add('cashout-mode');
+            liveScoreDisplay.classList.add('cashout-mode', 'visible');
         };
 
         const advance = () => {
             if (i >= steps.length) {
                 if (window.soundManager) window.soundManager.play('cardSlide1', { pitch: 0.95, volume: 0.5 });
                 setTimeout(() => {
-                    scorePanel.classList.remove('cashout-mode');
+                    liveScoreDisplay.classList.remove('cashout-mode');
                     cashoutContent.classList.add('hidden');
-                    cashoutTitle.textContent = '';
-                    cashoutLinesEl.innerHTML = '';
+                    cashoutLine.textContent = '';
                     this.updateLiveScoreDisplay(null);
                     Logger.info(`Cashout: +${roundGained}g (scores ${scoresGold}g + interest ${interest}g)`);
                     doOpenShop();
-                }, this.scaleDelay(800));
+                }, this.scaleDelay(650));
                 return;
             }
             renderStep(i);
@@ -3093,7 +3085,7 @@ class GameEngine {
     /** Default worship god keys for fallback when loading old saves */
     static get DEFAULT_WORSHIP_LEVELS() {
         return {
-            'Artemis': 0, 'Persephone': 0, 'Morpheus': 0, 'Hera': 0,
+            'Artemis': 0, 'Aphrodite': 0, 'Morpheus': 0, 'Hera': 0,
             'Athena': 0, 'Heracles': 0, 'Hephaestus': 0, 'Ares': 0,
             'Dionysus': 0, 'Hermes': 0, 'Apollo': 0, 'Zeus': 0, 'Nyx': 0,
             'The Pleiades': 0, 'Poseidon': 0, 'The Nine Muses': 0,
@@ -3114,9 +3106,16 @@ class GameEngine {
 
         // Worship levels — ensure object with all gods (merge saved into defaults)
         const defaultWorship = GameEngine.DEFAULT_WORSHIP_LEVELS;
-        state.worshipLevels = state.worshipLevels && typeof state.worshipLevels === 'object'
-            ? { ...defaultWorship, ...state.worshipLevels }
-            : { ...defaultWorship };
+        const incomingWorship = state.worshipLevels && typeof state.worshipLevels === 'object'
+            ? { ...state.worshipLevels }
+            : {};
+        if (incomingWorship.Percephone !== undefined) {
+            incomingWorship.Aphrodite = (incomingWorship.Aphrodite ?? 0) + (incomingWorship.Percephone ?? 0);
+            delete incomingWorship.Percephone;
+        }
+        state.worshipLevels = { ...defaultWorship, ...incomingWorship };
+
+        if (state.lastWorshipGod === 'Persephone') state.lastWorshipGod = 'Aphrodite';
 
         // Scorecard, enhancementMap, unlockedCategories — ensure objects
         state.scorecard = state.scorecard && typeof state.scorecard === 'object' ? state.scorecard : {};
@@ -3190,20 +3189,27 @@ class GameEngine {
 
         // Consumables: LibationCard or WorshipCard
         state.consumables = Array.isArray(state.consumables) ? state.consumables : [];
+        const legacyWorshipId = {
+            worship_persephone: 'worship_aphrodite',
+            persephone_2: 'aphrodite_2',
+            persephone_3: 'aphrodite_3'
+        };
         state.consumables = state.consumables.map((saved) => {
             if (!saved || !saved.id) return null;
-            const type = saved.type || 'libation';
+            const resolvedId = legacyWorshipId[saved.id] || saved.id;
+            const savedResolved = resolvedId !== saved.id ? { ...saved, id: resolvedId } : saved;
+            const type = savedResolved.type || 'libation';
             let data = (type === 'worship' && CardData?.worship)
-                ? CardData.worship.find(c => c.id === saved.id)
-                : (CardData?.libations ? CardData.libations.find(c => c.id === saved.id) : null);
-            if (!data && CardData?.worship) data = CardData.worship.find(c => c.id === saved.id);
+                ? CardData.worship.find(c => c.id === resolvedId)
+                : (CardData?.libations ? CardData.libations.find(c => c.id === resolvedId) : null);
+            if (!data && CardData?.worship) data = CardData.worship.find(c => c.id === resolvedId);
             if (!data) {
                 Logger.warn(`Rehydrate: consumable "${saved.id}" not found`);
                 return null;
             }
-            const isWorship = CardData.worship?.some(w => w.id === saved.id);
+            const isWorship = CardData.worship?.some(w => w.id === resolvedId);
             const card = isWorship ? new WorshipCard(data) : new LibationCard(data);
-            if (typeof card.fromJSON === 'function') card.fromJSON(saved);
+            if (typeof card.fromJSON === 'function') card.fromJSON(savedResolved);
             return card;
         }).filter(Boolean);
 

@@ -71,42 +71,49 @@ asset as felt art). Shop state unchanged mechanically; Cast doubles as Reroll.
 Changes span `game/index.html`, `game/css/styles.css`, `UIManager`, `ShopUI`,
 `GameEngine`, `InfoBarRenderer`, and new `game/js/utils/NumberFormat.js`.
 
-**Open bug — live score preview shift (carry over to next session)**
+**Live score preview shift — fix applied (2026-04-21)**
 
 - **Symptom:** during `animateSequentialScoring`, the `pips × favour = score`
-  row still appears to drift rightward between the first dice tick and the
-  final count-up, even with fixed-width cells and the Balatro-style tiered
-  `NumberFormat` funnel.
-- **What's already done** (see `CSS §6-7 (LAYOUT V4)` and `GameEngine.formatDisplay`):
-    - `.center-game-area .live-score-display.felt-live` container locked at
-      `width/min-width/max-width: 360px`.
-    - `.gnosis-row` locked at 360px, `justify-content: center`.
-    - Every cell (`pips-cell`, `favour-cell`, `pips-line`, `favour-line`,
-      `multiply-symbol`, `equals-symbol`, `score-preview`) has
-      `flex: 0 0 Npx` + matching width/min/max.
-    - `[hidden]` on `.live-extra` / `.live-add` swapped to `visibility:hidden`
-      (scoped to `.felt-live`) so they stay in layout.
-    - Category name clamped with `nowrap + ellipsis`.
-    - All pips/favour/score text writes go through `NumberFormat.display` /
-      `.favour` / `.contrib` / `.favourContrib` so digit count is bounded.
-- **Next step (pick up here):**
-    1. Instrument the glitch — add a temporary `MutationObserver` on
-       `#liveScoreDisplay` that logs child `offsetLeft` + `textContent` at
-       each animation tick to confirm *which* cell is actually moving.
-    2. Check for a competing CSS rule outside `LAYOUT V4` (grep
-       `live-score-display` / `gnosis-row` for any width override beyond the
-       felt section; base rule has `width:100%; max-width:280px` which should
-       be beaten by our 360px override — verify specificity at runtime).
-    3. If the row itself is stable but pips/favour visibly slide inside their
-       cells, add the optional font-shrink hook noted at the end of the chat
-       (clamp `.pips` / `.favour` `font-size` by `textContent.length`).
-    4. Consider switching `.gnosis-row` to `display: grid` with
-       `grid-template-columns: 96px 20px 96px 20px 84px` and
-       `justify-items: center` — removes flex redistribution entirely.
+  row appeared to drift rightward as successive boons landed, even with
+  fixed-width cells and the Balatro-style tiered `NumberFormat` funnel.
+- **Root cause (confirmed by code read):** inside the `pips-line` /
+  `favour-line` flex rows, the sibling `.live-add` ("+N" chip) remained in
+  layout when hidden (`visibility: hidden` in felt-live so the row stays
+  stable). Its rendered width was a function of the last
+  `pips-contrib` / `favour-contrib` textContent, which mutated per boon. Flex
+  `justify-content: center` recentered on every mutation → the main number
+  walked sideways while the true-fixed `=` / score-preview cells stayed
+  put, reading as overall row drift.
+- **Fix shipped:**
+    - CSS (`LAYOUT V4 §5`): `.center-game-area .live-score-display.felt-live
+      .live-add` → `position: absolute`, popped as a small floating chip above
+      the main number. Cells/lines get `overflow: visible; contain: none` so
+      the chip isn't clipped. `.live-add` no longer contributes flow width,
+      so pips/favour numbers are anchored purely by their own text.
+    - `GameEngine.updateLiveScoreValues`: on hide, explicitly clear
+      `pips-contrib` / `favour-contrib` textContent so the hidden chip has
+      zero ghost-width even if another CSS rule ever puts it back in flow.
+- **Watch list on next smoke run:**
+    - Confirm the `+N` chip is visually legible on the dark felt
+      (currently dark pill with cream text — tweak `background` /
+      `padding` in the new felt-live `.live-add` block if it reads weird).
+    - If any residual drift remains, fall back to step 4 of the earlier
+      plan (switch `.gnosis-row` to `display: grid` with fixed template
+      columns 96px 20px 96px 20px 84px).
 
 **Read first on resume:** this block, `game/js/utils/NumberFormat.js`
 (formatter contract), and the `LAYOUT V4 / ── 5/6/7` sections in
 `game/css/styles.css` (the single source of truth for felt positions).
+
+### Version marker
+
+- **Current build target:** `v1.5.0` — **Layout Overhaul**
+
+### Next declutter TODOs
+
+1. Continue removing dead selectors and obsolete UI hooks as features stabilize.
+2. Keep `GameEngine` responsibilities lean by extracting pure helpers when touching scoring/shop flow.
+3. Add a short smoke checklist for layout-sensitive flows (hover preview, scoring sequence, pre-shop ticker, shop open).
 
 ---
 

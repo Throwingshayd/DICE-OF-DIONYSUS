@@ -1,5 +1,16 @@
 # Dice of Dionysus - Changelog
 
+## Version 1.5.0 - Layout Overhaul
+
+### UI structure and stability cleanup
+- Moved pre-shop cashout messaging into the felt live-score area as a single-line sentence ticker.
+- Added themed copy sequence for reckoning flow (offerings, surplus, payout, market transition) before shop opens.
+- Removed stale Total-rim cashout DOM/CSS paths and legacy cash-out overlay style block that no longer had markup or JS hooks.
+
+### Pantheon + layout polish
+- Fixed pantheon chip hover transform behavior to preserve centered placement and avoid right-shift on hover.
+- Kept recent felt/live-score layout behavior while reducing duplicated or dead scaffolding around cashout presentation.
+
 ## Agent guidance (Apr 2026)
 
 - **Unified assistant** — `SOUL.md` describes one game design + engineering role; `.cursor/rules/` are topic scopes (no separate personas).
