@@ -85,24 +85,8 @@ class Card {
             el.classList.add('disabled');
         }
 
-        // Add Balatro-style buy/sell/take labels
+        // Shop / inventory: actions are drag-and-drop (shop → slots or gold; inventory → gold / zones).
         let labelHtml = '';
-        if (isShopItem) {
-            if (isDirectSale) {
-                // Shop purchase - green "Buy" button
-                labelHtml = `<div class="buy-sell-label buy" data-action="buy" data-cost="${this.cost}">${this.cost}g</div>`;
-            } else {
-                // Pack cards - blue "Take" button
-                labelHtml = `<div class="buy-sell-label take" data-action="take">Take</div>`;
-            }
-        } else {
-            // Inventory - Sell for all; Use + Sell for consumables (wrapped for symmetric layout)
-            if (this.type === 'libation' || this.type === 'worship') {
-                labelHtml = `<div class="action-labels-row"><div class="buy-sell-label use" data-action="use">Use</div><div class="buy-sell-label sell" data-action="sell" data-value="${this.sellValue}">${this.sellValue}g</div></div>`;
-            } else {
-                labelHtml = `<div class="action-labels-row"><div class="buy-sell-label sell" data-action="sell" data-value="${this.sellValue}">${this.sellValue}g</div></div>`;
-            }
-        }
 
         // Uses counter for limited use cards
         let usesHtml = '';
@@ -148,6 +132,7 @@ class Card {
                 <div class="card-name">${this.name}</div>
                 <div class="card-effect">${this.effect}</div>
                 ${this.god ? `<div class="card-god">- ${this.god}</div>` : ''}
+                ${(isShopItem && isDirectSale) ? `<div class="card-shop-cost" aria-label="Price">${this.cost}g</div>` : ''}
             `;
         } else {
             // Use tooltip for inventory cards - minimal text. Worship/libation: omit card-name (type indicator shows it)

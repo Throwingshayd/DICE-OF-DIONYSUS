@@ -135,9 +135,9 @@ class App {
         const loopback = h === 'localhost' || h === '127.0.0.1' || h === '[::1]' || h === '::1';
         const isSecure = location.protocol === 'https:' || loopback;
         if (!isSecure) return;
-        // Unregister on local dev servers so cached JS (e.g. SoundManager) cannot hide edits.
-        // Port 3000 = Vite dev; 4173 = vite preview; 5500/5501 = Live Server / Live Preview.
-        const localDevPort = ['3000', '4173', '5500', '5501'].includes(location.port);
+        // Unregister on local dev server so cached JS cannot hide edits.
+        // Standard local workflow is Vite on port 3000.
+        const localDevPort = location.port === '3000';
         const viteDev =
             (typeof __DEV__ !== 'undefined' && __DEV__) ||
             (loopback && localDevPort);
@@ -260,6 +260,7 @@ class App {
                 if (targetGrid) {
                     targetGrid.classList.remove('hidden');
                 }
+                this.collectionManager.setCurrentTab(tab.dataset.tab);
             });
         });
     }
@@ -619,6 +620,10 @@ class App {
 class CollectionManager {
     constructor() {
         this.currentTab = 'boons';
+        this.pageSize = 9;
+        this.pageByTab = { boons: 0, artifacts: 0, worship: 0, libations: 0 };
+        this.tabCards = { boons: [], artifacts: [], worship: [], libations: [] };
+        this.bindPaginationControls();
     }
 
     populateCollection() {
@@ -628,11 +633,12 @@ class CollectionManager {
         this.populateArtifacts(collection);
         this.populateWorship(collection);
         this.populateLibations(collection);
+        this.renderCurrentTabPage();
     }
 
     populateBoons(collection) {
         const grid = document.getElementById('boonsCollectionGrid');
-        grid.innerHTML = '';
+        const cards = [];
         
         CardData.boons.forEach(boonData => {
             const isUnlocked = collection.boons.includes(boonData.id);
@@ -646,9 +652,9 @@ class CollectionManager {
                 const effectEl = cardEl.querySelector('.card-effect');
                 const nameEl = cardEl.querySelector('.card-name');
                 const rarityEl = cardEl.querySelector('.card-rarity');
-                if (effectEl) effectEl.textContent = '???';
-                if (nameEl) nameEl.textContent = '???';
-                if (rarityEl) rarityEl.textContent = '???';
+                if (effectEl) effectEl.textContent = '';
+                if (nameEl) nameEl.textContent = '';
+                if (rarityEl) rarityEl.textContent = '';
                 
                 // Remove background image for locked cards
                 const bgEl = cardEl.querySelector('.card-background');
@@ -670,13 +676,15 @@ class CollectionManager {
                 cardEl.appendChild(unlockInfo);
             }
             
-            grid.appendChild(cardEl);
+            cards.push(cardEl);
         });
+        this.tabCards.boons = cards;
+        if (!grid.classList.contains('hidden')) this.renderTabPage('boons');
     }
 
     populateArtifacts(collection) {
         const grid = document.getElementById('artifactsCollectionGrid');
-        grid.innerHTML = '';
+        const cards = [];
         
         Object.values(CardData.artifacts).forEach(artifactPair => {
             [artifactPair.base, artifactPair.upgraded].forEach(artifact => {
@@ -694,19 +702,21 @@ class CollectionManager {
                 }
                 
                 el.innerHTML = `
-                    <div class="card-name" style="${!isUnlocked ? 'color: #999;' : ''}">${isUnlocked ? artifact.name : '???'}</div>
-                    <div class="card-effect" style="${!isUnlocked ? 'color: #999;' : ''}">${isUnlocked ? artifact.effect : 'Locked'}</div>
+                    <div class="card-name" style="${!isUnlocked ? 'color: #999;' : ''}">${isUnlocked ? artifact.name : ''}</div>
+                    <div class="card-effect" style="${!isUnlocked ? 'color: #999;' : ''}">${isUnlocked ? artifact.effect : ''}</div>
                     ${isUnlocked ? `<div class="card-cost">${artifact.cost}g</div>` : ''}
                 `;
                 
-                grid.appendChild(el);
+                cards.push(el);
             });
         });
+        this.tabCards.artifacts = cards;
+        if (!grid.classList.contains('hidden')) this.renderTabPage('artifacts');
     }
 
     populateWorship(collection) {
         const grid = document.getElementById('worshipCollectionGrid');
-        grid.innerHTML = '';
+        const cards = [];
         
         CardData.worship.forEach(worshipData => {
             const isUnlocked = collection.worship ? collection.worship.includes(worshipData.id) : false;
@@ -720,22 +730,24 @@ class CollectionManager {
                 const effectEl = cardEl.querySelector('.card-effect');
                 const nameEl = cardEl.querySelector('.card-name');
                 const rarityEl = cardEl.querySelector('.card-rarity');
-                if (effectEl) effectEl.textContent = '???';
-                if (nameEl) nameEl.textContent = '???';
-                if (rarityEl) rarityEl.textContent = '???';
+                if (effectEl) effectEl.textContent = '';
+                if (nameEl) nameEl.textContent = '';
+                if (rarityEl) rarityEl.textContent = '';
                 
                 // Remove background image for locked cards
                 const bgEl = cardEl.querySelector('.card-background');
                 if (bgEl) bgEl.remove();
             }
             
-            grid.appendChild(cardEl);
+            cards.push(cardEl);
         });
+        this.tabCards.worship = cards;
+        if (!grid.classList.contains('hidden')) this.renderTabPage('worship');
     }
 
     populateLibations(collection) {
         const grid = document.getElementById('libationsCollectionGrid');
-        grid.innerHTML = '';
+        const cards = [];
         
         CardData.libations.forEach(libationData => {
             const isUnlocked = collection.libations ? collection.libations.includes(libationData.id) : false;
@@ -749,17 +761,76 @@ class CollectionManager {
                 const effectEl = cardEl.querySelector('.card-effect');
                 const nameEl = cardEl.querySelector('.card-name');
                 const rarityEl = cardEl.querySelector('.card-rarity');
-                if (effectEl) effectEl.textContent = '???';
-                if (nameEl) nameEl.textContent = '???';
-                if (rarityEl) rarityEl.textContent = '???';
+                if (effectEl) effectEl.textContent = '';
+                if (nameEl) nameEl.textContent = '';
+                if (rarityEl) rarityEl.textContent = '';
                 
                 // Remove background image for locked cards
                 const bgEl = cardEl.querySelector('.card-background');
                 if (bgEl) bgEl.remove();
             }
             
-            grid.appendChild(cardEl);
+            cards.push(cardEl);
         });
+        this.tabCards.libations = cards;
+        if (!grid.classList.contains('hidden')) this.renderTabPage('libations');
+    }
+
+    bindPaginationControls() {
+        const prev = document.getElementById('collectionPrevPageBtn');
+        const next = document.getElementById('collectionNextPageBtn');
+        if (prev) prev.addEventListener('click', () => this.turnPage(-1));
+        if (next) next.addEventListener('click', () => this.turnPage(1));
+    }
+
+    setCurrentTab(tab) {
+        this.currentTab = tab;
+        if (this.pageByTab[tab] == null) this.pageByTab[tab] = 0;
+        this.renderCurrentTabPage();
+    }
+
+    turnPage(delta) {
+        const tab = this.currentTab;
+        const cards = this.tabCards[tab] || [];
+        const maxPage = Math.max(0, Math.ceil(cards.length / this.pageSize) - 1);
+        const nextPage = Math.max(0, Math.min(maxPage, (this.pageByTab[tab] || 0) + delta));
+        if (nextPage === this.pageByTab[tab]) return;
+        this.pageByTab[tab] = nextPage;
+        this.renderTabPage(tab);
+    }
+
+    renderCurrentTabPage() {
+        this.renderTabPage(this.currentTab);
+    }
+
+    renderTabPage(tab) {
+        const grid = document.getElementById(`${tab}CollectionGrid`);
+        if (!grid) return;
+        const cards = this.tabCards[tab] || [];
+        const maxPage = Math.max(0, Math.ceil(cards.length / this.pageSize) - 1);
+        const page = Math.max(0, Math.min(maxPage, this.pageByTab[tab] || 0));
+        this.pageByTab[tab] = page;
+        const start = page * this.pageSize;
+        const end = start + this.pageSize;
+
+        grid.innerHTML = '';
+        cards.slice(start, end).forEach((card) => grid.appendChild(card));
+        for (let i = cards.slice(start, end).length; i < this.pageSize; i++) {
+            const emptySlot = document.createElement('div');
+            emptySlot.className = 'collection-slot-placeholder';
+            emptySlot.setAttribute('aria-hidden', 'true');
+            grid.appendChild(emptySlot);
+        }
+        this.updatePager(tab, page, maxPage);
+    }
+
+    updatePager(tab, page, maxPage) {
+        const indicator = document.getElementById('collectionPageIndicator');
+        const prev = document.getElementById('collectionPrevPageBtn');
+        const next = document.getElementById('collectionNextPageBtn');
+        if (indicator) indicator.textContent = `Page ${page + 1} / ${maxPage + 1}`;
+        if (prev) prev.disabled = page <= 0;
+        if (next) next.disabled = page >= maxPage;
     }
 }
 

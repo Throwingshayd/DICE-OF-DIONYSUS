@@ -50,22 +50,19 @@ class Artifact extends Card {
             el.style.background = 'white';
         }
         
-        // Add buy label for shop items
-        let labelHtml = '';
-        if (isShopItem && isDirectSale) {
-            labelHtml = `<div class="buy-sell-label buy artifact-buy" data-action="buy" data-cost="${this.cost}">${this.cost}g</div>`;
-        }
-        
         // Artifact type indicator
         const typeIndicatorHtml = '<div class="card-type-indicator card-type-artifact">Divine Artifact</div>';
-        
+        const costChip = (isShopItem && isDirectSale)
+            ? `<div class="card-shop-cost card-shop-cost-artifact" aria-label="Price">${this.cost}g</div>`
+            : '';
+
         // Card content - same white frame structure as boons; effect shown on hover via tooltip
         const cardContent = `
             <div class="card-frame" style="background: linear-gradient(135deg, #FFD700, #DAA520); border-radius: 8px;"></div>
             <div class="card-content">
                 ${typeIndicatorHtml}
                 <div class="artifact-name">${this.name}</div>
-                ${labelHtml}
+                ${costChip}
             </div>
         `;
         

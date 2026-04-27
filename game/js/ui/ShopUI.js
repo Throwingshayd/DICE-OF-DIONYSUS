@@ -20,6 +20,10 @@ class ShopUI {
         this.shopItemIndex = 0;
         /** @type {{ card: Card, element?: HTMLElement, gameState: Object, gameEngine: Object, refundGold?: number, packContainer?: HTMLElement, packType?: string } | null} */
         this.expulsionPending = null;
+        /** @type {null | { pointerId: number, el: HTMLElement, startX: number, startY: number, dragging: boolean, ctx: Object }} */
+        this._shopDrag = null;
+        this._onShopDragDocMove = (e) => this._handleShopDragDocMove(e);
+        this._onShopDragDocUp = (e) => this._handleShopDragDocUp(e);
     }
 
     get dom() {
@@ -226,41 +230,22 @@ class ShopUI {
         if (type === 'artifact') {
             cardInstance = new Artifact(displayData);
             cardEl = cardInstance.render(true, true);
+            cardEl.classList.add('shop-draggable-card', 'shop-draggable-artifact');
+            this._attachShopCardDrag(cardEl, { mode: 'artifact', artifactData: displayData, gameState, gameEngine });
         } else {
             if (displayData.rarity === 'worship') cardInstance = new WorshipCard(displayData);
             else if (displayData.rarity === 'libation') cardInstance = new LibationCard(displayData);
             else cardInstance = new Boon(displayData);
-            cardEl = cardInstance.render(true, type === 'direct' || type === 'artifact');
-        }
-
-        if (type === 'direct' || type === 'artifact') {
-            const buyLabel = cardEl.querySelector('.buy-sell-label.buy');
-            if (buyLabel) {
-                buyLabel.addEventListener('click', (e) => {
-                    e.stopPropagation();
-                    if (type === 'artifact') this.buyArtifact(displayData, gameState, gameEngine, cardEl);
-                    else this.buyCard(cardInstance, gameState, gameEngine, cardEl);
-                });
+            const isDirect = type === 'direct';
+            cardEl = cardInstance.render(true, isDirect);
+            if (type === 'direct') {
+                cardEl.classList.add('shop-draggable-card', 'shop-draggable-ware');
+                this._attachShopCardDrag(cardEl, { mode: 'direct', card: cardInstance, gameState, gameEngine });
             }
-            cardEl.addEventListener('click', (e) => {
-                if (e.target.closest('.buy-sell-label')) return;
-                e.stopPropagation();
-                this.revealShopItemTag(cardEl);
-            });
-        }
-
-        if (type === 'pack') {
-            const claimPackCard = (e) => {
-                e.stopPropagation();
-                if (window.soundManager) window.soundManager.play(cardInstance instanceof Boon ? 'card1' : 'tarot1', { pitch: 0.92 + Math.random() * 0.1, volume: 0.55 });
-                this.claimCard(cardInstance, gameState, gameEngine, cardEl);
-            };
-            const takeLabel = cardEl.querySelector('.buy-sell-label.take');
-            if (takeLabel) takeLabel.addEventListener('click', claimPackCard);
-            cardEl.addEventListener('click', (e) => {
-                if (e.target.closest('.buy-sell-label')) return;
-                this.revealShopItemTag(cardEl);
-            });
+            if (type === 'pack') {
+                cardEl.classList.add('shop-draggable-card', 'shop-draggable-pack-reveal');
+                this._attachShopCardDrag(cardEl, { mode: 'packReveal', card: cardInstance, gameState, gameEngine });
+            }
         }
 
         return cardEl;
@@ -268,51 +253,179 @@ class ShopUI {
 
     createPackElement(packData, gameState, gameEngine) {
         const pack = document.createElement('div');
-        pack.className = `card pack-card pack-${packData.type}`;
+        pack.className = `card pack-card pack-${packData.type} shop-draggable-pack-shelf`;
         pack.dataset.packType = packData.type;
+        pack._shopPackData = packData;
         pack.setAttribute('data-tooltip', JSON.stringify({
             title: packData.name,
             effect: packData.description,
             cost: packData.cost,
             type: 'pack'
         }));
+        const eff = this.getShopPrice(packData.baseCost ?? packData.cost, gameState);
         pack.innerHTML = `
             <div class="pack-title">${packData.name}</div>
             <div class="pack-description">${packData.description}</div>
-            <div class="pack-cost">${packData.cost}g</div>
-            <div class="buy-sell-label buy" data-pack-type="${packData.type}">Buy</div>
+            <div class="pack-cost">${eff}g</div>
+            <div class="pack-drag-hint">Drag to Gold</div>
         `;
-        const buyLabel = pack.querySelector('.buy-sell-label.buy');
-        if (buyLabel) {
-            buyLabel.addEventListener('click', (e) => {
-                e.stopPropagation();
-                this.purchasePack(packData, gameState, gameEngine, pack);
-            });
-        }
-        pack.addEventListener('click', (e) => {
-            if (e.target.closest('.buy-sell-label')) return;
-            e.stopPropagation();
-            this.revealShopItemTag(pack);
-        });
+        this._attachPackShelfDrag(pack, gameState, gameEngine);
         return pack;
     }
 
-    revealShopItemTag(element) {
-        const shop = element.closest('#shopStage, #packOpeningView');
-        if (!shop) return;
-        shop.querySelectorAll('.shop-item-selected').forEach(el => {
-            if (el !== element) el.classList.remove('shop-item-selected');
-        });
-        element.classList.toggle('shop-item-selected');
-        if (element.classList.contains('shop-item-selected')) {
-            if (window.soundManager) window.soundManager.play('highlight1', { volume: 0.35 });
-            const close = (e) => {
-                if (!element.contains(e.target) && !e.target.closest('.buy-sell-label')) {
-                    element.classList.remove('shop-item-selected');
-                    document.removeEventListener('click', close);
-                }
+    /** @param {HTMLElement} cardEl @param {{ mode: string, card?: Card, artifactData?: Object, gameState: Object, gameEngine: Object }} ctx */
+    _attachShopCardDrag(cardEl, ctx) {
+        cardEl.style.touchAction = 'none';
+        cardEl.addEventListener('pointerdown', (e) => {
+            if (e.button !== 0 || this._shopDrag) return;
+            e.preventDefault();
+            this._shopDrag = {
+                pointerId: e.pointerId,
+                el: cardEl,
+                startX: e.clientX,
+                startY: e.clientY,
+                dragging: false,
+                ctx,
             };
-            setTimeout(() => document.addEventListener('click', close), 0);
+            try { cardEl.setPointerCapture(e.pointerId); } catch (_) { /* ignore */ }
+            document.addEventListener('pointermove', this._onShopDragDocMove);
+            document.addEventListener('pointerup', this._onShopDragDocUp);
+            document.addEventListener('pointercancel', this._onShopDragDocUp);
+        });
+    }
+
+    _attachPackShelfDrag(packEl, gameState, gameEngine) {
+        packEl.style.touchAction = 'none';
+        packEl.addEventListener('pointerdown', (e) => {
+            if (e.button !== 0 || this._shopDrag) return;
+            e.preventDefault();
+            const packData = packEl._shopPackData;
+            if (!packData) return;
+            this._shopDrag = {
+                pointerId: e.pointerId,
+                el: packEl,
+                startX: e.clientX,
+                startY: e.clientY,
+                dragging: false,
+                ctx: { mode: 'packShelf', packData, gameState, gameEngine },
+            };
+            try { packEl.setPointerCapture(e.pointerId); } catch (_) { /* ignore */ }
+            document.addEventListener('pointermove', this._onShopDragDocMove);
+            document.addEventListener('pointerup', this._onShopDragDocUp);
+            document.addEventListener('pointercancel', this._onShopDragDocUp);
+        });
+    }
+
+    _shopPointIn(px, py, el) {
+        if (!el) return false;
+        const r = el.getBoundingClientRect();
+        return px >= r.left && px <= r.right && py >= r.top && py <= r.bottom;
+    }
+
+    _shopClearDocListeners() {
+        document.removeEventListener('pointermove', this._onShopDragDocMove);
+        document.removeEventListener('pointerup', this._onShopDragDocUp);
+        document.removeEventListener('pointercancel', this._onShopDragDocUp);
+    }
+
+    _handleShopDragDocMove(e) {
+        const st = this._shopDrag;
+        if (!st || e.pointerId !== st.pointerId) return;
+        const dx = e.clientX - st.startX;
+        const dy = e.clientY - st.startY;
+        const TH = 14;
+        if (!st.dragging && (dx * dx + dy * dy) >= TH * TH) {
+            st.dragging = true;
+            st.el.classList.add('shop-drag-lift');
+            document.querySelector('.main-game')?.classList.add('shop-drag-active');
+            const gold = document.getElementById('goldStone');
+            const boonBar = document.getElementById('rightBoonBar');
+            const consumableBar = document.getElementById('leftConsumableBar');
+            if (st.ctx.mode === 'packShelf') gold?.classList.add('shop-drop-glow');
+            if (st.ctx.mode === 'artifact') gold?.classList.add('shop-drop-glow');
+            if (st.ctx.mode === 'direct') {
+                if (st.ctx.card instanceof Boon) boonBar?.classList.add('shop-drop-glow');
+                else consumableBar?.classList.add('shop-drop-glow');
+            }
+            if (st.ctx.mode === 'packReveal') {
+                if (st.ctx.card instanceof Boon) boonBar?.classList.add('shop-drop-glow');
+                else consumableBar?.classList.add('shop-drop-glow');
+            }
+        }
+        if (st.dragging) {
+            st.el.style.transform = `translate(${dx}px, ${dy}px)`;
+            const gold = document.getElementById('goldStone');
+            const boonBar = document.getElementById('rightBoonBar');
+            const consumableBar = document.getElementById('leftConsumableBar');
+            const px = e.clientX;
+            const py = e.clientY;
+            gold?.classList.toggle('shop-drop-target-hot', st.ctx.mode === 'packShelf' || st.ctx.mode === 'artifact'
+                ? this._shopPointIn(px, py, gold)
+                : false);
+            if (st.ctx.mode === 'direct' || st.ctx.mode === 'packReveal') {
+                const isBoon = st.ctx.card instanceof Boon;
+                boonBar?.classList.toggle('shop-drop-target-hot', isBoon && this._shopPointIn(px, py, boonBar));
+                consumableBar?.classList.toggle('shop-drop-target-hot', !isBoon && this._shopPointIn(px, py, consumableBar));
+            }
+        }
+    }
+
+    _handleShopDragDocUp(e) {
+        const st = this._shopDrag;
+        if (!st || e.pointerId !== st.pointerId) return;
+        this._shopClearDocListeners();
+        try { st.el.releasePointerCapture(e.pointerId); } catch (_) { /* ignore */ }
+        const px = e.clientX;
+        const py = e.clientY;
+        const gold = document.getElementById('goldStone');
+        const boonBar = document.getElementById('rightBoonBar');
+        const consumableBar = document.getElementById('leftConsumableBar');
+        document.querySelector('.main-game')?.classList.remove('shop-drag-active');
+        [gold, boonBar, consumableBar].forEach((n) => {
+            if (!n) return;
+            n.classList.remove('shop-drop-glow', 'shop-drop-target-hot');
+        });
+        st.el.classList.remove('shop-drag-lift');
+        st.el.style.removeProperty('transform');
+
+        const { ctx, dragging } = st;
+        this._shopDrag = null;
+
+        if (!dragging) return;
+
+        if (ctx.mode === 'packShelf' && ctx.packData && this._shopPointIn(px, py, gold)) {
+            this.purchasePack(ctx.packData, ctx.gameState, ctx.gameEngine, st.el);
+            return;
+        }
+        if (ctx.mode === 'artifact' && ctx.artifactData && this._shopPointIn(px, py, gold)) {
+            this.buyArtifact(ctx.artifactData, ctx.gameState, ctx.gameEngine, st.el);
+            return;
+        }
+        if (ctx.mode === 'direct' && ctx.card) {
+            const isBoon = ctx.card instanceof Boon;
+            const okSlot = isBoon ? this._shopPointIn(px, py, boonBar) : this._shopPointIn(px, py, consumableBar);
+            if (okSlot) {
+                this.buyCard(ctx.card, ctx.gameState, ctx.gameEngine, st.el);
+            } else {
+                if (window.soundManager) window.soundManager.play('cancel', { volume: 0.45 });
+                ctx.gameEngine?.showMessage?.(isBoon
+                    ? 'Drag the boon onto your Boon column (right).'
+                    : 'Drag the blessing onto your Libation column (left).');
+            }
+            return;
+        }
+        if (ctx.mode === 'packReveal' && ctx.card) {
+            const isBoon = ctx.card instanceof Boon;
+            const okSlot = isBoon ? this._shopPointIn(px, py, boonBar) : this._shopPointIn(px, py, consumableBar);
+            if (okSlot) {
+                if (window.soundManager) window.soundManager.play(ctx.card instanceof Boon ? 'card1' : 'tarot1', { pitch: 0.92 + Math.random() * 0.1, volume: 0.55 });
+                this.claimCard(ctx.card, ctx.gameState, ctx.gameEngine, st.el);
+            } else {
+                if (window.soundManager) window.soundManager.play('cancel', { volume: 0.45 });
+                ctx.gameEngine?.showMessage?.(isBoon
+                    ? 'Drag onto your Boon column to claim.'
+                    : 'Drag onto your Libation column to claim.');
+            }
         }
     }
 
@@ -593,18 +706,13 @@ class ShopUI {
         this.expulsionPending = { card, element: element || null, gameState, gameEngine, refundGold: opts.refundGold, packContainer: opts.packContainer || null, packType: opts.packType || null };
 
         titleEl.textContent = 'No Space!';
-        subtitleEl.textContent = `Choose one to sell and make room for ${card.name}:`;
+        subtitleEl.textContent = `Tap a card to sell and make room for ${card.name}:`;
         gridEl.innerHTML = '';
 
         inventory.forEach((c) => {
             const el = c.render();
-            el.classList.add('sell-label-visible');
-            const sellLabel = el.querySelector('.buy-sell-label.sell');
-            if (sellLabel) {
-                sellLabel.textContent = `Sell (+${c.sellValue || 1}g)`;
-                sellLabel.addEventListener('click', (e) => { e.stopPropagation(); this.completeExpulsion(c); });
-            }
-            el.addEventListener('click', (e) => { if (!e.target.closest('.buy-sell-label')) this.completeExpulsion(c); });
+            el.classList.add('expulsion-choice-card');
+            el.addEventListener('click', () => this.completeExpulsion(c));
             gridEl.appendChild(el);
         });
 

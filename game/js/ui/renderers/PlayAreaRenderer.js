@@ -1,7 +1,7 @@
 /**
  * PlayAreaRenderer - Boon slots, consumables, artifacts, drag-and-drop
  * @module ui/renderers/PlayAreaRenderer
- * Uses uiManager.appendInventoryCard, uiManager.sellCard, uiManager.useConsumable (7-call-upon-able)
+ * Uses uiManager.appendInventoryCard, bindBoonSlotDrag, bindConsumableHorizonDrag (drag sell / use / reorder)
  */
 
 const PlayAreaRenderer = {
@@ -32,67 +32,17 @@ const PlayAreaRenderer = {
         if (!container) { Logger.warn('boonSlots element not found'); return; }
         container.innerHTML = '';
         const boons = gameState.boons || [];
-        if (boons.length === 0) { if (boonsPanel) boonsPanel.classList.remove('has-multiple-boons'); return; }
+        if (boons.length === 0) {
+            if (boonsPanel) boonsPanel.classList.remove('has-multiple-boons');
+            uiManager.bindBoonSlotDrag(container, gameState, gameEngine);
+            return;
+        }
         if (boonsPanel) boonsPanel.classList.toggle('has-multiple-boons', boons.length >= 2);
 
-        boons.forEach(boon => {
-            uiManager.appendInventoryCard(boon, container, {
-                onSell: (c) => uiManager.sellCard(c, gameState, gameEngine),
-                revealOn: 'click'
-            });
+        boons.forEach((boon) => {
+            uiManager.appendInventoryCard(boon, container, {});
         });
-        this.setupBoonDragAndDrop(container, gameState, gameEngine);
-    },
-
-    setupBoonDragAndDrop(container, gameState, gameEngine) {
-        const cards = container.querySelectorAll('.card[data-id]');
-        if (cards.length < 2) return;
-        let draggedId = null;
-
-        cards.forEach((cardEl) => {
-            cardEl.draggable = true;
-            cardEl.classList.add('boon-draggable');
-            cardEl.addEventListener('dragstart', (e) => {
-                draggedId = cardEl.dataset.id;
-                e.dataTransfer.effectAllowed = 'move';
-                e.dataTransfer.setData('text/plain', draggedId);
-                e.dataTransfer.setDragImage(cardEl, cardEl.offsetWidth / 2, cardEl.offsetHeight / 2);
-                cardEl.classList.add('boon-dragging');
-            });
-            cardEl.addEventListener('dragend', () => {
-                cardEl.classList.remove('boon-dragging');
-                container.querySelectorAll('.card').forEach(c => c.classList.remove('boon-drag-over'));
-                container._boonDidDrag = true;
-                setTimeout(() => { container._boonDidDrag = false; }, 100);
-            });
-            cardEl.addEventListener('dragover', (e) => {
-                e.preventDefault();
-                e.dataTransfer.dropEffect = 'move';
-                if (draggedId && cardEl.dataset.id !== draggedId) cardEl.classList.add('boon-drag-over');
-            });
-            cardEl.addEventListener('dragleave', () => cardEl.classList.remove('boon-drag-over'));
-            cardEl.addEventListener('drop', (e) => {
-                e.preventDefault();
-                cardEl.classList.remove('boon-drag-over');
-                const targetId = cardEl.dataset.id;
-                if (!draggedId || !targetId || draggedId === targetId) return;
-                const boons = gameState.boons || [];
-                const fromIndex = boons.findIndex(j => j.id === draggedId);
-                const toIndex = boons.findIndex(j => j.id === targetId);
-                if (fromIndex === -1 || toIndex === -1) return;
-                const card = boons[fromIndex];
-                boons.splice(fromIndex, 1);
-                boons.splice(fromIndex < toIndex ? toIndex - 1 : toIndex, 0, card);
-                if (gameEngine) { gameEngine.updateAllUI(); if (window.soundManager) window.soundManager.play('button', { volume: 0.4 }); }
-            });
-        });
-        if (!container._boonDragClickHandler) {
-            container._boonDragClickHandler = (e) => {
-                if (container._boonDidDrag && e.target.closest('.card')) e.stopPropagation();
-            };
-            container.addEventListener('click', container._boonDragClickHandler, true);
-        }
-        container._boonDidDrag = false;
+        uiManager.bindBoonSlotDrag(container, gameState, gameEngine);
     },
 
     updateConsumableUI(dom, gameState, gameEngine, uiManager) {
@@ -100,15 +50,8 @@ const PlayAreaRenderer = {
         if (!container) { Logger.warn('consumableSlots element not found'); return; }
         container.innerHTML = '';
         const consumables = gameState.consumables || [];
-        consumables.forEach(card => {
-            uiManager.appendInventoryCard(card, container, {
-                onSell: (c) => uiManager.sellCard(c, gameState, gameEngine),
-                onUse: (c) => {
-                    const engine = gameEngine || window.game;
-                    if ((c instanceof LibationCard || c instanceof WorshipCard) && engine) uiManager.useConsumable(c, gameState, engine);
-                },
-                revealOn: 'click'
-            });
+        consumables.forEach((card) => {
+            uiManager.appendInventoryCard(card, container, {});
         });
         uiManager.bindConsumableHorizonDrag(container);
     },

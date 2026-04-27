@@ -3629,6 +3629,77 @@ body::after {
     background: rgba(10, 10, 12, 0.92);
 }
 
+#collectionScreen .modal-content {
+    width: min(1540px, calc(100% - 48px));
+    max-width: none !important;
+    max-height: calc(100% - 48px);
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+    padding: 20px 22px 18px;
+    border-radius: 14px;
+    border: 1px solid rgba(227, 197, 149, 0.3);
+    background: linear-gradient(180deg, rgba(20, 18, 17, 0.92) 0%, rgba(14, 12, 11, 0.9) 100%);
+    box-shadow:
+        inset 0 1px 0 rgba(255, 245, 220, 0.06),
+        0 20px 36px rgba(0, 0, 0, 0.45);
+}
+
+#collectionScreen .collection-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 16px;
+}
+
+#collectionScreen .collection-tabs {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 10px;
+}
+
+#collectionScreen .collection-tabs .divine-button {
+    padding: 9px 16px;
+    font-size: 1.03rem;
+    border-radius: 999px;
+}
+
+#collectionScreen .collection-tabs .divine-button.active {
+    border-color: rgba(249, 220, 170, 0.72);
+    box-shadow:
+        inset 0 1px 0 rgba(255, 247, 230, 0.28),
+        0 4px 0 rgba(62, 41, 24, 0.9),
+        0 0 0 1px rgba(242, 203, 146, 0.24);
+}
+
+.collection-pager {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 12px;
+    margin-top: -2px;
+}
+
+.collection-page-btn {
+    min-width: 44px;
+    height: 38px;
+    padding: 0;
+    border-radius: 8px;
+    font-size: 1.2rem;
+    line-height: 1;
+}
+
+.collection-page-indicator {
+    min-width: 132px;
+    text-align: center;
+    font-family: 'DisneyHeroic', sans-serif;
+    font-size: 0.95rem;
+    letter-spacing: 0.04em;
+    color: rgba(246, 230, 202, 0.95);
+}
+
 /* Modal fills viewport; bar sits below centre (Balatro: align "bm", bar with emboss) */
 #startScreen .modal-content.start-screen-modal {
     background: transparent;
@@ -3645,6 +3716,70 @@ body::after {
     justify-content: flex-end;
     align-items: center;
     padding-bottom: 60px;
+}
+
+.start-hero {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 22px;
+    pointer-events: none;
+    animation: startHeroFadeIn 0.9s ease-out;
+}
+
+.start-hero-title {
+    margin: 0;
+    font-family: 'Cinzel', 'DisneyHeroic', serif;
+    font-size: 52px;
+    font-weight: 700;
+    letter-spacing: 0.05em;
+    color: #f5e7ce;
+    text-shadow:
+        0 2px 0 rgba(0, 0, 0, 0.55),
+        0 0 20px rgba(184, 128, 67, 0.35);
+}
+
+.start-hero-sub {
+    margin: 0;
+    font-family: 'Cormorant Garamond', Georgia, serif;
+    font-size: 25px;
+    font-style: italic;
+    letter-spacing: 0.01em;
+    color: rgba(249, 235, 209, 0.96);
+    text-shadow: 0 1px 2px rgba(0, 0, 0, 0.45);
+}
+
+.start-version-pill {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    margin-top: 6px;
+    padding: 5px 12px;
+    border-radius: 999px;
+    border: 1px solid rgba(209, 168, 104, 0.7);
+    background: rgba(20, 14, 10, 0.58);
+    color: rgba(247, 226, 188, 0.95);
+    font-family: 'DisneyHeroic', sans-serif;
+    font-size: 14px;
+    letter-spacing: 0.04em;
+}
+
+@keyframes startHeroFadeIn {
+    from {
+        opacity: 0;
+        transform: translateY(8px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .start-hero {
+        animation: none;
+    }
 }
 
 /* Balatro-style bar: dark panel, padding, rounded, emboss (L_BLACK + emboss 0.1) */
@@ -3668,6 +3803,108 @@ body::after {
     flex-wrap: wrap;
 }
 
+.start-options .divine-button {
+    position: relative;
+    overflow: hidden;
+    border-radius: 10px;
+    border: 1px solid rgba(255, 233, 196, 0.28);
+    box-shadow:
+        inset 0 1px 0 rgba(255, 247, 227, 0.36),
+        0 5px 0 rgba(68, 36, 28, 0.9),
+        0 9px 18px rgba(0, 0, 0, 0.35);
+    letter-spacing: 0.035em;
+    font-weight: 700;
+    font-size: 1.24rem;
+    text-transform: uppercase;
+    text-shadow:
+        0 1px 0 rgba(36, 20, 10, 0.85),
+        0 2px 4px rgba(0, 0, 0, 0.45);
+}
+
+.start-options .divine-button::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(180deg, rgba(255, 255, 255, 0.22) 0%, rgba(255, 255, 255, 0) 52%);
+    pointer-events: none;
+}
+
+.start-options .divine-button::after {
+    content: '';
+    position: absolute;
+    top: -28%;
+    left: -20%;
+    width: 34%;
+    height: 170%;
+    transform: rotate(18deg) translateX(-260%);
+    background: linear-gradient(90deg, rgba(255, 255, 255, 0) 0%, rgba(255, 252, 236, 0.46) 52%, rgba(255, 255, 255, 0) 100%);
+    transition: transform 0.55s ease;
+    pointer-events: none;
+}
+
+.start-options .divine-button span,
+.start-options .divine-button {
+    isolation: isolate;
+}
+
+.start-options .divine-button .btn-ornament,
+.start-options .divine-button::selection {
+    background: transparent;
+}
+
+.start-options .divine-button > * {
+    position: relative;
+    z-index: 2;
+}
+
+.start-options .divine-button:hover::after {
+    transform: rotate(18deg) translateX(520%);
+}
+
+.start-options .divine-button:hover {
+    transform: translateY(-2px) scale(1.015);
+}
+
+.start-options .divine-button:active {
+    transform: translateY(1px) scale(0.995);
+}
+
+.start-options .divine-button:focus-visible {
+    outline: 2px solid rgba(255, 236, 188, 0.92);
+    outline-offset: 2px;
+}
+
+.start-options .divine-button#playButton,
+.start-options .divine-button#continueButton {
+    background: linear-gradient(140deg, #8f6be2 0%, #6d3bc3 52%, #4f2f8f 100%);
+    color: #fff8f0;
+}
+
+.start-options .divine-button#collectionButton {
+    background: linear-gradient(140deg, #ead4af 0%, #c8a57d 54%, #9e7c57 100%);
+    color: #fff8f0;
+    text-shadow:
+        0 1px 0 rgba(49, 29, 16, 0.78),
+        0 2px 3px rgba(0, 0, 0, 0.4);
+}
+
+.start-options .divine-button#settingsButton {
+    background: linear-gradient(140deg, #7f6652 0%, #5e4637 50%, #3a2a21 100%);
+    color: #f8e7d2;
+}
+
+/* Subtle vine-like engraved corners: decorative, not noisy. */
+.start-options .divine-button#playButton,
+.start-options .divine-button#collectionButton,
+.start-options .divine-button#settingsButton,
+.start-options .divine-button#continueButton {
+    background-image:
+        radial-gradient(circle at 12% 22%, rgba(255, 246, 227, 0.12) 0 2px, transparent 3px),
+        radial-gradient(circle at 88% 22%, rgba(255, 246, 227, 0.12) 0 2px, transparent 3px),
+        linear-gradient(140deg, rgba(255, 255, 255, 0.04), rgba(0, 0, 0, 0.08));
+    background-blend-mode: screen, screen, normal;
+}
+
 .seed-input-inline {
     padding: 12px 20px;
     border-radius: 8px;
@@ -3677,6 +3914,18 @@ body::after {
     font-family: 'DisneyHeroic', sans-serif;
     font-size: 1rem;
     min-width: 200px;
+    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.14), 0 4px 10px rgba(0, 0, 0, 0.28);
+    transition: border-color 0.2s ease, box-shadow 0.2s ease, background 0.2s ease;
+}
+
+.seed-input-inline:focus-visible {
+    outline: none;
+    border-color: rgba(244, 214, 154, 0.95);
+    background: rgba(0, 0, 0, 0.4);
+    box-shadow:
+        inset 0 1px 0 rgba(255, 255, 255, 0.14),
+        0 0 0 2px rgba(244, 214, 154, 0.25),
+        0 4px 12px rgba(0, 0, 0, 0.35);
 }
 
 .divine-button {
@@ -3726,7 +3975,7 @@ body::after {
 
 #collectionButton {
     background: linear-gradient(135deg, #F5F5DC, #DEB887);
-    color: #8B4513;
+    color: #fff8f0;
     box-shadow: 0 4px 8px rgba(222, 184, 135, 0.4);
 }
 
@@ -4768,50 +5017,92 @@ body::after {
     100% { left: 100%; }
 }
 
-/* Enhanced Collection Grid - Scrollable */
+/* Collection Grid: paged 3x3 wall */
 .collection-grid {
     display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+    grid-template-columns: repeat(3, 140px);
+    grid-template-rows: repeat(3, 187px);
     gap: 16px;
-    padding: 20px;
-    max-height: 600px; /* Make scrollable */
-    overflow-y: auto; /* Enable vertical scrolling */
-    overflow-x: hidden;
-}
-
-/* Custom scrollbar for collection */
-.collection-grid::-webkit-scrollbar {
-    width: 10px;
-}
-
-.collection-grid::-webkit-scrollbar-track {
-    background: rgba(0, 0, 0, 0.2);
-    border-radius: 5px;
-}
-
-.collection-grid::-webkit-scrollbar-thumb {
-    background: var(--stone-terracotta);
-    border-radius: 5px;
-}
-
-.collection-grid::-webkit-scrollbar-thumb:hover {
-    background: var(--accent-green);
+    padding: 14px 12px 16px;
+    max-height: none;
+    flex: 1 1 auto;
+    overflow: hidden;
+    align-content: start;
+    justify-content: center;
+    justify-items: center;
+    align-items: center;
 }
 
 .collection-grid .card {
     transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-    min-height: 250px; /* Ensure cards have minimum height */
+    width: 140px;
+    height: 187px;
+    min-width: 140px;
+    max-width: 140px;
+    min-height: 187px;
+    max-height: 187px;
+    margin: 0;
+    padding: 0 !important;
+    box-sizing: border-box;
+    overflow: hidden;
+    position: relative;
+}
+
+.collection-slot-placeholder {
+    width: 140px;
+    height: 187px;
+    min-height: 187px;
+    border-radius: 10px;
+    border: 1px dashed rgba(213, 184, 140, 0.22);
+    background: rgba(255, 255, 255, 0.02);
 }
 
 .collection-grid .card:hover {
-    transform: translateY(-12px) scale(1.08);
-    box-shadow: 0 16px 32px rgba(0, 0, 0, 0.4);
+    transform: translateY(-4px);
+    box-shadow: 0 10px 20px rgba(0, 0, 0, 0.34);
+    z-index: 2;
+}
+
+.collection-grid .card::before {
+    display: none !important;
+}
+
+/* Anthology normalization: keep all card families on the same footprint. */
+.collection-grid .artifact-card,
+.collection-grid .boon-card,
+.collection-grid .worship-card,
+.collection-grid .libation-card,
+.collection-grid .libation {
+    width: 140px !important;
+    height: 187px !important;
+    min-width: 140px !important;
+    max-width: 140px !important;
+    min-height: 187px !important;
+    max-height: 187px !important;
+}
+
+.collection-grid .artifact-card {
+    padding: 8px !important;
+}
+
+.collection-grid .artifact-card .card-content {
+    justify-content: center !important;
+    overflow: hidden;
 }
 
 /* Locked cards with fallback white background */
 .collection-grid .card.locked {
     opacity: 0.6;
     filter: grayscale(100%);
+}
+
+.collection-grid .card.locked .card-name,
+.collection-grid .card.locked .card-effect,
+.collection-grid .card.locked .card-rarity,
+.collection-grid .card.locked .card-god,
+.collection-grid .card.locked .card-cost,
+.collection-grid .card.locked .card-uses {
+    display: none !important;
 }
 
 /* Ensure fallback background is visible for locked cards */
@@ -8314,5 +8605,124 @@ body::after {
 .center-game-area .live-score-display.felt-live .equals-symbol {
     color: #fffbe8;
     text-shadow: 0 1px 3px rgba(0, 0, 0, 0.55);
+}
+
+/* --- Drag-first shop & inventory (no buy/sell/use chrome on cards) --- */
+.card-shop-cost {
+    margin-top: 6px;
+    padding: 4px 8px;
+    font-family: 'DisneyHeroic', sans-serif;
+    font-weight: 800;
+    font-size: 15px;
+    color: #e8ffc4;
+    text-align: center;
+    text-shadow: 0 1px 2px rgba(0, 0, 0, 0.55);
+    border: 2px solid rgba(120, 200, 100, 0.65);
+    border-radius: 6px;
+    background: rgba(20, 60, 40, 0.55);
+}
+
+.shop-drag-hint-banner {
+    max-height: none;
+    padding: 10px 14px;
+    margin: 8px 0 14px;
+    border-radius: 8px;
+    background: rgba(8, 32, 28, 0.55);
+    border: 1px solid rgba(106, 170, 158, 0.35);
+}
+
+.shop-drag-hint-text {
+    margin: 0;
+    font-size: 0.88rem;
+    line-height: 1.45;
+    color: #e8f4ef;
+    font-family: 'Cormorant Garamond', Georgia, serif;
+}
+
+.shop-drag-hint-text .hint-gold {
+    color: #f7d23b;
+    font-weight: 700;
+}
+
+.pack-drag-hint {
+    margin-top: 8px;
+    font-size: 0.72rem;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    text-align: center;
+    color: rgba(232, 244, 239, 0.82);
+    font-family: 'DisneyHeroic', sans-serif;
+}
+
+.pack-open-drag-hint {
+    margin: 0 16px 10px;
+    padding: 8px 12px;
+    text-align: center;
+    font-size: 0.88rem;
+    color: #e8f4ef;
+    font-family: 'Cormorant Garamond', Georgia, serif;
+    border-radius: 8px;
+    background: rgba(8, 32, 28, 0.45);
+    border: 1px solid rgba(106, 170, 158, 0.3);
+}
+
+.consumable-drag-hint,
+.boon-reorder-hint {
+    display: block;
+    margin-top: 6px;
+    max-width: 120px;
+    font-size: 0.65rem;
+    line-height: 1.25;
+    color: rgba(232, 244, 239, 0.72);
+    text-align: center;
+    font-family: 'DisneyHeroic', sans-serif;
+    letter-spacing: 0.02em;
+}
+
+.inventory-draggable,
+.shop-draggable-card,
+.shop-draggable-pack-shelf {
+    cursor: grab;
+    touch-action: none;
+}
+
+.inventory-draggable:active,
+.shop-draggable-card:active,
+.shop-draggable-pack-shelf:active {
+    cursor: grabbing;
+}
+
+.shop-drag-lift,
+.boon-card-dragging {
+    z-index: 12040;
+    position: relative;
+    filter: drop-shadow(0 10px 18px rgba(0, 0, 0, 0.45));
+}
+
+.main-game.shop-drag-active .felt-stone-gold.shop-drop-glow {
+    box-shadow:
+        inset 0 1px 0 rgba(255, 248, 220, 0.55),
+        0 0 16px rgba(255, 215, 0, 0.55),
+        0 0 28px rgba(255, 190, 80, 0.45);
+}
+
+.main-game.shop-drag-active #rightBoonBar.shop-drop-glow,
+.main-game.shop-drag-active #leftConsumableBar.shop-drop-glow {
+    outline: 3px dashed rgba(147, 197, 255, 0.75);
+    outline-offset: 4px;
+    border-radius: 8px;
+}
+
+.felt-stone-gold.shop-drop-target-hot {
+    transform: scale(1.06);
+}
+
+#rightBoonBar.shop-drop-target-hot,
+#leftConsumableBar.shop-drop-target-hot {
+    outline-color: rgba(255, 230, 140, 0.95);
+}
+
+.expulsion-choice-card {
+    cursor: pointer;
 }
 

@@ -28,7 +28,7 @@ const MUSIC_MASTER_BODY_Q = 1;
 
 class SoundManager {
     constructor() {
-        // Prefer Vite-served root paths; fallback supports Live Server from /game.
+        // Prefer Vite-served root paths; secondary path supports legacy static fallback.
         this._sfxBaseCandidates = ['sounds/', 'public/sounds/'];
         this._musicPrefixCandidates = ['', 'public/'];
         this._resolvedSfxBase = null;

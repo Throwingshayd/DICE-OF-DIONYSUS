@@ -25,12 +25,17 @@
             <div class="app-stage">
                 <!-- Start Screen (Balatro-style: bar below centre) -->
                 <div id="startScreen">
-                    <div class="modal-content start-screen-modal" style="text-align: center; border-color: var(--accent-green);">
+                    <div class="modal-content start-screen-modal">
+                        <div class="start-hero" aria-hidden="true">
+                            <h1 class="start-hero-title">Dice of Dionysus</h1>
+                            <p class="start-hero-sub">Cast fate. Court the gods. Build the pantheon.</p>
+                            <span class="start-version-pill">v1.5.0 — Layout Overhaul</span>
+                        </div>
                         <div class="main-menu-bar">
                             <div class="start-options">
                                 <button class="divine-button" id="playButton">Play</button>
                                 <button class="divine-button" id="continueButton" style="display: none;">Continue</button>
-                                <button class="divine-button" id="collectionButton" style="background: var(--bg-light-green);">Anthology</button>
+                                <button class="divine-button" id="collectionButton">Anthology</button>
                                 <button class="divine-button" id="settingsButton" title="Options">Settings</button>
                                 <input type="text" id="seedInput" placeholder="Enter Seed (optional)" class="seed-input-inline">
                             </div>
@@ -40,7 +45,7 @@
 
                 <!-- Collection Screen -->
                 <div id="collectionScreen" class="hidden">
-                    <div class="modal-content" style="max-width: 1200px;">
+                    <div class="modal-content">
                         <div class="collection-header">
                             <h2 class="shop-title">Discovered Lore</h2>
                             <button class="divine-button" id="backToStartButton">Back</button>
@@ -50,6 +55,11 @@
                             <button class="divine-button" data-tab="artifacts">Divine Artifacts</button>
                             <button class="divine-button" data-tab="worship">Worship Cards</button>
                             <button class="divine-button" data-tab="libations">Libations</button>
+                        </div>
+                        <div class="collection-pager" aria-label="Anthology page controls">
+                            <button class="divine-button collection-page-btn" id="collectionPrevPageBtn" aria-label="Previous page">←</button>
+                            <span class="collection-page-indicator" id="collectionPageIndicator">Page 1 / 1</span>
+                            <button class="divine-button collection-page-btn" id="collectionNextPageBtn" aria-label="Next page">→</button>
                         </div>
                         <div class="collection-grid" id="boonsCollectionGrid"></div>
                         <div class="collection-grid hidden" id="artifactsCollectionGrid"></div>
@@ -113,13 +123,14 @@
                 <div class="left-consumable-bar inventory-panel-consumables" id="leftConsumableBar">
                     <div class="consumable-slots card-area-squish card-area-vertical" id="consumableSlots"></div>
                     <span class="inventory-counter consumable-bar-counter" id="consumableSlotCounter">0/5</span>
+                    <span class="consumable-drag-hint" aria-hidden="true">Drag: worship ↑ · libation to dice · gold to sell</span>
                 </div>
 
                 <!-- 3. RIGHT BOON BAR — 5 slots vertical -->
                 <div class="right-boon-bar inventory-panel-boons" id="rightBoonBar">
                     <div class="boon-slots card-area-squish card-area-vertical" id="boonSlots"></div>
                     <span class="inventory-counter boon-bar-counter" id="boonSlotCounter">0/5</span>
-                    <span class="boon-reorder-hint" aria-hidden="true">Drag to rearrange</span>
+                    <span class="boon-reorder-hint" aria-hidden="true">Drag to gold to sell · onto another boon to reorder</span>
                 </div>
 
                 <!-- 4. CENTER GAME AREA — dice/shop stage swap + felt gnosis labels (siblings so they persist across stage swap) -->
@@ -197,7 +208,9 @@
                             <h2 class="shop-title"></h2>
                         </div>
                         <div id="shopDefaultView">
-                            <div id="shopInventory"></div>
+                            <div id="shopInventory" class="shop-drag-hint-banner">
+                                <p class="shop-drag-hint-text"><strong>Packs</strong> — drag to <span class="hint-gold">Gold</span> to buy. <strong>Wares</strong> — drag to your <strong>Boon</strong> (right) or <strong>Libation</strong> (left) column. <strong>Artifacts</strong> — drag to <span class="hint-gold">Gold</span> to claim.</p>
+                            </div>
                             <div class="shop-row shop-items" id="shopItemsRow">
                                 <div class="shop-section" id="shopArtifactsArea"><h4>Divine Artifacts</h4></div>
                                 <div class="shop-section" id="shopDirectSales"><h4>Wares</h4></div>
@@ -207,6 +220,7 @@
                             </div>
                         </div>
                         <div id="packOpeningView" class="hidden">
+                            <p class="pack-open-drag-hint">Drag one card to your <strong>Boon</strong> (right) or <strong>Libation</strong> (left) column to claim.</p>
                             <div class="shop-main-area">
                                 <div class="shop-section" id="packRevealedCards"><h4>Pack Contents</h4></div>
                                 <div class="shop-section" id="packPlayerConsumables"><h4>Your Libations</h4></div>
@@ -261,7 +275,7 @@
     <div class="overlay hidden" id="expulsionOverlay">
         <div class="modal-content expulsion-modal">
             <h3 class="shop-title" id="expulsionTitle">Make Room</h3>
-            <p id="expulsionSubtitle">Choose one to sell and make room:</p>
+            <p id="expulsionSubtitle">Tap a card to sell and make room:</p>
             <div class="expulsion-card-grid" id="expulsionCardGrid"></div>
             <button class="divine-button" id="expulsionCancelBtn">Cancel</button>
         </div>

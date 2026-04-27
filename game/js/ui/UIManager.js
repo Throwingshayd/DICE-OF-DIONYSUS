@@ -226,60 +226,110 @@ class UIManager {
     }
 
     /**
-     * Shared inventory card renderer — "call upon" this when adding buy/sell/use tags to any card type.
-     * Renders a card, wires action labels, and toggles visibility on card click.
-     * @param {Card} card - Card instance (Boon, LibationCard, WorshipCard)
-     * @param {HTMLElement} container - Parent to append to (boonSlots or consumableSlots)
-     * @param {Object} opts - { onSell, onUse, revealOn }
-     * @param {Function} opts.onSell - Called when sell label is clicked
-     * @param {Function} opts.onUse - Called when use label is clicked (consumables only)
-     * @param {'click'|'contextmenu'} [opts.revealOn='click'] - Event that toggles action labels visibility
+     * Shared inventory card renderer — "call upon" this for boon / consumable slots.
+     * Sell and use are pointer drag (gold stone, pantheon, dice) via bindBoonSlotDrag / bindConsumableHorizonDrag.
+     * @param {Card} card
+     * @param {HTMLElement} container
+     * @param {Object} [_opts] - Reserved for legacy; unused when cards have no action labels.
      */
-    appendInventoryCard(card, container, { onSell, onUse, revealOn = 'click' }) {
+    appendInventoryCard(card, container, _opts = {}) {
         const cardEl = card.render();
-        const sellLabel = cardEl.querySelector('.buy-sell-label.sell');
-        const useLabel = cardEl.querySelector('.buy-sell-label.use');
-
-        if (sellLabel && onSell) {
-            sellLabel.addEventListener('click', (e) => {
-                e.stopPropagation();
-                this.createRippleEffect(sellLabel, e);
-                onSell(card);
-            });
-        }
-
-        if (useLabel && onUse) {
-            useLabel.addEventListener('click', (e) => {
-                e.stopPropagation();
-                this.createRippleEffect(useLabel, e);
-                onUse(card);
-            });
-        }
-
-        const toggleActionLabels = (e) => {
-            if (e.target.closest('.buy-sell-label')) return;
-            container.querySelectorAll('.card').forEach(el => el.classList.remove('sell-label-visible'));
-            cardEl.classList.toggle('sell-label-visible');
-        };
-
-        cardEl.addEventListener(revealOn, (e) => {
-            e.preventDefault();
-            e.stopPropagation();
-            toggleActionLabels(e);
-        });
-
-        // Click outside: hide sell label when clicking away from cards
-        if (!container._sellLabelClickOutsideHandler) {
-            container._sellLabelClickOutsideHandler = (e) => {
-                if (!e.target.closest('.card') || !container.contains(e.target)) {
-                    container.querySelectorAll('.card').forEach(el => el.classList.remove('sell-label-visible'));
-                }
-            };
-            document.addEventListener('click', container._sellLabelClickOutsideHandler);
-        }
-
+        cardEl.classList.add('inventory-draggable');
         container.appendChild(cardEl);
         return cardEl;
+    }
+
+    /**
+     * Boon bar: drag to gold to sell; drag onto another boon to reorder.
+     * @param {HTMLElement} container - #boonSlots
+     */
+    bindBoonSlotDrag(container, gameState, gameEngine) {
+        if (!container || container._boonSlotDragBound) return;
+        container._boonSlotDragBound = true;
+        const TH = 14;
+        const pointIn = (px, py, el) => {
+            if (!el) return false;
+            const r = el.getBoundingClientRect();
+            return px >= r.left && px <= r.right && py >= r.top && py <= r.bottom;
+        };
+        const findBoon = (id) => (gameState.boons || []).find((b) => b.id === id);
+
+        container.addEventListener('pointerdown', (e) => {
+            if (e.button !== 0) return;
+            const cardEl = e.target.closest('.card');
+            if (!cardEl || !container.contains(cardEl)) return;
+            const id = cardEl.dataset.id;
+            if (!id || !findBoon(id)) return;
+            container._boonDrag = {
+                pointerId: e.pointerId,
+                cardEl,
+                id,
+                startX: e.clientX,
+                startY: e.clientY,
+                dragging: false,
+            };
+            try { cardEl.setPointerCapture(e.pointerId); } catch (_) { /* ignore */ }
+        });
+
+        const finish = (e) => {
+            const st = container._boonDrag;
+            if (!st || e.pointerId !== st.pointerId) return;
+            container._boonDrag = null;
+            try { st.cardEl.releasePointerCapture(e.pointerId); } catch (_) { /* ignore */ }
+            const gold = document.getElementById('goldStone');
+            const px = e.clientX;
+            const py = e.clientY;
+            gold?.classList.remove('drop-target-sell');
+            st.cardEl.classList.remove('boon-card-dragging');
+            document.querySelector('.main-game')?.classList.remove('boon-drag-active');
+            if (!st.dragging) return;
+            st.cardEl.style.removeProperty('transform');
+            const boon = findBoon(st.id);
+            if (!boon || !gameEngine) return;
+            if (pointIn(px, py, gold)) {
+                this.shopUI?.sellCard(boon, gameState, gameEngine);
+                return;
+            }
+            const stack = document.elementsFromPoint(px, py);
+            let targetEl = null;
+            for (const node of stack) {
+                const c = node.closest?.('.card');
+                if (c && container.contains(c) && c !== st.cardEl && c.dataset.id) {
+                    targetEl = c;
+                    break;
+                }
+            }
+            if (targetEl) {
+                const boons = gameState.boons;
+                const fromIndex = boons.findIndex((b) => b.id === st.id);
+                const toIndex = boons.findIndex((b) => b.id === targetEl.dataset.id);
+                if (fromIndex !== -1 && toIndex !== -1 && fromIndex !== toIndex) {
+                    const [moved] = boons.splice(fromIndex, 1);
+                    boons.splice(fromIndex < toIndex ? toIndex - 1 : toIndex, 0, moved);
+                    if (window.soundManager) window.soundManager.play('button', { volume: 0.4 });
+                    gameEngine.updateAllUI();
+                }
+            }
+        };
+
+        container.addEventListener('pointermove', (e) => {
+            const st = container._boonDrag;
+            if (!st || e.pointerId !== st.pointerId) return;
+            const dx = e.clientX - st.startX;
+            const dy = e.clientY - st.startY;
+            if (!st.dragging && (dx * dx + dy * dy) >= TH * TH) {
+                st.dragging = true;
+                st.cardEl.classList.add('boon-card-dragging');
+                document.querySelector('.main-game')?.classList.add('boon-drag-active');
+            }
+            if (st.dragging) {
+                st.cardEl.style.transform = `translate(${dx}px, ${dy}px)`;
+                const gold = document.getElementById('goldStone');
+                gold?.classList.toggle('drop-target-sell', pointIn(e.clientX, e.clientY, gold));
+            }
+        });
+        container.addEventListener('pointerup', finish);
+        container.addEventListener('pointercancel', finish);
     }
 
     /**
@@ -369,7 +419,10 @@ class UIManager {
             clone.style.zIndex = '10050';
             clone.style.pointerEvents = 'none';
             document.body.appendChild(clone);
+            let finished = false;
             const done = () => {
+                if (finished) return;
+                finished = true;
                 clone.remove();
                 if (onDone) onDone();
             };
@@ -380,7 +433,7 @@ class UIManager {
         container.addEventListener('pointerdown', (e) => {
             if (e.button !== 0) return;
             const cardEl = e.target.closest('.card');
-            if (!cardEl || !container.contains(cardEl) || e.target.closest('.buy-sell-label')) return;
+            if (!cardEl || !container.contains(cardEl)) return;
             const id = cardEl.dataset.id;
             if (!id) return;
             const game = window.game;
