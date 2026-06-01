@@ -389,6 +389,19 @@ class UIManager {
             return null;
         };
 
+        const clearDragChrome = (main) => {
+            if (main) {
+                main.classList.remove(
+                    'consumable-drag-active',
+                    'drag-type-worship',
+                    'drag-type-libation'
+                );
+            }
+            const z = getZones();
+            z.worship?.classList.remove('zone-hot');
+            z.libation?.classList.remove('zone-hot');
+        };
+
         const endDrag = (state, cancelled) => {
             if (!state) return;
             const { cardEl, main, pointerId } = state;
@@ -398,7 +411,7 @@ class UIManager {
                     try { cardEl.releasePointerCapture(pointerId); } catch (_) { /* already released */ }
                 }
             }
-            if (main) main.classList.remove('consumable-drag-active');
+            clearDragChrome(main);
             document.getElementById('goldStone')?.classList.remove('drop-target-sell');
             if (cancelled && cardEl) {
                 cardEl.style.removeProperty('transform');
@@ -462,20 +475,25 @@ class UIManager {
                 st.dragging = true;
                 st.main = getZones().main;
                 st.main?.classList.add('consumable-drag-active');
-                // Reveal only the drop zones relevant to the dragged card type (human, Balatro-mobile feel).
-                const isW = typeof WorshipCard !== 'undefined' && st.card instanceof WorshipCard;
-                const isL = typeof LibationCard !== 'undefined' && st.card instanceof LibationCard;
-                st.main?.classList.toggle('drag-type-worship', isW);
-                st.main?.classList.toggle('drag-type-libation', isL);
+                const card = st.card;
+                const isWorship = typeof WorshipCard !== 'undefined' && card instanceof WorshipCard;
+                const isLibation = typeof LibationCard !== 'undefined' && card instanceof LibationCard;
+                if (isWorship) st.main?.classList.add('drag-type-worship');
+                else if (isLibation) st.main?.classList.add('drag-type-libation');
                 st.cardEl.classList.add('consumable-card-dragging');
             }
             if (st.dragging) {
                 st.cardEl.style.transform = `translate(${dx}px, ${dy}px)`;
-                const z = getZones();
-                if (z.sellStone) z.sellStone.classList.toggle('drop-target-sell', pointIn(e.clientX, e.clientY, z.sellStone));
-                // Light up the zone the pointer is currently over so the target is unmistakable.
-                if (z.worship) z.worship.classList.toggle('zone-hot', pointIn(e.clientX, e.clientY, z.worship));
-                if (z.libation) z.libation.classList.toggle('zone-hot', pointIn(e.clientX, e.clientY, z.libation));
+                const zones = getZones();
+                if (zones.sellStone) {
+                    zones.sellStone.classList.toggle('drop-target-sell', pointIn(e.clientX, e.clientY, zones.sellStone));
+                }
+                if (zones.worship) {
+                    zones.worship.classList.toggle('zone-hot', pointIn(e.clientX, e.clientY, zones.worship));
+                }
+                if (zones.libation) {
+                    zones.libation.classList.toggle('zone-hot', pointIn(e.clientX, e.clientY, zones.libation));
+                }
             }
         });
 

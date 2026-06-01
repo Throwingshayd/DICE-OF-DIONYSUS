@@ -166,7 +166,6 @@ class GameEngine {
             const libId = testMode.replace('libation:', '').trim();
             this.applyLibationTestMode(libId);
         }
-        // ?test=worship:worshipid - inject worship card for playtesting
         if (testMode && testMode.startsWith('worship:')) {
             const worshipId = testMode.replace('worship:', '').trim();
             this.applyWorshipTestMode(worshipId);
@@ -230,17 +229,17 @@ class GameEngine {
 
     /**
      * Test mode: Inject a worship card for playtesting
-     * @param {string} worshipId - e.g. 'worship_zeus'
+     * @param {string} worshipId
      */
     applyWorshipTestMode(worshipId) {
-        const data = typeof CardData !== 'undefined' && CardData.worship
+        const worshipData = typeof CardData !== 'undefined' && CardData.worship
             ? CardData.worship.find(w => w.id === worshipId)
             : null;
-        if (!data) {
+        if (!worshipData) {
             if (typeof Logger !== 'undefined') Logger.warn(`Test mode: Worship "${worshipId}" not found`);
             return;
         }
-        const worship = new WorshipCard(data);
+        const worship = new WorshipCard(worshipData);
         this.state.consumables.push(worship);
         if (typeof Logger !== 'undefined') Logger.info(`🧪 TEST MODE: Injected worship "${worshipId}"`);
     }
