@@ -151,6 +151,7 @@ class UIManager {
             const rollButton = document.createElement('button');
             rollButton.id = 'rollButton';
             rollButton.className = 'roll-button';
+            rollButton.dataset.testid = 'roll-button';
             rollButton.textContent = 'Cast the Bones';
             
             rollingControls.insertBefore(rollButton, rollingControls.firstChild);
