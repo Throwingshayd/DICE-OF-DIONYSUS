@@ -15,7 +15,7 @@ export default defineConfig({
   server: {
     port: 3000,
     // Listen on all interfaces (Cursor port forwarding, LAN, WSL, cloud VM)
-    host: '0.0.0.0',
+    host: true, // 0.0.0.0 + IPv6 (::1) for localhost
     // Do not auto-open a browser on the remote VM — use Ports / http://localhost:3000 locally
     open: false,
     cors: true,
