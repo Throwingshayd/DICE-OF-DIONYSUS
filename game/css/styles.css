@@ -8884,3 +8884,11 @@ body::after {
     line-height: 1.3;
 }
 
+
+/* Fix: drag zones had no stacking context and painted BEHIND the felt/dice
+   (invisible even at opacity 1). Lift them above the board while dragging;
+   pointer-events stay off so they never block a drop. The dragged card
+   (z-index 100) still floats above these. */
+.center-game-area .consumable-zone {
+    z-index: 60;
+}
