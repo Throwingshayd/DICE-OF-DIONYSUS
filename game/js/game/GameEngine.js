@@ -166,6 +166,11 @@ class GameEngine {
             const libId = testMode.replace('libation:', '').trim();
             this.applyLibationTestMode(libId);
         }
+        // ?test=worship:worshipid - inject worship card for playtesting
+        if (testMode && testMode.startsWith('worship:')) {
+            const worshipId = testMode.replace('worship:', '').trim();
+            this.applyWorshipTestMode(worshipId);
+        }
         // ?enhance=iron (or parchment, gold) - add enhancements to dice for playtesting
         const enhanceParam = urlParams.get('enhance');
         if (enhanceParam) {
