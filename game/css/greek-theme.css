@@ -1,0 +1,232 @@
+/* ============================================================================
+   GREEK THEME RENEWAL
+   Authentic Hellenic styling layered on top of the existing layout.
+   Loaded AFTER styles.css so it wins the cascade. Pure CSS (palette tokens,
+   marble/gold gradients, an SVG Greek-key meander) — no binary assets.
+
+   Sections:
+     1) Palette + reusable backgrounds
+     2) In-game stage background
+     3) Play arena (felt medallion that frames the dice)
+     4) Pantheon — symmetrical, growth-friendly rows on a marble frieze
+     5) Side panels — marble stelae for Libations (left) and Boons (right)
+     6) Stones — carved marble/bronze medallions
+   ============================================================================ */
+
+:root {
+    /* Aegean sea + wine-dark depths */
+    --gk-sea-1: #114048;
+    --gk-sea-2: #0c2e34;
+    --gk-sea-3: #07181c;
+    /* Pentelic marble */
+    --gk-marble-1: #f7f2e6;
+    --gk-marble-2: #ece2cc;
+    --gk-marble-3: #d9c8a6;
+    /* Gilt + bronze */
+    --gk-gold-1: #f4d680;
+    --gk-gold-2: #cda24c;
+    --gk-gold-3: #9a7730;
+    --gk-bronze: #7d5a2e;
+    /* Ink for text on marble */
+    --gk-ink: #34250f;
+    --gk-ink-soft: #6a5230;
+    --gk-terracotta: #b5532f;
+}
+
+/* Reusable marble surface (light, top-lit) */
+/* Reusable gold double-rule via box-shadow handled inline per element. */
+
+/* Greek-key meander tile (gold key glyph, transparent ground) used as a
+   repeating horizontal band on framed panels. Self-contained glyph → tiles
+   seamlessly with even spacing. */
+
+/* ── 2. IN-GAME STAGE BACKGROUND ───────────────────────────────────────── */
+#gameViewport.game-screen .main-game {
+    background:
+        radial-gradient(120% 85% at 50% 36%, rgba(40, 104, 94, 0.45) 0%, rgba(8, 26, 30, 0) 62%),
+        radial-gradient(140% 120% at 50% 120%, rgba(7, 20, 24, 0.85) 0%, rgba(7, 20, 24, 0) 55%),
+        linear-gradient(180deg, var(--gk-sea-1) 0%, var(--gk-sea-2) 52%, var(--gk-sea-3) 100%);
+}
+
+/* ── 3. PLAY ARENA — felt medallion that cradles the dice ──────────────── */
+/* Drop the old table art; the medallion below provides the surface. */
+.center-game-area .game-board-bg {
+    background-image: none;
+}
+
+.center-game-area .dice-roll-zone {
+    background:
+        radial-gradient(ellipse at 50% 40%, rgba(52, 116, 102, 0.55) 0%, rgba(12, 44, 39, 0.92) 70%),
+        radial-gradient(ellipse at 50% 100%, rgba(6, 22, 20, 0.9) 0%, rgba(6, 22, 20, 0) 60%);
+    border-radius: 9999px;
+    box-shadow:
+        inset 0 0 0 4px rgba(205, 162, 76, 0.75),
+        inset 0 0 0 10px rgba(244, 214, 128, 0.18),
+        inset 0 0 90px rgba(0, 0, 0, 0.55),
+        0 16px 60px rgba(0, 0, 0, 0.5);
+}
+
+/* ── 4. PANTHEON — marble frieze with symmetrical, growable rows ───────── */
+.main-game .pantheon-frieze {
+    top: -10px;
+    padding: 30px 26px 26px;
+    background:
+        linear-gradient(160deg, rgba(255, 255, 255, 0.55) 0%, rgba(255, 255, 255, 0) 38%),
+        linear-gradient(180deg, var(--gk-marble-1) 0%, var(--gk-marble-2) 60%, var(--gk-marble-3) 100%);
+    border: 2px solid var(--gk-gold-2);
+    border-radius: 16px;
+    box-shadow:
+        inset 0 1px 0 rgba(255, 255, 255, 0.7),
+        inset 0 0 0 1px rgba(154, 119, 48, 0.25),
+        0 12px 34px rgba(0, 0, 0, 0.42);
+    overflow: visible;
+}
+
+/* Gold meander bands top & bottom of the frieze */
+.main-game .pantheon-frieze::before,
+.main-game .pantheon-frieze::after {
+    content: "";
+    position: absolute;
+    left: 18px;
+    right: 18px;
+    height: 16px;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='32' height='16' viewBox='0 0 32 16'%3E%3Cpath d='M27 3 V13 H7 V6 H21 V10 H12' fill='none' stroke='%23cda24c' stroke-width='2.4' stroke-linejoin='miter' stroke-linecap='butt'/%3E%3C/svg%3E");
+    background-repeat: repeat-x;
+    background-size: auto 16px;
+    opacity: 0.9;
+    pointer-events: none;
+}
+.main-game .pantheon-frieze::before { top: 8px; }
+.main-game .pantheon-frieze::after { bottom: 8px; }
+
+/* Tiers become centered, evenly-spaced flex rows (symmetry + growth). */
+.main-game .pantheon-frieze .pantheon-tier {
+    display: flex;
+    flex-direction: row;
+    flex-wrap: nowrap;
+    justify-content: center;
+    align-items: stretch;
+    gap: 8px;
+    width: 100%;
+    height: auto;
+    min-height: 0;
+    margin: 0;
+    padding: 0;
+}
+.main-game .pantheon-frieze .pantheon-tier-upper { margin-bottom: 10px; }
+.main-game .pantheon-frieze .pantheon-tier-lower { margin-top: 0; }
+
+/* Chips: clean upright marble tablets in the flow (no scatter/rotation). */
+.main-game .pantheon-frieze .pantheon-chip {
+    position: relative !important;
+    left: auto !important;
+    top: auto !important;
+    transform: none !important;
+    width: 140px !important;
+    min-width: 140px !important;
+    max-width: 140px !important;
+    margin: 0 !important;
+    padding: 7px 8px;
+    min-height: 56px;
+    --chip-bg: linear-gradient(180deg, #fffdf6 0%, #f3ead4 100%);
+    --chip-border: #c9b073;
+    color: var(--gk-ink);
+}
+/* Flatten the wedge so tablets read crisp and aligned. */
+.main-game .pantheon-frieze .pantheon-chip::before {
+    transform: none !important;
+    border: 1px solid var(--gk-gold-2);
+    background: linear-gradient(180deg, #fffdf6 0%, #f4ebd6 55%, #eee0c4 100%);
+    box-shadow: inset 0 1px 0 #fffef8, inset 0 0 0 1px rgba(255, 255, 255, 0.5);
+}
+.main-game .pantheon-frieze .pantheon-chip span {
+    color: var(--gk-ink);
+}
+.main-game .pantheon-frieze .pantheon-chip .potential-score {
+    color: var(--gk-bronze);
+}
+.main-game .pantheon-frieze .pantheon-chip:hover:not(.used) {
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.28);
+}
+.main-game .pantheon-frieze .pantheon-chip.used {
+    filter: saturate(0.6) brightness(0.96);
+}
+
+/* ── 5. SIDE PANELS — marble stelae (Libations left, Boons right) ──────── */
+.main-game .left-consumable-bar.inventory-panel-consumables,
+.main-game .right-boon-bar.inventory-panel-boons {
+    padding-top: 48px;
+}
+
+.main-game .left-consumable-bar.inventory-panel-consumables::before,
+.main-game .right-boon-bar.inventory-panel-boons::before {
+    inset: 6px 4px 18px;
+    border-radius: 18px;
+    background:
+        linear-gradient(150deg, rgba(255, 255, 255, 0.5) 0%, rgba(255, 255, 255, 0) 34%),
+        linear-gradient(180deg, var(--gk-marble-1) 0%, var(--gk-marble-2) 55%, var(--gk-marble-3) 100%);
+    border: 2px solid var(--gk-gold-2);
+    box-shadow:
+        inset 0 1px 0 rgba(255, 255, 255, 0.7),
+        inset 0 0 0 1px rgba(154, 119, 48, 0.22),
+        0 10px 26px rgba(0, 0, 0, 0.4);
+}
+
+/* Carved header cartouche at the top of each stele. */
+.main-game .left-consumable-bar.inventory-panel-consumables::after,
+.main-game .right-boon-bar.inventory-panel-boons::after {
+    position: absolute;
+    top: 12px;
+    left: 50%;
+    transform: translateX(-50%);
+    font-family: 'Cinzel', 'Cormorant Garamond', serif;
+    font-weight: 700;
+    font-size: 15px;
+    letter-spacing: 0.14em;
+    color: var(--gk-ink);
+    text-shadow: 0 1px 0 rgba(255, 255, 255, 0.6);
+    white-space: nowrap;
+    z-index: 2;
+    pointer-events: none;
+}
+.main-game .left-consumable-bar.inventory-panel-consumables::after { content: "LIBATIONS"; }
+.main-game .right-boon-bar.inventory-panel-boons::after { content: "BOONS"; }
+
+/* Keep the count chips legible on marble. */
+.main-game .left-consumable-bar .consumable-bar-counter,
+.main-game .right-boon-bar .boon-bar-counter {
+    color: var(--gk-ink);
+    text-shadow: 0 1px 0 rgba(255, 255, 255, 0.5);
+}
+
+/* ── 6. STONES — carved marble medallions with gold rims ───────────────── */
+.center-game-area .felt-stone {
+    background:
+        radial-gradient(120% 120% at 30% 18%, rgba(255, 255, 255, 0.6) 0%, rgba(255, 255, 255, 0) 45%),
+        linear-gradient(180deg, var(--gk-marble-1) 0%, var(--gk-marble-2) 60%, var(--gk-marble-3) 100%);
+    border: 2px solid var(--gk-gold-2);
+    border-radius: 14px;
+    box-shadow:
+        inset 0 1px 0 rgba(255, 255, 255, 0.7),
+        0 4px 12px rgba(0, 0, 0, 0.4);
+}
+.center-game-area .felt-stone .felt-stone-label {
+    color: var(--gk-ink-soft);
+}
+.center-game-area .felt-stone .felt-stone-value,
+.center-game-area .felt-stone-rolls .rolls-left,
+.center-game-area .felt-stone-gold .felt-stone-value,
+.center-game-area .felt-stone-gold .felt-stone-suffix {
+    color: var(--gk-ink);
+    text-shadow: 0 1px 0 rgba(255, 255, 255, 0.45);
+}
+
+/* Felt labels (Required / Total) — gilded text on the dark felt. */
+.center-game-area .felt-label .felt-label-name {
+    color: var(--gk-gold-1);
+    letter-spacing: 0.08em;
+}
+.center-game-area .felt-label .felt-label-value {
+    color: #fff6df;
+    text-shadow: 0 2px 6px rgba(0, 0, 0, 0.55);
+}
