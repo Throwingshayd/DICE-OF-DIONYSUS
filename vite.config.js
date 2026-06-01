@@ -14,12 +14,18 @@ export default defineConfig({
   // Development server configuration
   server: {
     port: 3000,
-    open: true,
+    // Listen on all interfaces (Cursor port forwarding, LAN, WSL, cloud VM)
+    host: '0.0.0.0',
+    // Do not auto-open a browser on the remote VM — use Ports / http://localhost:3000 locally
+    open: false,
     cors: true,
     strictPort: true,
-    // Windows: some setups resolve "localhost" to ::1 while the server is IPv4-first; explicit HMR host reduces WS failures
+    allowedHosts: true,
+    // HMR: keep websocket on the same port users forward (avoids blank page / "won't load")
     hmr: {
       host: 'localhost',
+      port: 3000,
+      clientPort: 3000,
       protocol: 'ws',
     },
   },
