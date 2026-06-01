@@ -462,12 +462,20 @@ class UIManager {
                 st.dragging = true;
                 st.main = getZones().main;
                 st.main?.classList.add('consumable-drag-active');
+                // Reveal only the drop zones relevant to the dragged card type (human, Balatro-mobile feel).
+                const isW = typeof WorshipCard !== 'undefined' && st.card instanceof WorshipCard;
+                const isL = typeof LibationCard !== 'undefined' && st.card instanceof LibationCard;
+                st.main?.classList.toggle('drag-type-worship', isW);
+                st.main?.classList.toggle('drag-type-libation', isL);
                 st.cardEl.classList.add('consumable-card-dragging');
             }
             if (st.dragging) {
                 st.cardEl.style.transform = `translate(${dx}px, ${dy}px)`;
-                const sellStone = getZones().sellStone;
-                if (sellStone) sellStone.classList.toggle('drop-target-sell', pointIn(e.clientX, e.clientY, sellStone));
+                const z = getZones();
+                if (z.sellStone) z.sellStone.classList.toggle('drop-target-sell', pointIn(e.clientX, e.clientY, z.sellStone));
+                // Light up the zone the pointer is currently over so the target is unmistakable.
+                if (z.worship) z.worship.classList.toggle('zone-hot', pointIn(e.clientX, e.clientY, z.worship));
+                if (z.libation) z.libation.classList.toggle('zone-hot', pointIn(e.clientX, e.clientY, z.libation));
             }
         });
 
