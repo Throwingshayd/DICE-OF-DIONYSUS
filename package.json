@@ -16,6 +16,8 @@
     "preview": "vite preview",
     "test": "vitest run",
     "test:ui": "vitest --ui",
+    "test:smoke": "playwright test tests/e2e/smoke.spec.js",
+    "test:e2e": "playwright test tests/e2e",
     "playtest:boons": "playwright test tests/e2e/boon-playtest.spec.js",
     "lint": "eslint game/js/**/*.js",
     "lint:fix": "eslint game/js/**/*.js --fix",
