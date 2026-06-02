@@ -1,0 +1,666 @@
+/* ============================================================================
+   GREEK THEME RENEWAL
+   Authentic Hellenic styling layered on top of the existing layout.
+   Loaded AFTER styles.css so it wins the cascade. Pure CSS (palette tokens,
+   marble/gold gradients, an SVG Greek-key meander) — no binary assets.
+
+   Sections:
+     1) Palette + reusable backgrounds
+     2) In-game stage background
+     3) Play arena (felt medallion that frames the dice)
+     4) Pantheon — symmetrical, growth-friendly rows on a marble frieze
+     5) Side panels — marble stelae for Libations (left) and Boons (right)
+     6) Stones — carved marble/bronze medallions
+   ============================================================================ */
+
+:root {
+    /* Aegean sea + wine-dark depths */
+    --gk-sea-1: #114048;
+    --gk-sea-2: #0c2e34;
+    --gk-sea-3: #07181c;
+    /* Pentelic marble */
+    --gk-marble-1: #f7f2e6;
+    --gk-marble-2: #ece2cc;
+    --gk-marble-3: #d9c8a6;
+    /* Gilt + bronze */
+    --gk-gold-1: #f4d680;
+    --gk-gold-2: #cda24c;
+    --gk-gold-3: #9a7730;
+    --gk-bronze: #7d5a2e;
+    /* Ink for text on marble */
+    --gk-ink: #34250f;
+    --gk-ink-soft: #6a5230;
+    --gk-terracotta: #b5532f;
+}
+
+/* Reusable marble surface (light, top-lit) */
+/* Reusable gold double-rule via box-shadow handled inline per element. */
+
+/* Greek-key meander tile (gold key glyph, transparent ground) used as a
+   repeating horizontal band on framed panels. Self-contained glyph → tiles
+   seamlessly with even spacing. */
+
+/* ── 2. IN-GAME STAGE BACKGROUND ───────────────────────────────────────── */
+#gameViewport.game-screen .main-game {
+    background:
+        radial-gradient(120% 85% at 50% 36%, rgba(40, 104, 94, 0.45) 0%, rgba(8, 26, 30, 0) 62%),
+        radial-gradient(140% 120% at 50% 120%, rgba(7, 20, 24, 0.85) 0%, rgba(7, 20, 24, 0) 55%),
+        linear-gradient(180deg, var(--gk-sea-1) 0%, var(--gk-sea-2) 52%, var(--gk-sea-3) 100%);
+}
+
+/* ── 3. PLAY ARENA — keep dice-table art; dice stack floats above (see DICE STACK) */
+.main-game .center-game-area .game-board-bg {
+    background-color: transparent;
+    background-image: url("/ART/dice table.png");
+    background-size: 78% 126%;
+    background-position: center center;
+    background-repeat: no-repeat;
+    opacity: 0.96;
+}
+
+/* Felt play oval — no decorative ring (keeps dice-roll-zone for layout/drag). */
+.main-game .center-game-area .dice-roll-zone {
+    background: transparent;
+    box-shadow: none;
+}
+
+/* ── 4. PANTHEON — rectangular marble frieze (photo reference); chips stay on arch via JS ─ */
+.main-game .pantheon-frieze {
+    top: -10px;
+    min-height: 0;
+    padding: 28px 22px 20px;
+    border-radius: 16px;
+    position: absolute;
+    background:
+        linear-gradient(160deg, rgba(255, 255, 255, 0.55) 0%, rgba(255, 255, 255, 0) 38%),
+        linear-gradient(180deg, var(--gk-marble-1) 0%, var(--gk-marble-2) 60%, var(--gk-marble-3) 100%) !important;
+    border: 2px solid var(--gk-gold-2) !important;
+    box-shadow:
+        inset 0 1px 0 rgba(255, 255, 255, 0.7),
+        inset 0 0 0 1px rgba(154, 119, 48, 0.25),
+        0 12px 34px rgba(0, 0, 0, 0.42) !important;
+    overflow: visible;
+    z-index: 11;
+}
+
+/* Gold meander bands top & bottom of the frieze */
+.main-game .pantheon-frieze::before,
+.main-game .pantheon-frieze::after {
+    content: "";
+    position: absolute;
+    left: 18px;
+    right: 18px;
+    height: 16px;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='32' height='16' viewBox='0 0 32 16'%3E%3Cpath d='M27 3 V13 H7 V6 H21 V10 H12' fill='none' stroke='%23cda24c' stroke-width='2.4' stroke-linejoin='miter' stroke-linecap='butt'/%3E%3C/svg%3E");
+    background-repeat: repeat-x;
+    background-size: auto 16px;
+    opacity: 0.92;
+    pointer-events: none;
+    z-index: 1;
+}
+.main-game .pantheon-frieze::before { top: 8px; }
+.main-game .pantheon-frieze::after { bottom: 8px; }
+
+.main-game .pantheon-frieze .pantheon-tier {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    align-content: flex-start;
+    align-items: stretch;
+    gap: 8px 10px;
+    position: relative;
+    width: 100%;
+    margin: 0;
+    padding: 24px 14px 12px;
+    overflow: visible;
+    z-index: 2;
+}
+
+.main-game .pantheon-frieze .pantheon-tier-upper {
+    height: auto;
+    min-height: 0;
+    margin-bottom: 6px;
+    padding-top: 30px;
+}
+
+.main-game .pantheon-frieze .pantheon-tier-lower {
+    height: auto;
+    min-height: 0;
+    margin-top: 0;
+    padding-top: 22px;
+}
+
+.main-game .pantheon-frieze .pantheon-tier-upper::before {
+    content: "Greater Pantheon";
+    position: absolute;
+    top: 8px;
+    left: 50%;
+    transform: translateX(-50%);
+    font-family: "Cinzel", "Cormorant Garamond", serif;
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 0.14em;
+    color: var(--gk-ink-soft);
+    opacity: 0.88;
+    pointer-events: none;
+    z-index: 3;
+    white-space: nowrap;
+}
+
+.main-game .pantheon-frieze .pantheon-tier-lower::before {
+    content: "Lesser Pantheon";
+    position: absolute;
+    top: 2px;
+    left: 50%;
+    transform: translateX(-50%);
+    font-family: "Cinzel", "Cormorant Garamond", serif;
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 0.14em;
+    color: var(--gk-ink-soft);
+    opacity: 0.88;
+    pointer-events: none;
+    z-index: 3;
+    white-space: nowrap;
+}
+
+/* Orthogonal rows — override arch absolute seats from styles.css */
+.main-game .pantheon-frieze .pantheon-chip {
+    position: relative;
+    left: auto !important;
+    top: auto !important;
+    width: 136px !important;
+    min-width: 136px !important;
+    max-width: 136px !important;
+    padding: 7px 8px;
+    min-height: 54px;
+    --chip-bg: #fffdf6;
+    --chip-border: #c9b073;
+    --chip-rot: 0deg !important;
+    color: var(--gk-ink);
+    transform: none !important;
+    z-index: 4;
+    flex: 0 0 auto;
+}
+
+.main-game .pantheon-frieze .pantheon-chip::before {
+    border: 1px solid var(--gk-gold-2);
+    background: linear-gradient(180deg, #fffdf6 0%, #f4ebd6 55%, #eee0c4 100%);
+    box-shadow: inset 0 1px 0 #fffef8, inset 0 0 0 1px rgba(255, 255, 255, 0.5);
+    transform: none;
+}
+
+.main-game .pantheon-frieze .pantheon-chip span,
+.main-game .pantheon-frieze .pantheon-chip .pantheon-cat,
+.main-game .pantheon-frieze .pantheon-chip .pantheon-deity {
+    color: var(--gk-ink);
+}
+
+.main-game .pantheon-frieze .pantheon-chip > span:first-child {
+    font-size: 11.5px;
+    line-height: 1.15;
+}
+
+.main-game .pantheon-frieze .pantheon-chip .potential-score {
+    color: var(--gk-bronze);
+}
+
+.main-game .pantheon-frieze .pantheon-chip:hover:not(.used) {
+    box-shadow: 0 4px 14px rgba(0, 0, 0, 0.3);
+    transform: translateY(-2px) !important;
+}
+
+.main-game .pantheon-frieze .pantheon-chip.used {
+    filter: saturate(0.62) brightness(0.96);
+}
+
+/* ── 5. SIDE PANELS — marble stelae (Libations left, Boons right) ──────── */
+.main-game .left-consumable-bar.inventory-panel-consumables,
+.main-game .right-boon-bar.inventory-panel-boons {
+    padding-top: 48px;
+    z-index: 8;
+    position: absolute;
+}
+
+.main-game .left-consumable-bar.inventory-panel-consumables::before,
+.main-game .right-boon-bar.inventory-panel-boons::before {
+    content: "";
+    position: absolute;
+    inset: 6px 4px 18px;
+    z-index: 0;
+    border-radius: 18px;
+    border: 2px solid var(--gk-gold-2);
+    background-color: var(--gk-marble-2);
+    background-image:
+        url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='32' height='16' viewBox='0 0 32 16'%3E%3Cpath d='M27 3 V13 H7 V6 H21 V10 H12' fill='none' stroke='%23cda24c' stroke-width='2.4' stroke-linejoin='miter' stroke-linecap='butt'/%3E%3C/svg%3E"),
+        linear-gradient(150deg, rgba(255, 255, 255, 0.52) 0%, rgba(255, 255, 255, 0) 36%),
+        linear-gradient(180deg, var(--gk-marble-1) 0%, var(--gk-marble-2) 55%, var(--gk-marble-3) 100%);
+    background-repeat: repeat-x, no-repeat, no-repeat;
+    background-size: auto 12px, 100% 100%, 100% 100%;
+    background-position: center 34px, 0 0, 0 0;
+    box-shadow:
+        inset 0 1px 0 rgba(255, 255, 255, 0.7),
+        inset 0 0 0 1px rgba(154, 119, 48, 0.22),
+        0 10px 26px rgba(0, 0, 0, 0.4);
+    pointer-events: none;
+}
+
+.main-game .left-consumable-bar.inventory-panel-consumables::after,
+.main-game .right-boon-bar.inventory-panel-boons::after {
+    position: absolute;
+    top: 14px;
+    left: 50%;
+    transform: translateX(-50%);
+    font-family: 'Cinzel', 'Cormorant Garamond', serif;
+    font-weight: 700;
+    font-size: 15px;
+    letter-spacing: 0.14em;
+    color: var(--gk-ink);
+    text-shadow: 0 1px 0 rgba(255, 255, 255, 0.6);
+    white-space: nowrap;
+    z-index: 2;
+    pointer-events: none;
+}
+.main-game .left-consumable-bar.inventory-panel-consumables::after { content: "LIBATIONS"; }
+.main-game .right-boon-bar.inventory-panel-boons::after { content: "BOONS"; }
+
+.main-game .left-consumable-bar .consumable-bar-counter,
+.main-game .right-boon-bar .boon-bar-counter {
+    color: var(--gk-ink);
+    text-shadow: 0 1px 0 rgba(255, 255, 255, 0.5);
+    z-index: 2;
+}
+
+.main-game .left-consumable-bar .consumable-slots,
+.main-game .right-boon-bar .boon-slots {
+    position: relative;
+    z-index: 1;
+    margin-top: 8px;
+    padding: 0;
+    border: none;
+    background: none;
+    box-shadow: none;
+    min-height: 0;
+}
+
+.main-game .left-consumable-bar .consumable-slots:empty,
+.main-game .right-boon-bar .boon-slots:empty {
+    display: block;
+    margin: 0;
+    padding: 0;
+}
+
+.main-game .consumable-drag-hint {
+    display: none !important;
+}
+
+.main-game .boon-reorder-hint {
+    z-index: 2;
+    color: var(--gk-ink-soft);
+    background: rgba(255, 255, 255, 0.45);
+    border: 1px solid rgba(154, 119, 48, 0.2);
+}
+
+/* ── 6. STONES — carved marble medallions with gold rims ───────────────── */
+.center-game-area .felt-stone {
+    background:
+        radial-gradient(120% 120% at 30% 18%, rgba(255, 255, 255, 0.6) 0%, rgba(255, 255, 255, 0) 45%),
+        linear-gradient(180deg, var(--gk-marble-1) 0%, var(--gk-marble-2) 60%, var(--gk-marble-3) 100%);
+    border: 2px solid var(--gk-gold-2);
+    border-radius: 14px;
+    box-shadow:
+        inset 0 1px 0 rgba(255, 255, 255, 0.7),
+        0 4px 12px rgba(0, 0, 0, 0.4);
+}
+.center-game-area .felt-stone .felt-stone-label {
+    color: var(--gk-ink-soft);
+}
+.center-game-area .felt-stone .felt-stone-value,
+.center-game-area .felt-stone-rolls .rolls-left,
+.center-game-area .felt-stone-gold .felt-stone-value,
+.center-game-area .felt-stone-gold .felt-stone-suffix {
+    color: var(--gk-ink);
+    text-shadow: 0 1px 0 rgba(255, 255, 255, 0.45);
+}
+
+/* Felt labels (Required / Total) — gilded text on the dark felt. */
+.center-game-area .felt-label .felt-label-name {
+    color: var(--gk-gold-1);
+    letter-spacing: 0.08em;
+}
+.center-game-area .felt-label .felt-label-value {
+    color: #fff6df;
+    text-shadow: 0 2px 6px rgba(0, 0, 0, 0.55);
+}
+
+/* ============================================================================
+   PHASE 2 — Stage swirl, arena frame, pantheon growth, dice/controls, drag UX
+   ============================================================================ */
+
+/* Decorative swirl behind the whole board (subtle; does not fight the felt). */
+#gameViewport.game-screen .main-game::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    background-image: url("/ART/background swirl.png");
+    background-size: 115% auto;
+    background-position: center 38%;
+    background-repeat: no-repeat;
+    opacity: 0.11;
+    pointer-events: none;
+    z-index: 0;
+}
+
+/* Play column frame removed — no gold vignette outline on the felt stage. */
+.main-game .center-game-area::after {
+    content: none;
+}
+
+/* ── Dice + roll control on the felt medallion ─────────────────────────── */
+.center-game-area .die {
+    border-color: var(--gk-gold-3);
+    box-shadow:
+        inset 0 1px 0 rgba(255, 255, 255, 0.45),
+        inset 0 0 10px rgba(107, 75, 48, 0.18),
+        0 4px 10px rgba(0, 0, 0, 0.38);
+}
+
+.center-game-area .die:hover:not(.held) {
+    box-shadow:
+        inset 0 1px 0 rgba(255, 255, 255, 0.5),
+        0 0 0 2px rgba(244, 214, 128, 0.55),
+        0 6px 14px rgba(0, 0, 0, 0.42);
+}
+
+.center-game-area .rolling-controls .roll-button {
+    filter: drop-shadow(0 6px 14px rgba(0, 0, 0, 0.45));
+}
+
+.center-game-area .rolling-controls .roll-button:hover:not(:disabled) {
+    filter: brightness(1.08) drop-shadow(0 0 18px rgba(244, 214, 128, 0.45));
+}
+
+/* Live score reads clearly on dark felt. */
+.center-game-area .live-score-display.felt-live .gnosis-category-name {
+    font-family: "Cinzel", "Cormorant Garamond", serif;
+    color: var(--gk-gold-1);
+    letter-spacing: 0.06em;
+}
+
+.center-game-area .live-score-display.felt-live .pips {
+    color: var(--gk-gold-1);
+    font-family: 'DisneyHeroic', sans-serif;
+    text-shadow: 0 1px 2px rgba(0, 0, 0, 0.35), 0 2px 6px rgba(0, 0, 0, 0.45);
+}
+
+.center-game-area .live-score-display.felt-live .favour {
+    color: var(--gk-gold-1);
+    font-family: 'DisneyHeroic', sans-serif;
+    text-shadow: 0 1px 2px rgba(0, 0, 0, 0.35), 0 2px 6px rgba(0, 0, 0, 0.45);
+}
+
+.center-game-area .live-score-display.felt-live .gnosis-pips-bonus {
+    color: var(--gk-gold-1);
+}
+
+.center-game-area .live-score-display.felt-live .gnosis-mult-bonus {
+    color: var(--gk-gold-1);
+}
+
+/* In-run menu control. */
+.return-to-menu-btn {
+    border-color: var(--gk-gold-2) !important;
+    color: var(--gk-marble-1) !important;
+    background: linear-gradient(180deg, rgba(17, 64, 72, 0.92) 0%, rgba(7, 24, 28, 0.96) 100%) !important;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.35);
+}
+
+/* Greek-toned drag zones (labels stay from styles.css). */
+.center-game-area .consumable-zone-worship {
+    background: linear-gradient(180deg, rgba(90, 150, 200, 0.28) 0%, rgba(90, 150, 200, 0.05) 100%) !important;
+    border-color: rgba(205, 162, 76, 0.55) !important;
+}
+
+.center-game-area .consumable-zone-libation {
+    background: radial-gradient(ellipse at center, rgba(180, 130, 220, 0.3) 0%, rgba(180, 130, 220, 0) 72%) !important;
+    border-color: rgba(205, 162, 76, 0.5) !important;
+}
+
+.center-game-area .consumable-zone::after {
+    border: 1px solid rgba(205, 162, 76, 0.45);
+    color: var(--gk-marble-1);
+}
+
+.main-game.consumable-drag-active .felt-stone-gold::after {
+    background: linear-gradient(180deg, var(--gk-gold-1) 0%, var(--gk-gold-2) 100%);
+    color: var(--gk-ink);
+    border: 1px solid var(--gk-gold-3);
+}
+
+.main-game.consumable-drag-active.drag-type-libation .pantheon-frieze {
+    filter: brightness(0.78) saturate(0.9);
+}
+
+/* Stage gap: arch frieze clears Required/Total on the felt */
+.main-game .center-game-area {
+    top: 276px;
+}
+
+/* ============================================================================
+   DICE STACK — sit above felt/board; instant face swaps (no bg transition)
+   ============================================================================ */
+
+/* Felt medallion + vignette stay under the play stack. */
+.main-game .center-game-area .game-board-bg {
+    z-index: 0;
+}
+
+.main-game.shop-active .center-game-area .game-board-bg {
+    opacity: 0;
+    visibility: hidden;
+    pointer-events: none;
+}
+
+.main-game .center-game-area .dice-roll-zone {
+    z-index: 1;
+}
+
+.main-game .center-game-area::after {
+    z-index: 2;
+}
+
+/* Dice stage floats above the board surface. */
+.main-game .center-game-area #playStage {
+    z-index: 12;
+}
+
+.main-game .center-game-area .dice-container,
+.main-game .center-game-area .diceContainer {
+    position: relative;
+    z-index: 20;
+}
+
+.main-game .center-game-area .die {
+    position: relative;
+    z-index: 21;
+    /* Don't transition background-image — causes sluggish face reveal on roll. */
+    transition:
+        transform 0.2s ease,
+        box-shadow 0.2s ease,
+        filter 0.2s ease,
+        outline-color 0.15s ease;
+    filter: drop-shadow(0 5px 10px rgba(0, 0, 0, 0.5));
+}
+
+.main-game .center-game-area .die:hover:not(.held) {
+    z-index: 22;
+    filter: drop-shadow(0 8px 16px rgba(0, 0, 0, 0.55));
+}
+
+.main-game .center-game-area .rolling-controls {
+    z-index: 18;
+}
+
+.main-game .center-game-area .felt-label,
+.main-game .center-game-area .felt-stone,
+.main-game .center-game-area .live-score-display.felt-live {
+    z-index: 14;
+}
+
+
+
+/* ============================================================================
+   DRAG UX — labelled zones (marble stelae above; no dark tray override)
+   ============================================================================ */
+.center-game-area .consumable-zone {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    opacity: 0;
+    z-index: 60;
+    transition:
+        opacity 0.18s ease,
+        background 0.18s ease,
+        border-color 0.18s ease,
+        box-shadow 0.18s ease;
+}
+
+.main-game.consumable-drag-active.drag-type-worship .consumable-zone-worship {
+    opacity: 1;
+}
+/* Libation: skip the "USE ON DICE" zone overlay — dice dashed cues are enough */
+.main-game.consumable-drag-active.drag-type-libation .consumable-zone-libation {
+    opacity: 0 !important;
+    pointer-events: none !important;
+}
+.main-game.consumable-drag-active:not(.drag-type-worship):not(.drag-type-libation) .consumable-zone {
+    opacity: 1;
+}
+
+.center-game-area .consumable-zone::after {
+    font-family: 'DisneyHeroic', 'Cinzel', serif;
+    font-size: 24px;
+    font-weight: 800;
+    letter-spacing: 0.10em;
+    color: #fdfaf2;
+    text-shadow: 0 2px 8px rgba(0, 0, 0, 0.6);
+    padding: 12px 28px;
+    border-radius: 9999px;
+    background: rgba(10, 22, 19, 0.5);
+    box-shadow: 0 4px 18px rgba(0, 0, 0, 0.35);
+    pointer-events: none;
+    animation: dropZonePulse 1.5s ease-in-out infinite;
+}
+.center-game-area .consumable-zone-worship::after { content: "\2191  RAISE WORSHIP"; }
+.center-game-area .consumable-zone-libation::after { content: "\2726  USE ON DICE"; }
+
+@keyframes dropZonePulse {
+    0%, 100% { transform: scale(1); opacity: 0.92; }
+    50%      { transform: scale(1.04); opacity: 1; }
+}
+
+.center-game-area .consumable-zone-worship.zone-hot {
+    background: linear-gradient(180deg, rgba(140, 200, 255, 0.42) 0%, rgba(140, 200, 255, 0.12) 100%) !important;
+    border-color: rgba(200, 230, 255, 0.95) !important;
+    box-shadow: inset 0 0 0 2px rgba(200, 230, 255, 0.5), 0 0 34px rgba(140, 200, 255, 0.5);
+}
+.center-game-area .consumable-zone-libation.zone-hot {
+    background: radial-gradient(ellipse at center, rgba(205, 160, 255, 0.42) 0%, rgba(205, 160, 255, 0.05) 75%) !important;
+    border-color: rgba(228, 200, 255, 0.95) !important;
+    box-shadow: inset 0 0 0 2px rgba(228, 200, 255, 0.45), 0 0 40px rgba(190, 140, 255, 0.5);
+}
+.center-game-area .consumable-zone.zone-hot::after {
+    transform: scale(1.08);
+    background: rgba(18, 34, 30, 0.7);
+    animation: none;
+}
+
+.main-game.consumable-drag-active.drag-type-libation #diceContainer .die {
+    outline: 3px dashed rgba(205, 160, 255, 0.6);
+    outline-offset: 3px;
+    border-radius: 12px;
+}
+.main-game.consumable-drag-active.drag-type-libation #diceContainer .die:hover {
+    outline-color: rgba(235, 205, 255, 0.95);
+    transform: translateY(-3px) scale(1.05);
+}
+
+.main-game.consumable-drag-active .felt-stone-gold::after {
+    content: "SELL";
+    position: absolute;
+    left: 50%;
+    top: -32px;
+    transform: translateX(-50%);
+    font-family: 'DisneyHeroic', 'Cinzel', serif;
+    font-size: 15px;
+    font-weight: 800;
+    letter-spacing: 0.12em;
+    color: #2a1a06;
+    padding: 5px 14px;
+    border-radius: 9999px;
+    background: linear-gradient(180deg, #ffe79a 0%, #f3c64b 100%);
+    box-shadow: 0 3px 10px rgba(0, 0, 0, 0.4);
+    opacity: 0.85;
+    pointer-events: none;
+}
+.main-game.consumable-drag-active .felt-stone-gold.drop-target-sell::after {
+    opacity: 1;
+    transform: translateX(-50%) scale(1.1);
+}
+
+/* ============================================================================
+   RECOMMENDED SCORES + HELD DICE — worship blue (restore legacy highlight)
+   ============================================================================ */
+.main-game .pantheon-frieze .pantheon-chip.category-available-highlight,
+.main-game .pantheon-frieze .pantheon-chip.available-category {
+    --chip-border: #4a90e2;
+    animation: pantheon-available-pulse 1.4s ease-in-out infinite;
+}
+
+.main-game .pantheon-frieze .pantheon-chip.category-available-highlight::before,
+.main-game .pantheon-frieze .pantheon-chip.available-category::before {
+    border-color: rgba(74, 144, 226, 0.85);
+    box-shadow:
+        inset 0 1px 0 #fffef8,
+        0 0 12px rgba(74, 144, 226, 0.35);
+}
+
+.main-game .pantheon-frieze .pantheon-chip.category-available-highlight .pantheon-cat,
+.main-game .pantheon-frieze .pantheon-chip.category-available-highlight .pantheon-deity,
+.main-game .pantheon-frieze .pantheon-chip.category-available-highlight .potential-score,
+.main-game .pantheon-frieze .pantheon-chip.available-category .pantheon-cat,
+.main-game .pantheon-frieze .pantheon-chip.available-category .pantheon-deity,
+.main-game .pantheon-frieze .pantheon-chip.available-category .potential-score {
+    color: #2a6aa6 !important;
+    font-weight: 700;
+    text-shadow: 0 0 8px rgba(74, 144, 226, 0.35), 0 1px 1px rgba(0, 0, 0, 0.18);
+}
+
+@keyframes pantheon-available-pulse {
+    0%, 100% { box-shadow: 0 0 0 rgba(74, 144, 226, 0.25), inset 0 1px 0 #fffef5; }
+    50%      { box-shadow: 0 0 12px rgba(74, 144, 226, 0.45), inset 0 1px 0 #fff; }
+}
+
+.main-game .center-game-area .die.held {
+    filter: drop-shadow(0 5px 10px rgba(0, 0, 0, 0.5));
+    animation: heldDiceBluePulse 1.6s ease-in-out infinite;
+    outline: 3px solid rgba(74, 144, 226, 0.88);
+    outline-offset: 2px;
+    z-index: 23;
+}
+
+@keyframes heldDiceBluePulse {
+    0%, 100% {
+        box-shadow: 0 0 14px rgba(74, 144, 226, 0.55), inset 0 0 8px rgba(74, 144, 226, 0.12);
+    }
+    50% {
+        box-shadow: 0 0 24px rgba(74, 144, 226, 0.85), inset 0 0 12px rgba(74, 144, 226, 0.22);
+    }
+}
+
+.consumable-card-dragging,
+.shop-drag-lift {
+    will-change: transform;
+    contain: layout style paint;
+}
+

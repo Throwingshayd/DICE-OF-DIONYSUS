@@ -70,7 +70,7 @@ class SettingsOverlay {
                         <input type="checkbox" id="settingAnimations" ${s.animationsEnabled !== false ? 'checked' : ''}>
                     </div>
                     <div class="settings-row">
-                        <label for="settingAutoSave">Auto-save</label>
+                        <label for="settingAutoSave">Checkpoint saves (shop, score, menu)</label>
                         <input type="checkbox" id="settingAutoSave" ${s.autoSave !== false ? 'checked' : ''}>
                     </div>
                     <div class="settings-row">

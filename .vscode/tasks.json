@@ -11,7 +11,7 @@
         "background": {
           "activeOnStart": true,
           "beginsPattern": ".",
-          "endsPattern": "localhost:3000"
+          "endsPattern": "(Local:|localhost:3000)"
         }
       },
       "isBackground": true,

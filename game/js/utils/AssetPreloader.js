@@ -97,6 +97,10 @@ const AssetPreloader = {
     },
 };
 
+if (typeof window !== 'undefined') {
+    window.AssetPreloader = AssetPreloader;
+}
+
 if (typeof module !== 'undefined' && module.exports) {
     module.exports = AssetPreloader;
 }

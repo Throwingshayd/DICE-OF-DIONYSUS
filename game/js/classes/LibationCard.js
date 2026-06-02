@@ -519,7 +519,7 @@ class LibationCard extends Card {
         // Save the game state to persist enhancements
         const engine = gameEngine || window.game;
         if (engine && engine.saveGame) {
-            engine.saveGame();
+            engine.saveGame({ silent: true });
         }
 
         engine?.showMessage?.(message);

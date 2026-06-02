@@ -334,7 +334,7 @@ class UIManager {
             }
             if (st.dragging) {
                 if (st.ghost) st.ghost.move(dx, dy);
-                else st.cardEl.style.transform = `translate(${dx}px, ${dy}px)`;
+                else st.cardEl.style.transform = `translate3d(${dx}px, ${dy}px, 0)`;
                 const gold = document.getElementById('goldStone');
                 gold?.classList.toggle('drop-target-sell', pointIn(e.clientX, e.clientY, gold));
             }
@@ -400,6 +400,19 @@ class UIManager {
             return null;
         };
 
+        const clearDragChrome = (main) => {
+            if (main) {
+                main.classList.remove(
+                    'consumable-drag-active',
+                    'drag-type-worship',
+                    'drag-type-libation'
+                );
+            }
+            const z = getZones();
+            z.worship?.classList.remove('zone-hot');
+            z.libation?.classList.remove('zone-hot');
+        };
+
         const endDrag = (state, cancelled) => {
             if (!state) return;
             const { cardEl, main, pointerId } = state;
@@ -409,15 +422,15 @@ class UIManager {
                     try { cardEl.releasePointerCapture(pointerId); } catch (_) { /* already released */ }
                 }
             }
-            if (main) main.classList.remove('consumable-drag-active');
+            clearDragChrome(main);
             document.getElementById('goldStone')?.classList.remove('drop-target-sell');
             if (cancelled && cardEl) {
                 if (state.ghost) {
                     state.ghost.end();
                     state.ghost = null;
-                } else {
-                    cardEl.style.removeProperty('transform');
                 }
+                cardEl.style.removeProperty('transform');
+                cardEl.style.removeProperty('will-change');
             }
         };
 
@@ -479,17 +492,31 @@ class UIManager {
                 st.dragging = true;
                 st.main = getZones().main;
                 st.main?.classList.add('consumable-drag-active');
+                const card = st.card;
+                const isWorship = typeof WorshipCard !== 'undefined' && card instanceof WorshipCard;
+                const isLibation = typeof LibationCard !== 'undefined' && card instanceof LibationCard;
+                if (isWorship) st.main?.classList.add('drag-type-worship');
+                else if (isLibation) st.main?.classList.add('drag-type-libation');
                 st.cardEl.classList.add('consumable-card-dragging');
                 if (typeof PointerDragGhost !== 'undefined') {
                     st.ghost = PointerDragGhost.attach(st.cardEl, 'drag-ghost');
                     st.ghost.start();
                 }
+                st.cardEl.style.willChange = 'transform';
             }
             if (st.dragging) {
                 if (st.ghost) st.ghost.move(dx, dy);
-                else st.cardEl.style.transform = `translate(${dx}px, ${dy}px)`;
-                const sellStone = getZones().sellStone;
-                if (sellStone) sellStone.classList.toggle('drop-target-sell', pointIn(e.clientX, e.clientY, sellStone));
+                else st.cardEl.style.transform = `translate3d(${dx}px, ${dy}px, 0)`;
+                const zones = getZones();
+                if (zones.sellStone) {
+                    zones.sellStone.classList.toggle('drop-target-sell', pointIn(e.clientX, e.clientY, zones.sellStone));
+                }
+                if (zones.worship) {
+                    zones.worship.classList.toggle('zone-hot', pointIn(e.clientX, e.clientY, zones.worship));
+                }
+                if (zones.libation) {
+                    zones.libation.classList.toggle('zone-hot', pointIn(e.clientX, e.clientY, zones.libation));
+                }
             }
         });
 

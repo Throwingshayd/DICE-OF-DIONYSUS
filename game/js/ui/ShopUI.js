@@ -76,7 +76,7 @@ class ShopUI {
         if (this.dom.shopDefaultView) this.dom.shopDefaultView.classList.remove('hidden');
         this.attachShopEventListeners();
 
-        if (gameEngine?.canSave?.()) gameEngine.saveGame();
+        if (gameEngine?.canSave?.()) gameEngine.saveGame({ silent: true });
 
         requestAnimationFrame(() => this.renderStock(gameState, gameEngine));
     }
@@ -96,6 +96,8 @@ class ShopUI {
         if (window.soundManager) window.soundManager.setMusicContext('play');
         if (window.GameStateManager) window.GameStateManager.setState(window.GAME_STATES?.ROUND || 'ROUND');
         window.balatroEffects?.hideAllTooltips();
+        const gameEngine = window.game;
+        if (gameEngine?.canSave?.()) gameEngine.saveGame({ silent: true });
     }
 
     /**
@@ -316,6 +318,28 @@ class ShopUI {
         });
     }
 
+
+    /** Pack cards promoted to document.body during drag are no longer under #packRevealedCards. */
+    _getActivePackContainer(element) {
+        const fromEl = element?.closest?.('#packRevealedCards');
+        if (fromEl) return fromEl;
+        const packView = document.getElementById('packOpeningView');
+        if (packView && !packView.classList.contains('hidden')) {
+            return document.getElementById('packRevealedCards');
+        }
+        return null;
+    }
+
+    _finalizePackClaim(packContainer, packType, gameState) {
+        if (!packContainer) return;
+        packContainer.dataset.packClaimed = 'true';
+        packContainer.querySelectorAll('.card').forEach((cardEl) => cardEl.remove());
+        if (packType && gameState.packs) {
+            gameState.packs.push({ type: packType, name: this.getPackName(packType), openedAt: Date.now() });
+        }
+        setTimeout(() => this.closePackOpeningView(), 150);
+    }
+
     _shopPointIn(px, py, el) {
         if (!el) return false;
         const r = el.getBoundingClientRect();
@@ -328,6 +352,65 @@ class ShopUI {
         document.removeEventListener('pointercancel', this._onShopDragDocUp);
     }
 
+    /** Lift dragged shop card out of #shopStage (overflow:hidden) so it tracks the pointer over side panels. */
+    _promoteShopDragToViewport(st, e) {
+        if (st.promoted) return;
+        const el = st.el;
+        const r = el.getBoundingClientRect();
+        st.anchor = { parent: el.parentNode, next: el.nextSibling };
+        st.grabOffsetX = e.clientX - r.left;
+        st.grabOffsetY = e.clientY - r.top;
+        document.body.appendChild(el);
+        el.classList.add('shop-drag-lift');
+        el.style.position = 'fixed';
+        el.style.left = `${r.left}px`;
+        el.style.top = `${r.top}px`;
+        el.style.width = `${r.width}px`;
+        el.style.height = `${r.height}px`;
+        el.style.margin = '0';
+        el.style.zIndex = '12050';
+        el.style.transform = 'none';
+        el.style.pointerEvents = 'none';
+        st.promoted = true;
+        window.balatroEffects?.hideAllTooltips();
+    }
+
+    _positionShopDragAt(st, clientX, clientY) {
+        const dx = clientX - st.startX;
+        const dy = clientY - st.startY;
+        st.el.style.transform = `translate3d(${dx}px, ${dy}px, 0)`;
+    }
+
+    _clearShopDragInlineStyles(el) {
+        ['position', 'left', 'top', 'width', 'height', 'margin', 'z-index', 'transform', 'pointer-events', 'will-change']
+            .forEach((prop) => el.style.removeProperty(prop));
+    }
+
+    _restoreShopDragElement(st) {
+        if (!st?.promoted) return;
+        const el = st.el;
+        const { parent, next } = st.anchor || {};
+        el.classList.remove('shop-drag-lift');
+        this._clearShopDragInlineStyles(el);
+        if (parent) {
+            if (next) parent.insertBefore(el, next);
+            else parent.appendChild(el);
+        }
+        st.promoted = false;
+    }
+
+
+    _scheduleShopDragMove(st, clientX, clientY) {
+        st.pendingX = clientX;
+        st.pendingY = clientY;
+        if (st.rafId) return;
+        st.rafId = requestAnimationFrame(() => {
+            st.rafId = 0;
+            if (!this._shopDrag || this._shopDrag !== st) return;
+            this._positionShopDragAt(st, st.pendingX, st.pendingY);
+        });
+    }
+
     _handleShopDragDocMove(e) {
         const st = this._shopDrag;
         if (!st || e.pointerId !== st.pointerId) return;
@@ -336,12 +419,8 @@ class ShopUI {
         const TH = 14;
         if (!st.dragging && (dx * dx + dy * dy) >= TH * TH) {
             st.dragging = true;
-            st.el.classList.add('shop-drag-lift');
+            this._promoteShopDragToViewport(st, e);
             document.querySelector('.main-game')?.classList.add('shop-drag-active');
-            if (typeof PointerDragGhost !== 'undefined') {
-                st.ghost = PointerDragGhost.attach(st.el, 'drag-ghost');
-                st.ghost.start();
-            }
             const gold = document.getElementById('goldStone');
             const boonBar = document.getElementById('rightBoonBar');
             const consumableBar = document.getElementById('leftConsumableBar');
@@ -357,8 +436,7 @@ class ShopUI {
             }
         }
         if (st.dragging) {
-            if (st.ghost) st.ghost.move(dx, dy);
-            else st.el.style.transform = `translate(${dx}px, ${dy}px)`;
+            this._scheduleShopDragMove(st, e.clientX, e.clientY);
             const gold = document.getElementById('goldStone');
             const boonBar = document.getElementById('rightBoonBar');
             const consumableBar = document.getElementById('leftConsumableBar');
@@ -390,53 +468,67 @@ class ShopUI {
             if (!n) return;
             n.classList.remove('shop-drop-glow', 'shop-drop-target-hot');
         });
-        st.el.classList.remove('shop-drag-lift');
-        if (st.ghost) {
-            st.ghost.end();
-            st.ghost = null;
-        } else {
-            st.el.style.removeProperty('transform');
-        }
 
         const { ctx, dragging } = st;
+        const promoted = st.promoted;
         this._shopDrag = null;
 
-        if (!dragging) return;
+        if (!dragging) {
+            if (ctx.mode === 'packReveal' && ctx.card) {
+                this.claimCard(ctx.card, ctx.gameState, ctx.gameEngine, st.el);
+                this._restoreShopDragElement(st);
+                return;
+            }
+            this._restoreShopDragElement(st);
+            return;
+        }
 
-        if (ctx.mode === 'packShelf' && ctx.packData && this._shopPointIn(px, py, gold)) {
-            this.purchasePack(ctx.packData, ctx.gameState, ctx.gameEngine, st.el);
-            return;
-        }
-        if (ctx.mode === 'artifact' && ctx.artifactData && this._shopPointIn(px, py, gold)) {
-            this.buyArtifact(ctx.artifactData, ctx.gameState, ctx.gameEngine, st.el);
-            return;
-        }
-        if (ctx.mode === 'direct' && ctx.card) {
-            const isBoon = ctx.card instanceof Boon;
-            const okSlot = isBoon ? this._shopPointIn(px, py, boonBar) : this._shopPointIn(px, py, consumableBar);
-            if (okSlot) {
-                this.buyCard(ctx.card, ctx.gameState, ctx.gameEngine, st.el);
-            } else {
+        st.el.classList.remove('shop-drag-lift');
+        if (promoted) this._clearShopDragInlineStyles(st.el);
+
+        const commitDrop = () => {
+            if (ctx.mode === 'packShelf' && ctx.packData && this._shopPointIn(px, py, gold)) {
+                this.purchasePack(ctx.packData, ctx.gameState, ctx.gameEngine, st.el);
+                return !document.contains(st.el);
+            }
+            if (ctx.mode === 'artifact' && ctx.artifactData && this._shopPointIn(px, py, gold)) {
+                this.buyArtifact(ctx.artifactData, ctx.gameState, ctx.gameEngine, st.el);
+                return !document.contains(st.el);
+            }
+            if (ctx.mode === 'direct' && ctx.card) {
+                const isBoon = ctx.card instanceof Boon;
+                const okSlot = isBoon ? this._shopPointIn(px, py, boonBar) : this._shopPointIn(px, py, consumableBar);
+                if (okSlot) {
+                    this.buyCard(ctx.card, ctx.gameState, ctx.gameEngine, st.el);
+                    if (!document.contains(st.el) || this.expulsionPending) return true;
+                    return false;
+                }
                 if (window.soundManager) window.soundManager.play('cancel', { volume: 0.45 });
                 ctx.gameEngine?.showMessage?.(isBoon
                     ? 'Drag the boon onto your Boon column (right).'
                     : 'Drag the blessing onto your Libation column (left).');
+                return false;
             }
-            return;
-        }
-        if (ctx.mode === 'packReveal' && ctx.card) {
-            const isBoon = ctx.card instanceof Boon;
-            const okSlot = isBoon ? this._shopPointIn(px, py, boonBar) : this._shopPointIn(px, py, consumableBar);
-            if (okSlot) {
-                if (window.soundManager) window.soundManager.play(ctx.card instanceof Boon ? 'card1' : 'tarot1', { pitch: 0.92 + Math.random() * 0.1, volume: 0.55 });
-                this.claimCard(ctx.card, ctx.gameState, ctx.gameEngine, st.el);
-            } else {
+            if (ctx.mode === 'packReveal' && ctx.card) {
+                const isBoon = ctx.card instanceof Boon;
+                const okSlot = isBoon ? this._shopPointIn(px, py, boonBar) : this._shopPointIn(px, py, consumableBar);
+                if (okSlot) {
+                    if (window.soundManager) window.soundManager.play(ctx.card instanceof Boon ? 'card1' : 'tarot1', { pitch: 0.92 + Math.random() * 0.1, volume: 0.55 });
+                    this.claimCard(ctx.card, ctx.gameState, ctx.gameEngine, st.el);
+                    if (!document.contains(st.el) || this.expulsionPending) return true;
+                    return false;
+                }
                 if (window.soundManager) window.soundManager.play('cancel', { volume: 0.45 });
                 ctx.gameEngine?.showMessage?.(isBoon
                     ? 'Drag onto your Boon column to claim.'
                     : 'Drag onto your Libation column to claim.');
+                return false;
             }
-        }
+            return false;
+        };
+
+        const dropped = commitDrop();
+        if (!dropped) this._restoreShopDragElement(st);
     }
 
     purchasePack(packData, gameState, gameEngine, packElement) {
@@ -488,7 +580,7 @@ class ShopUI {
 
         const packRevealedCards = document.getElementById('packRevealedCards');
         if (packRevealedCards) {
-            packRevealedCards.innerHTML = '<h4>Pack Contents</h4>';
+            packRevealedCards.innerHTML = '';
             packRevealedCards.dataset.packType = packData.type;
             packRevealedCards.dataset.packClaimed = 'false';
             packContents.forEach(cardData => {
@@ -568,8 +660,8 @@ class ShopUI {
 
     claimCard(card, gameState, gameEngine, element) {
         window.balatroEffects?.hideAllTooltips();
-        const packContainer = element?.closest('#packRevealedCards');
-        if (packContainer && packContainer.dataset.packClaimed === 'true') return;
+        const packContainer = this._getActivePackContainer(element);
+        if (packContainer?.dataset.packClaimed === 'true') return;
 
         const isDirectPurchase = element?.parentNode?.id === 'shopDirectSales';
         const boonSlotsFull = card instanceof Boon && gameState.boons.length >= gameState.boonSlots;
@@ -603,12 +695,7 @@ class ShopUI {
 
         if (element) element.remove();
         if (packContainer) {
-            packContainer.dataset.packClaimed = 'true';
-            const packType = packContainer.dataset.packType;
-            if (packType && gameState.packs) {
-                gameState.packs.push({ type: packType, name: this.getPackName(packType), openedAt: Date.now() });
-            }
-            setTimeout(() => this.closePackOpeningView(), 150);
+            this._finalizePackClaim(packContainer, packContainer.dataset.packType, gameState);
         }
         gameEngine.updateAllUI();
     }
@@ -715,6 +802,13 @@ class ShopUI {
 
         this.expulsionPending = { card, element: element || null, gameState, gameEngine, refundGold: opts.refundGold, packContainer: opts.packContainer || null, packType: opts.packType || null };
 
+        if (opts.packContainer) {
+            opts.packContainer.dataset.packClaimed = 'true';
+            opts.packContainer.querySelectorAll('.card').forEach((cardEl) => {
+                if (cardEl !== element) cardEl.remove();
+            });
+        }
+
         titleEl.textContent = 'No Space!';
         subtitleEl.textContent = `Tap a card to sell and make room for ${card.name}:`;
         gridEl.innerHTML = '';
@@ -750,6 +844,7 @@ class ShopUI {
         this.expulsionPending = null;
         const overlay = this.dom.expulsionOverlay || document.getElementById('expulsionOverlay');
         if (overlay) overlay.classList.add('hidden');
+        if (p.packContainer) p.packContainer.dataset.packClaimed = 'false';
         p.gameEngine?.updateAllUI();
         if (typeof PlaytestRecorder !== 'undefined' && PlaytestRecorder.active) {
             PlaytestRecorder.log('expulsion_cancel', {});
@@ -774,9 +869,7 @@ class ShopUI {
         if (element) element.remove();
         gameEngine.updateAllUI();
         if (packContainer) {
-            packContainer.dataset.packClaimed = 'true';
-            if (packType && gameState.packs) gameState.packs.push({ type: packType, name: this.getPackName(packType), openedAt: Date.now() });
-            setTimeout(() => this.closePackOpeningView(), 150);
+            this._finalizePackClaim(packContainer, packType, gameState);
         }
         if (typeof PlaytestRecorder !== 'undefined' && PlaytestRecorder.active) {
             PlaytestRecorder.log('expulsion_complete', {
