@@ -20,18 +20,29 @@ async function startPlay(page, query) {
 }
 
 test.describe('Greek layout visual checks', () => {
-    test('pantheon symmetry and highfaces growth', async ({ page }) => {
+    test('pantheon orthogonal rows and highfaces growth', async ({ page }) => {
         await startPlay(page, 'test=highfaces');
 
         await expect(page.locator('.pantheon-tier-upper .pantheon-chip:visible')).toHaveCount(8);
         await expect(page.locator('.pantheon-tier-lower .pantheon-chip:visible')).toHaveCount(9);
 
-        const vars = await page.evaluate(() => {
-            const py = (cat) => document.querySelector(`.pantheon-chip[data-category="${cat}"]`)?.style.getPropertyValue('--py');
-            return { yahtzeePy: py('Yahtzee'), chancePy: py('Chance'), fivesPy: py('Fives'), onesPy: py('Ones') };
+        const rowFlatness = await page.evaluate(() => {
+            const rowSpread = (selector) => {
+                const tops = [...document.querySelectorAll(selector)].map(
+                    (el) => el.getBoundingClientRect().top
+                );
+                if (tops.length < 2) return 0;
+                return Math.max(...tops) - Math.min(...tops);
+            };
+            return {
+                upper: rowSpread('.pantheon-tier-upper .pantheon-chip'),
+                lower: rowSpread('.pantheon-tier-lower .pantheon-chip'),
+            };
         });
-        expect(parseFloat(vars.yahtzeePy)).toBeLessThan(parseFloat(vars.chancePy));
-        expect(parseFloat(vars.fivesPy)).toBeLessThan(parseFloat(vars.onesPy));
+        expect(rowFlatness.upper).toBeLessThan(14);
+        expect(rowFlatness.lower).toBeLessThan(14);
+
+        await expect(page.locator('.consumable-drag-hint')).toHaveCount(0);
 
         await page.screenshot({
             path: '/opt/cursor/artifacts/greek_layout_highfaces.png',

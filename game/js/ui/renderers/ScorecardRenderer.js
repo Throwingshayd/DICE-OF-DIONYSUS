@@ -107,9 +107,6 @@ const ScorecardRenderer = {
             }
         });
         this.updateBonusYahtzeeIndicator(gameState);
-        if (typeof PantheonArchLayout !== 'undefined') {
-            PantheonArchLayout.layoutAll();
-        }
     }
 };
 
