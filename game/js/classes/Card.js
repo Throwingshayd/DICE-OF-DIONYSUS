@@ -185,29 +185,6 @@ class Card {
             god: this.god,
             type: this.type
         };
-
-        // Clockwork: keyword chips for enhancement-libations (shop clarity + first-time UX).
-        try {
-            const isLibation = this.type === 'libation' && typeof LibationCard !== 'undefined' && this instanceof LibationCard;
-            const enhType = isLibation && typeof LibationCard.getDieFaceEnhancementType === 'function'
-                ? LibationCard.getDieFaceEnhancementType(this)
-                : null;
-            if (enhType && window.EnhancementRegistry?.get) {
-                const def = window.EnhancementRegistry.get(enhType);
-                if (def) {
-                    tooltipData.keywords = [{
-                        id: def.id,
-                        label: def.displayName,
-                        short: def.oneLiner,
-                        triggerLine: def.triggerLine,
-                        details: def.details || '',
-                        color: def.ui?.chipColor || ''
-                    }];
-                }
-            }
-        } catch (_e) {
-            // Tooltip enrichment should never break card render.
-        }
         el.setAttribute('data-tooltip', JSON.stringify(tooltipData));
 
         return el;
