@@ -76,7 +76,7 @@ class ShopUI {
         if (this.dom.shopDefaultView) this.dom.shopDefaultView.classList.remove('hidden');
         this.attachShopEventListeners();
 
-        if (gameEngine?.canSave?.()) gameEngine.saveGame();
+        if (gameEngine?.canSave?.()) gameEngine.saveGame({ silent: true });
 
         requestAnimationFrame(() => this.renderStock(gameState, gameEngine));
     }
@@ -96,6 +96,8 @@ class ShopUI {
         if (window.soundManager) window.soundManager.setMusicContext('play');
         if (window.GameStateManager) window.GameStateManager.setState(window.GAME_STATES?.ROUND || 'ROUND');
         window.balatroEffects?.hideAllTooltips();
+        const gameEngine = window.game;
+        if (gameEngine?.canSave?.()) gameEngine.saveGame({ silent: true });
     }
 
     /**
@@ -374,13 +376,13 @@ class ShopUI {
     }
 
     _positionShopDragAt(st, clientX, clientY) {
-        if (!st.promoted) return;
-        st.el.style.left = `${clientX - st.grabOffsetX}px`;
-        st.el.style.top = `${clientY - st.grabOffsetY}px`;
+        const dx = clientX - st.startX;
+        const dy = clientY - st.startY;
+        st.el.style.transform = `translate3d(${dx}px, ${dy}px, 0)`;
     }
 
     _clearShopDragInlineStyles(el) {
-        ['position', 'left', 'top', 'width', 'height', 'margin', 'z-index', 'transform', 'pointer-events']
+        ['position', 'left', 'top', 'width', 'height', 'margin', 'z-index', 'transform', 'pointer-events', 'will-change']
             .forEach((prop) => el.style.removeProperty(prop));
     }
 
@@ -397,6 +399,17 @@ class ShopUI {
         st.promoted = false;
     }
 
+
+    _scheduleShopDragMove(st, clientX, clientY) {
+        st.pendingX = clientX;
+        st.pendingY = clientY;
+        if (st.rafId) return;
+        st.rafId = requestAnimationFrame(() => {
+            st.rafId = 0;
+            if (!this._shopDrag || this._shopDrag !== st) return;
+            this._positionShopDragAt(st, st.pendingX, st.pendingY);
+        });
+    }
 
     _handleShopDragDocMove(e) {
         const st = this._shopDrag;
@@ -423,7 +436,7 @@ class ShopUI {
             }
         }
         if (st.dragging) {
-            this._positionShopDragAt(st, e.clientX, e.clientY);
+            this._scheduleShopDragMove(st, e.clientX, e.clientY);
             const gold = document.getElementById('goldStone');
             const boonBar = document.getElementById('rightBoonBar');
             const consumableBar = document.getElementById('leftConsumableBar');

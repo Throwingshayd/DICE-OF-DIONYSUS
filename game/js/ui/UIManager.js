@@ -323,7 +323,16 @@ class UIManager {
                 document.querySelector('.main-game')?.classList.add('boon-drag-active');
             }
             if (st.dragging) {
-                st.cardEl.style.transform = `translate(${dx}px, ${dy}px)`;
+                st.pendingDx = dx;
+                st.pendingDy = dy;
+                if (!st.rafId) {
+                    st.rafId = requestAnimationFrame(() => {
+                        st.rafId = 0;
+                        const live = container._consumableDrag;
+                        if (!live || live !== st) return;
+                        st.cardEl.style.transform = `translate3d(${st.pendingDx}px, ${st.pendingDy}px, 0)`;
+                    });
+                }
                 const gold = document.getElementById('goldStone');
                 gold?.classList.toggle('drop-target-sell', pointIn(e.clientX, e.clientY, gold));
             }
@@ -415,6 +424,7 @@ class UIManager {
             document.getElementById('goldStone')?.classList.remove('drop-target-sell');
             if (cancelled && cardEl) {
                 cardEl.style.removeProperty('transform');
+                cardEl.style.removeProperty('will-change');
             }
         };
 
@@ -481,6 +491,7 @@ class UIManager {
                 if (isWorship) st.main?.classList.add('drag-type-worship');
                 else if (isLibation) st.main?.classList.add('drag-type-libation');
                 st.cardEl.classList.add('consumable-card-dragging');
+                st.cardEl.style.willChange = 'transform';
             }
             if (st.dragging) {
                 st.cardEl.style.transform = `translate(${dx}px, ${dy}px)`;

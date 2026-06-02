@@ -602,3 +602,60 @@
     opacity: 1;
     transform: translateX(-50%) scale(1.1);
 }
+
+/* ============================================================================
+   RECOMMENDED SCORES + HELD DICE — worship blue (restore legacy highlight)
+   ============================================================================ */
+.main-game .pantheon-frieze .pantheon-chip.category-available-highlight,
+.main-game .pantheon-frieze .pantheon-chip.available-category {
+    --chip-border: #4a90e2;
+    animation: pantheon-available-pulse 1.4s ease-in-out infinite;
+}
+
+.main-game .pantheon-frieze .pantheon-chip.category-available-highlight::before,
+.main-game .pantheon-frieze .pantheon-chip.available-category::before {
+    border-color: rgba(74, 144, 226, 0.85);
+    box-shadow:
+        inset 0 1px 0 #fffef8,
+        0 0 12px rgba(74, 144, 226, 0.35);
+}
+
+.main-game .pantheon-frieze .pantheon-chip.category-available-highlight .pantheon-cat,
+.main-game .pantheon-frieze .pantheon-chip.category-available-highlight .pantheon-deity,
+.main-game .pantheon-frieze .pantheon-chip.category-available-highlight .potential-score,
+.main-game .pantheon-frieze .pantheon-chip.available-category .pantheon-cat,
+.main-game .pantheon-frieze .pantheon-chip.available-category .pantheon-deity,
+.main-game .pantheon-frieze .pantheon-chip.available-category .potential-score {
+    color: #2a6aa6 !important;
+    font-weight: 700;
+    text-shadow: 0 0 8px rgba(74, 144, 226, 0.35), 0 1px 1px rgba(0, 0, 0, 0.18);
+}
+
+@keyframes pantheon-available-pulse {
+    0%, 100% { box-shadow: 0 0 0 rgba(74, 144, 226, 0.25), inset 0 1px 0 #fffef5; }
+    50%      { box-shadow: 0 0 12px rgba(74, 144, 226, 0.45), inset 0 1px 0 #fff; }
+}
+
+.main-game .center-game-area .die.held {
+    filter: drop-shadow(0 5px 10px rgba(0, 0, 0, 0.5));
+    animation: heldDiceBluePulse 1.6s ease-in-out infinite;
+    outline: 3px solid rgba(74, 144, 226, 0.88);
+    outline-offset: 2px;
+    z-index: 23;
+}
+
+@keyframes heldDiceBluePulse {
+    0%, 100% {
+        box-shadow: 0 0 14px rgba(74, 144, 226, 0.55), inset 0 0 8px rgba(74, 144, 226, 0.12);
+    }
+    50% {
+        box-shadow: 0 0 24px rgba(74, 144, 226, 0.85), inset 0 0 12px rgba(74, 144, 226, 0.22);
+    }
+}
+
+.consumable-card-dragging,
+.shop-drag-lift {
+    will-change: transform;
+    contain: layout style paint;
+}
+

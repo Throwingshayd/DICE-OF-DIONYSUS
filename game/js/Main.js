@@ -55,10 +55,6 @@ class App {
         if (typeof window.DisplayScale?.init === 'function') {
             window.DisplayScale.init();
         }
-
-        if (typeof AssetPreloader !== 'undefined') {
-            AssetPreloader.preloadCritical().catch(() => { /* non-fatal */ });
-        }
         
         Logger.info('Game initialized successfully!');
 
@@ -167,7 +163,7 @@ class App {
      * Ensures boons/consumables persist if user exits.
      */
     saveAndShowPauseMenu() {
-        if (this.game?.canSave?.()) this.game.saveGame();
+        if (this.game?.canSave?.()) this.game.saveGame({ force: true, silent: true });
         this.showPauseMenu();
     }
 
@@ -223,12 +219,8 @@ class App {
         }
     }
 
-    applyAutoSaveSetting(enabled) {
-        if (enabled) {
-            this.startAutoSave();
-        } else {
-            this.stopAutoSave();
-        }
+    applyAutoSaveSetting(_enabled) {
+        this.stopAutoSave();
     }
 
     exitToMenuFromPause() {
@@ -241,7 +233,7 @@ class App {
      * Single code path for pause Exit and GameEngine overlay Exit.
      */
     exitToMenuAndSave() {
-        if (this.game?.canSave?.()) this.game.saveGame();
+        if (this.game?.canSave?.()) this.game.saveGame({ force: true, silent: true });
         this.showStartScreen();
     }
 
@@ -320,6 +312,7 @@ class App {
                 this.game.bindDOMElements();
                 this.game.startGame();
             }
+            window.AssetPreloader?.preloadDiceFaces?.();
         } else {
             // New run
             const seedInput = document.getElementById('seedInput');
@@ -333,6 +326,7 @@ class App {
             window.game = this.game;
             this.game.bindDOMElements();
             this.uiManager.bindDOMElements();
+            window.AssetPreloader?.preloadDiceFaces?.();
             this.game.startGame();
         }
         
@@ -340,9 +334,8 @@ class App {
             this.soundManager.startOnInteraction();
         }
         
-        // Auto-save every 30 seconds during gameplay (if enabled in settings)
+        // Checkpoint saves respect settings.autoSave; no interval timer.
         const s = this.dataManager?.getSettings?.() || {};
-        if (s.autoSave !== false) this.startAutoSave();
 
         // First-run tutorial overlay (when showTutorial enabled)
         if (s.showTutorial !== false) this.maybeShowTutorialOverlay();
@@ -431,23 +424,9 @@ class App {
         return result;
     }
 
+    /** Legacy hook — saves happen at checkpoints, not on a timer. */
     startAutoSave() {
-        if (this.autoSaveInterval) {
-            clearInterval(this.autoSaveInterval);
-        }
-        
-        this.autoSaveInterval = setInterval(() => {
-            if (this.game && this.currentScreen === 'game') {
-                // Only save if game is in a safe state
-                const saved = this.game.saveGame();
-                if (saved) {
-                    // Optional: Show subtle save indicator
-                    this.showSaveIndicator();
-                }
-            }
-        }, TIMING.AUTO_SAVE_INTERVAL);
-        
-        Logger.info(`Auto-save enabled (every ${TIMING.AUTO_SAVE_INTERVAL / 1000}s)`);
+        this.stopAutoSave();
     }
 
     showSaveIndicator() {
@@ -545,7 +524,7 @@ class App {
                 if (e.ctrlKey || e.metaKey) {
                     e.preventDefault();
                     if (this.game) {
-                        const saved = this.game.saveGame();
+                        const saved = this.game.saveGame({ force: true, silent: false });
                         if (saved) {
                             this.showMessage('Game saved!');
                             this.showSaveIndicator();
@@ -561,7 +540,7 @@ class App {
     // Event handlers
     handleBeforeUnload() {
         if (this.game && this.currentScreen === 'game') {
-            this.game.saveGame();
+            this.game.saveGame({ force: true, silent: true });
         }
         this.stopAutoSave();
     }

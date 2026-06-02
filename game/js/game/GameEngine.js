@@ -783,7 +783,6 @@ class GameEngine {
                     if (!h && els[i]) window.balatroEffects.addDiceBounceEffect(els[i]);
                 });
             }
-            if (this.canSave()) this.saveGame();
         };
 
         // Original non-physics roll: immediate completion with bounce on rolled dice
@@ -1132,7 +1131,7 @@ class GameEngine {
         
         this.cancelScore();
         this.isScoring = false;
-        if (this.canSave()) this.saveGame();
+        if (this.canSave()) this.saveGame({ silent: true });
         this.nextTurn();
     }
     
@@ -1996,7 +1995,7 @@ class GameEngine {
         if (window.app?.exitToMenuAndSave) {
             window.app.exitToMenuAndSave();
         } else {
-            if (this.canSave()) this.saveGame();
+            if (this.canSave()) this.saveGame({ force: true, silent: true });
             if (window.app) {
                 window.app.switchToScreen('start');
                 window.app.currentScreen = 'start';
@@ -2311,85 +2310,6 @@ class GameEngine {
 
     getGodForCategory(category) {
         return typeof GodUtils !== 'undefined' ? GodUtils.getGodForCategory(category) : null;
-    }
-
-
-    /**
-     * Faces + value counts for gnosis preview (matches calculateScore substitutions).
-     * @returns {{ faces: number[], counts: Object<number, number> }}
-     */
-    _getScoringFacesAndCounts() {
-        const faces = this.state.dice.map((d, index) => {
-            try {
-                let face = d.getEffectiveFace();
-                if (typeof face !== 'number' || isNaN(face)) return 0;
-                if (this.state.diceSubstitutions?.foursAsFives && face === 4) face = 5;
-                return face;
-            } catch (_) {
-                return 0;
-            }
-        });
-        const counts = {};
-        faces.forEach((val) => {
-            if (val > 0) counts[val] = (counts[val] || 0) + 1;
-        });
-        return { faces, counts };
-    }
-
-    /**
-     * Dice face pips only (no category / worship pip bonuses) for gnosis preview.
-     * @param {string} category
-     * @param {boolean} isValid
-     * @returns {number}
-     */
-    getGnosisDicePips(category, isValid) {
-        if (!isValid) return 0;
-        const { faces, counts } = this._getScoringFacesAndCounts();
-        const upper = ['Ones', 'Twos', 'Threes', 'Fours', 'Fives', 'Sixes', 'Sevens', 'Eights', 'Nines'];
-        if (upper.includes(category)) {
-            const num = CATEGORY_TO_NUMBER[category];
-            return (counts[num] || 0) * num;
-        }
-        let sum = faces.reduce((a, b) => a + b, 0);
-        if (['Three of a Kind', 'Four of a Kind'].includes(category)
-            && this.state.boons?.some((j) => j.id === 'bellows_of_war')) {
-            const threshold = (category === 'Three of a Kind'
-                ? SCORING_THRESHOLDS.THREE_OF_KIND_REQUIRED
-                : SCORING_THRESHOLDS.FOUR_OF_KIND_REQUIRED) - 1;
-            const matchKey = Object.keys(counts).find((k) => counts[k] >= threshold);
-            if (matchKey) sum += parseInt(matchKey, 10);
-        }
-        return sum;
-    }
-
-    /**
-     * Category pip bonus (lower-section base + worship levels + worship-card pip bonuses).
-     * @param {string} category
-     * @param {Object<number, number>} [counts]
-     * @returns {number}
-     */
-    getGnosisCategoryPipBonus(category, counts = {}) {
-        if (!category) return 0;
-        let bonus = this.getCategoryLevelBonuses(category).pips;
-        const pb = this.state.pipsBonuses || {};
-        if (category === 'Twos' && pb.twosBonus) bonus += (counts[2] || 0) * pb.twosBonus;
-        if (category === 'Sixes' && pb.sixesBonus) bonus += (counts[6] || 0) * pb.sixesBonus;
-        if (category === 'Three of a Kind' && pb.threeOfKindBonus) bonus += pb.threeOfKindBonus;
-        if (category === 'Four of a Kind' && pb.fourOfKindBonus) bonus += pb.fourOfKindBonus;
-        return bonus;
-    }
-
-    /**
-     * Gnosis sub-label under pips — category pip bonus total.
-     * @param {string|null|undefined} category
-     * @param {Object<number, number>} [counts]
-     * @returns {string}
-     */
-    formatGnosisPipsLabel(category, counts = null) {
-        if (!category) return 'pips';
-        const bonus = this.getGnosisCategoryPipBonus(category, counts || {});
-        if (bonus > 0) return `+${bonus} pip bonus`;
-        return 'pips';
     }
 
     /**
@@ -2834,7 +2754,7 @@ class GameEngine {
             this.updateLiveScoreValues(el, {
                 category: this.getLiveOfferingTitle(category, slotFilled),
                 pips: '0',
-                pipsLabel: this.formatGnosisPipsLabel(category),
+                pipsLabel: 'pips',
                 pipsAdd: false,
                 favour: category ? this.formatFavour(levelBonus.mult) : '0',
                 favourLabel: 'favour',
@@ -2851,11 +2771,7 @@ class GameEngine {
 
         if (!isValid) {
             const filled = this.state.scorecard[category] !== undefined;
-            this.updateLiveScoreValues(el, {
-                category: this.getLiveOfferingTitle(category, filled),
-                pipsLabel: this.formatGnosisPipsLabel(category, this._getScoringFacesAndCounts().counts),
-                showNa: true
-            });
+            this.updateLiveScoreValues(el, { category: this.getLiveOfferingTitle(category, filled), showNa: true });
             el.classList.add('visible');
             return;
         }
@@ -2872,16 +2788,11 @@ class GameEngine {
 
         const isScored = this.state.scorecard[category] !== undefined;
         const categoryLabel = this.getLiveOfferingTitle(category, isScored);
-        const { counts } = this._getScoringFacesAndCounts();
-        const dicePips = this.getGnosisDicePips(category, true);
-        const categoryBonus = this.getGnosisCategoryPipBonus(category, counts);
-        const extraPips = Math.max(0, Math.floor(p) - dicePips - categoryBonus);
         this.updateLiveScoreValues(el, {
             category: categoryLabel,
-            pips: String(dicePips),
-            pipsLabel: this.formatGnosisPipsLabel(category, counts),
-            pipsAdd: extraPips > 0,
-            pipsContrib: extraPips > 0 ? String(extraPips) : '',
+            pips: String(Math.floor(p)),
+            pipsLabel: 'pips',
+            pipsAdd: false,
             favour: this.formatFavour(f),
             favourLabel: 'favour',
             favourAdd: false,
@@ -3122,15 +3033,20 @@ class GameEngine {
     }
 
     /**
-     * Save the current game state to localStorage
-     * @returns {boolean} True if save was successful
+     * Save run state at checkpoints (shop, score, menu) — not on a timer.
+     * @param {{ force?: boolean, silent?: boolean }|boolean} [opts]
      */
-    saveGame() {
+    saveGame(opts = {}) {
+        const force = opts === true || opts?.force === true;
+        const silent = opts === true ? false : opts?.silent !== false;
         if (!this.canSave()) {
-            Logger.warn('Save aborted: Game not in safe state');
+            if (!silent) Logger.debug('Save skipped: game not in safe state');
             return false;
         }
-        
+        if (!force && this.dataManager?.getSettings?.()?.autoSave === false) {
+            return false;
+        }
+
         if (this.dataManager) {
             try {
                 this.updateResumePhase();
@@ -3142,17 +3058,16 @@ class GameEngine {
                     resumePhase: state.resumePhase ?? 'play'
                 };
                 this.dataManager.saveGame(payload);
-                Logger.info('Game saved successfully');
+                if (!silent) Logger.debug('Game saved');
                 return true;
             } catch (error) {
                 Logger.error('Save failed:', error);
                 this.showMessage('Failed to save game!', 3000);
                 return false;
             }
-        } else {
-            Logger.error('DataManager not available');
-            return false;
         }
+        Logger.error('DataManager not available');
+        return false;
     }
 
     /**
