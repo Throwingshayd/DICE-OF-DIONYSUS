@@ -76,21 +76,12 @@ class BalatroEffects {
             }
         });
 
-        // Click-to-pin: only for card-like elements; never steal clicks from dice (hold) or other core interactions.
+        // Click-to-pin: click an element with tooltip toggles pin state.
         document.addEventListener('click', (e) => {
             const element = e.target.closest('[data-tooltip]');
             if (!element) return;
-
-            // Dice clicks are gameplay (hold / libation targeting). Never intercept them.
-            if (element.classList.contains('die') || element.closest('.die')) return;
-
-            // Prefer pinning on cards (shop/inventory/collection). Avoid pinning arbitrary UI elements.
-            const isCard = !!element.closest('.card');
-            if (!isCard) return;
-
             // Prevent the global outside-click handler from immediately hiding tooltips.
             e.stopPropagation();
-
             const currentlyPinned = this.pinnedTooltips.has(element);
             if (currentlyPinned) {
                 this.pinnedTooltips.delete(element);
