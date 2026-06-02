@@ -316,6 +316,28 @@ class ShopUI {
         });
     }
 
+
+    /** Pack cards promoted to document.body during drag are no longer under #packRevealedCards. */
+    _getActivePackContainer(element) {
+        const fromEl = element?.closest?.('#packRevealedCards');
+        if (fromEl) return fromEl;
+        const packView = document.getElementById('packOpeningView');
+        if (packView && !packView.classList.contains('hidden')) {
+            return document.getElementById('packRevealedCards');
+        }
+        return null;
+    }
+
+    _finalizePackClaim(packContainer, packType, gameState) {
+        if (!packContainer) return;
+        packContainer.dataset.packClaimed = 'true';
+        packContainer.querySelectorAll('.card').forEach((cardEl) => cardEl.remove());
+        if (packType && gameState.packs) {
+            gameState.packs.push({ type: packType, name: this.getPackName(packType), openedAt: Date.now() });
+        }
+        setTimeout(() => this.closePackOpeningView(), 150);
+    }
+
     _shopPointIn(px, py, el) {
         if (!el) return false;
         const r = el.getBoundingClientRect();
@@ -439,6 +461,11 @@ class ShopUI {
         this._shopDrag = null;
 
         if (!dragging) {
+            if (ctx.mode === 'packReveal' && ctx.card) {
+                this.claimCard(ctx.card, ctx.gameState, ctx.gameEngine, st.el);
+                this._restoreShopDragElement(st);
+                return;
+            }
             this._restoreShopDragElement(st);
             return;
         }
@@ -620,8 +647,8 @@ class ShopUI {
 
     claimCard(card, gameState, gameEngine, element) {
         window.balatroEffects?.hideAllTooltips();
-        const packContainer = element?.closest('#packRevealedCards');
-        if (packContainer && packContainer.dataset.packClaimed === 'true') return;
+        const packContainer = this._getActivePackContainer(element);
+        if (packContainer?.dataset.packClaimed === 'true') return;
 
         const isDirectPurchase = element?.parentNode?.id === 'shopDirectSales';
         const boonSlotsFull = card instanceof Boon && gameState.boons.length >= gameState.boonSlots;
@@ -655,12 +682,7 @@ class ShopUI {
 
         if (element) element.remove();
         if (packContainer) {
-            packContainer.dataset.packClaimed = 'true';
-            const packType = packContainer.dataset.packType;
-            if (packType && gameState.packs) {
-                gameState.packs.push({ type: packType, name: this.getPackName(packType), openedAt: Date.now() });
-            }
-            setTimeout(() => this.closePackOpeningView(), 150);
+            this._finalizePackClaim(packContainer, packContainer.dataset.packType, gameState);
         }
         gameEngine.updateAllUI();
     }
@@ -767,6 +789,13 @@ class ShopUI {
 
         this.expulsionPending = { card, element: element || null, gameState, gameEngine, refundGold: opts.refundGold, packContainer: opts.packContainer || null, packType: opts.packType || null };
 
+        if (opts.packContainer) {
+            opts.packContainer.dataset.packClaimed = 'true';
+            opts.packContainer.querySelectorAll('.card').forEach((cardEl) => {
+                if (cardEl !== element) cardEl.remove();
+            });
+        }
+
         titleEl.textContent = 'No Space!';
         subtitleEl.textContent = `Tap a card to sell and make room for ${card.name}:`;
         gridEl.innerHTML = '';
@@ -802,6 +831,7 @@ class ShopUI {
         this.expulsionPending = null;
         const overlay = this.dom.expulsionOverlay || document.getElementById('expulsionOverlay');
         if (overlay) overlay.classList.add('hidden');
+        if (p.packContainer) p.packContainer.dataset.packClaimed = 'false';
         p.gameEngine?.updateAllUI();
         if (typeof PlaytestRecorder !== 'undefined' && PlaytestRecorder.active) {
             PlaytestRecorder.log('expulsion_cancel', {});
@@ -826,9 +856,7 @@ class ShopUI {
         if (element) element.remove();
         gameEngine.updateAllUI();
         if (packContainer) {
-            packContainer.dataset.packClaimed = 'true';
-            if (packType && gameState.packs) gameState.packs.push({ type: packType, name: this.getPackName(packType), openedAt: Date.now() });
-            setTimeout(() => this.closePackOpeningView(), 150);
+            this._finalizePackClaim(packContainer, packType, gameState);
         }
         if (typeof PlaytestRecorder !== 'undefined' && PlaytestRecorder.active) {
             PlaytestRecorder.log('expulsion_complete', {

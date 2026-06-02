@@ -520,9 +520,13 @@
         box-shadow 0.18s ease;
 }
 
-.main-game.consumable-drag-active.drag-type-worship .consumable-zone-worship,
-.main-game.consumable-drag-active.drag-type-libation .consumable-zone-libation {
+.main-game.consumable-drag-active.drag-type-worship .consumable-zone-worship {
     opacity: 1;
+}
+/* Libation: skip the "USE ON DICE" zone overlay — dice dashed cues are enough */
+.main-game.consumable-drag-active.drag-type-libation .consumable-zone-libation {
+    opacity: 0 !important;
+    pointer-events: none !important;
 }
 .main-game.consumable-drag-active:not(.drag-type-worship):not(.drag-type-libation) .consumable-zone {
     opacity: 1;
