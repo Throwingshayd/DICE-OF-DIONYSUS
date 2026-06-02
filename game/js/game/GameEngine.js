@@ -1597,7 +1597,7 @@ class GameEngine {
      * Show pip number popup over a die (Balatro-style chips on cards → pips on dice)
      * @param {number} dieIndex - Index of die
      * @param {number} pips - Pip value to display
-     * @param {string} [label] - Optional label (e.g. 'Iron', 'Pearl')
+     * @param {string} [label] - Optional label (e.g. 'Clockwork', 'Pearl')
      */
     showPipPopupOnDie(dieIndex, pips, label = '') {
         const text = label ? `${label}+${pips}` : `+${pips}`;
@@ -2258,7 +2258,7 @@ class GameEngine {
                 if (!usePipeline) {
                     if (die.hasEnhancementForCurrentFace && die.hasEnhancementForCurrentFace('iron')) {
                         pips += ENHANCEMENT_BONUSES.IRON_PIPS;
-                        window.game?.showMessage?.(`Iron enhancement: +${ENHANCEMENT_BONUSES.IRON_PIPS} Pips!`);
+                        window.game?.showMessage?.(`Clockwork enhancement: +${ENHANCEMENT_BONUSES.IRON_PIPS} Pips!`);
                     }
                     if (die.hasEnhancementForCurrentFace && die.hasEnhancementForCurrentFace('mother_of_pearl') && die.motherOfPearlBonus !== undefined) {
                         pips += die.motherOfPearlBonus;

@@ -4,6 +4,7 @@
 class BalatroEffects {
     constructor() {
         this.tooltips = new Map();
+        this.pinnedTooltips = new Set();
         this.dicePopups = new Map(); // Boon-hover: popups over affected dice
         this.particles = [];
         this.notifications = [];
@@ -64,6 +65,7 @@ class BalatroEffects {
         document.addEventListener('mouseout', (e) => {
             const element = e.target.closest('[data-tooltip]');
             if (element) {
+                if (this.pinnedTooltips.has(element)) return;
                 const relatedTarget = e.relatedTarget;
                 const tooltipEl = this.tooltips.get(element);
                 // Don't hide when moving to our tooltip popup (Balatro-style: hover tooltip content)
@@ -73,6 +75,25 @@ class BalatroEffects {
                 }
             }
         });
+
+        // Click-to-pin: click an element with tooltip toggles pin state.
+        document.addEventListener('click', (e) => {
+            const element = e.target.closest('[data-tooltip]');
+            if (!element) return;
+            // Prevent the global outside-click handler from immediately hiding tooltips.
+            e.stopPropagation();
+            const currentlyPinned = this.pinnedTooltips.has(element);
+            if (currentlyPinned) {
+                this.pinnedTooltips.delete(element);
+                const tip = this.tooltips.get(element);
+                tip?.classList.remove('pinned');
+                this.hideTooltip(element);
+            } else {
+                this.pinnedTooltips.add(element);
+                // Ensure it is shown immediately on pin, even if hover delay hasn't fired.
+                this.showTooltip(element, e, { forceImmediate: true, pinned: true });
+            }
+        }, { capture: true });
 
         // Also hide tooltips when clicking outside
         document.addEventListener('click', (e) => {
@@ -89,7 +110,7 @@ class BalatroEffects {
         });
     }
 
-    showTooltip(element, _event) {
+    showTooltip(element, _event, opts = {}) {
         const tooltipData = element.dataset.tooltip;
         if (!tooltipData) return;
 
@@ -100,7 +121,7 @@ class BalatroEffects {
 
         // Shorter delay for shop items (snappier), 150ms for shop / 200ms elsewhere
         const isInShop = element.closest('#shopStage');
-        const delayMs = isInShop ? 150 : 200;
+        const delayMs = opts.forceImmediate ? 0 : (isInShop ? 150 : 200);
         const timeoutId = setTimeout(() => {
             // Abort if element was removed from DOM (e.g. card consumed) — prevents top-left orphan
             if (!element.isConnected) return;
@@ -114,6 +135,7 @@ class BalatroEffects {
             const isDieTooltip = parsedHtml.includes('tooltip-die');
             const isCard = element.closest('.card');
             tooltip.className = 'tooltip' + (isInShop ? ' tooltip-shop' : '') + (isDieTooltip ? ' tooltip-die-popup' : '') + (isCard ? ' tooltip-card' : '');
+            if (opts.pinned || this.pinnedTooltips.has(element)) tooltip.classList.add('pinned');
             tooltip.innerHTML = parsedHtml;
             
             document.body.appendChild(tooltip);
@@ -182,6 +204,7 @@ class BalatroEffects {
     }
 
     hideAllTooltips() {
+        this.pinnedTooltips.clear();
         // Clear all pending timeouts
         if (this.tooltipTimeouts) {
             this.tooltipTimeouts.forEach((timeoutId) => {
@@ -321,6 +344,28 @@ class BalatroEffects {
             let html = '';
             if (parsed.title) html += `<div class="tooltip-title">${parsed.title}</div>`;
             if (parsed.effect) html += `<div class="tooltip-effect">${parsed.effect}</div>`;
+            if (Array.isArray(parsed.keywords) && parsed.keywords.length > 0) {
+                html += `<div class="cw-keywords">`;
+                parsed.keywords.forEach((kw) => {
+                    const label = this.escapeAttr(kw.label || kw.id || '');
+                    const short = this.escapeAttr(kw.short || '');
+                    const trigger = this.escapeAttr(kw.triggerLine || '');
+                    const details = this.escapeAttr(kw.details || '');
+                    const color = this.escapeAttr(kw.color || '');
+                    const style = color ? ` style="--cw-chip:${color}"` : '';
+                    html += `<div class="cw-chip"${style} data-cw-chip>
+                        <span class="cw-chip-label">${label}</span>
+                        ${short ? `<span class="cw-chip-short">${short}</span>` : ''}
+                        ${trigger ? `<span class="cw-chip-trigger">${trigger}</span>` : ''}
+                        ${details ? `<span class="cw-chip-details">${details}</span>` : ''}
+                    </div>`;
+                });
+                html += `</div>`;
+                html += `<div class="cw-tooltip-details">
+                    <div class="cw-details-title">Details</div>
+                    <div class="cw-details-body">Hover a chip to expand.</div>
+                </div>`;
+            }
             if (parsed.god) html += `<div class="tooltip-god">${parsed.god}</div>`;
             return html;
         } catch (e) {
@@ -368,8 +413,7 @@ class BalatroEffects {
     }
 
     getEnhDisplayName(enh) {
-        const names = { parchment: 'Parchment', iron: 'Iron', gold: 'Gold', mother_of_pearl: 'Pearl', mirror: 'Mirror', wild: 'Wild', lucky: 'Lucky', cursed: 'Cursed', divine: 'Divine', chaos: 'Chaos' };
-        return names[enh] || enh;
+        return window.EnhancementRegistry?.displayName?.(enh) || enh;
     }
 
     escapeAttr(s) {

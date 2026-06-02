@@ -5,8 +5,7 @@
 
 const DiceRenderer = {
     getEnhancementDisplayName(enh) {
-        const names = { parchment: 'Parchment', iron: 'Iron', gold: 'Gold', mother_of_pearl: 'Mother of Pearl', mirror: 'Mirror', wild: 'Wild', lucky: 'Lucky', cursed: 'Cursed', divine: 'Divine', chaos: 'Chaos' };
-        return names[enh] || enh;
+        return window.EnhancementRegistry?.displayName?.(enh) || enh;
     },
 
     buildDieTooltipData(die, index, gameState, currentFace, hasModifiedValue) {
@@ -60,8 +59,6 @@ const DiceRenderer = {
             const hasEnhancementsOnCurrentFace = currentFace > 0 && die.faces[currentFace] && die.faces[currentFace].enhancements.size > 0;
             const hasModifiedValue = currentFace > 0 && die.faces[currentFace] && die.faces[currentFace].modifiedValue && die.faces[currentFace].modifiedValue !== die.faces[currentFace].value;
             if (hasEnhancementsOnCurrentFace) {
-                dieEl.style.boxShadow = '0 0 10px rgba(255, 215, 0, 0.6)';
-                dieEl.style.border = '2px solid rgba(255, 215, 0, 0.8)';
                 dieEl.setAttribute('data-enhanced', 'true');
             }
             if (hasModifiedValue) {
@@ -135,14 +132,8 @@ const DiceRenderer = {
             }
             if (allEnhancements.length > 0) {
                 const firstEnhancement = allEnhancements[0];
-                const overlay = document.createElement('div');
-                overlay.className = `die-enhancement-overlay enh-${firstEnhancement.enhancement}`;
-                dieEl.appendChild(overlay);
-            }
-            if (currentFace > 0 && currentFace >= 7) {
-                const faceOverlay = document.createElement('div');
-                faceOverlay.className = `die-enhancement-overlay face-${currentFace}`;
-                dieEl.appendChild(faceOverlay);
+                const textureClass = window.EnhancementRegistry?.ui?.(firstEnhancement.enhancement)?.textureClass;
+                if (textureClass) dieEl.classList.add(textureClass);
             }
             if (die.tempModifier !== 0 && gameState.hasRolled) {
                 const modifierBadge = document.createElement('div');

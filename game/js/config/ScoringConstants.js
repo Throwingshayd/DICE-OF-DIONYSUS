@@ -59,7 +59,7 @@ const SCORING_THRESHOLDS = {
  * @const {Object}
  */
 const ENHANCEMENT_BONUSES = {
-    IRON_PIPS: 5,           // Iron adds +5 pips when scored
+    IRON_PIPS: 5,           // Clockwork (formerly Iron) adds +5 pips when scored
     GOLD_COINS: 1,          // Gold adds +1 gold when scored
     PARCHMENT_FAVOUR: 1,    // Parchment can add +1 favour
     PARCHMENT_GOLD: 5,      // Parchment can add +5 gold (reduced from 15)
