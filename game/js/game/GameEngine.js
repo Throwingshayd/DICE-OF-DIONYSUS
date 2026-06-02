@@ -166,10 +166,6 @@ class GameEngine {
             const libId = testMode.replace('libation:', '').trim();
             this.applyLibationTestMode(libId);
         }
-        if (testMode && testMode.startsWith('worship:')) {
-            const worshipId = testMode.replace('worship:', '').trim();
-            this.applyWorshipTestMode(worshipId);
-        }
         // ?enhance=iron (or parchment, gold) - add enhancements to dice for playtesting
         const enhanceParam = urlParams.get('enhance');
         if (enhanceParam) {
@@ -225,23 +221,6 @@ class GameEngine {
         const libation = new LibationCard(libData);
         this.state.consumables.push(libation);
         if (typeof Logger !== 'undefined') Logger.info(`🧪 TEST MODE: Injected libation "${libId}"`);
-    }
-
-    /**
-     * Test mode: Inject a worship card for playtesting
-     * @param {string} worshipId
-     */
-    applyWorshipTestMode(worshipId) {
-        const worshipData = typeof CardData !== 'undefined' && CardData.worship
-            ? CardData.worship.find(w => w.id === worshipId)
-            : null;
-        if (!worshipData) {
-            if (typeof Logger !== 'undefined') Logger.warn(`Test mode: Worship "${worshipId}" not found`);
-            return;
-        }
-        const worship = new WorshipCard(worshipData);
-        this.state.consumables.push(worship);
-        if (typeof Logger !== 'undefined') Logger.info(`🧪 TEST MODE: Injected worship "${worshipId}"`);
     }
     
     /**
@@ -736,9 +715,6 @@ class GameEngine {
         
         // Shuffle dice positions (dice can appear in random slots) — before physics
         this.shuffleDicePositions();
-
-        // Sync DOM to shuffled state so physics uses correct dice/held mapping
-        if (this.domReady) this.updateAllUI();
 
         const held = [...this.state.held];
         const anyToRoll = held.some(h => !h);

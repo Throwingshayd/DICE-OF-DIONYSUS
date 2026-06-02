@@ -55,6 +55,10 @@ class App {
         if (typeof window.DisplayScale?.init === 'function') {
             window.DisplayScale.init();
         }
+
+        if (typeof AssetPreloader !== 'undefined') {
+            AssetPreloader.preloadCritical().catch(() => { /* non-fatal */ });
+        }
         
         Logger.info('Game initialized successfully!');
 

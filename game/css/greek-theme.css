@@ -432,3 +432,58 @@
 .main-game .pantheon-frieze .pantheon-tier-lower::after {
     margin-bottom: 10px;
 }
+
+/* ============================================================================
+   DICE STACK — sit above felt/board; instant face swaps (no bg transition)
+   ============================================================================ */
+
+/* Felt medallion + vignette stay under the play stack. */
+.main-game .center-game-area .game-board-bg {
+    z-index: 0;
+}
+
+.main-game .center-game-area .dice-roll-zone {
+    z-index: 1;
+}
+
+.main-game .center-game-area::after {
+    z-index: 2;
+}
+
+/* Dice stage floats above the board surface. */
+.main-game .center-game-area #playStage {
+    z-index: 12;
+}
+
+.main-game .center-game-area .dice-container,
+.main-game .center-game-area .diceContainer {
+    position: relative;
+    z-index: 20;
+}
+
+.main-game .center-game-area .die {
+    position: relative;
+    z-index: 21;
+    /* Don't transition background-image — causes sluggish face reveal on roll. */
+    transition:
+        transform 0.2s ease,
+        box-shadow 0.2s ease,
+        filter 0.2s ease,
+        outline-color 0.15s ease;
+    filter: drop-shadow(0 5px 10px rgba(0, 0, 0, 0.5));
+}
+
+.main-game .center-game-area .die:hover:not(.held) {
+    z-index: 22;
+    filter: drop-shadow(0 8px 16px rgba(0, 0, 0, 0.55));
+}
+
+.main-game .center-game-area .rolling-controls {
+    z-index: 18;
+}
+
+.main-game .center-game-area .felt-label,
+.main-game .center-game-area .felt-stone,
+.main-game .center-game-area .live-score-display.felt-live {
+    z-index: 14;
+}
