@@ -24,8 +24,10 @@
     "lint:fix": "eslint game/js/**/*.js --fix",
     "optimize-art": "node scripts/optimize-art.cjs",
     "optimize-art:dry": "node scripts/optimize-art.cjs --dry-run",
+    "convert-music": "node scripts/convert-music-ogg.cjs",
+    "build-dice-spritesheet": "node scripts/build-dice-spritesheet.cjs",
     "generate-sw-precache": "node scripts/generate-sw-precache.cjs",
-    "prebuild": "node scripts/generate-sw-precache.cjs",
+    "prebuild": "node scripts/build-dice-spritesheet.cjs && node scripts/generate-sw-precache.cjs",
     "type-check": "tsc --noEmit"
   },
   "keywords": [

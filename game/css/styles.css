@@ -850,88 +850,58 @@ body::after {
     background: #6b4b30;
 }
 
-/* Die face images */
-.die[data-face="1"] {
-    background-image: url('/ART/die face 1.png') !important;
+/* Die face sprite sheet (10 frames: 1–9 + ?) — one HTTP request, preloaded once */
+.die[data-face],
+.die-face-display[data-face],
+.die-face-large[data-face] {
+    background-image: url('/ART/dice-faces-sheet.png') !important;
+    background-repeat: no-repeat;
+    background-size: 1000% 100%;
+    background-position: center;
 }
 
-.die[data-face="2"] {
-    background-image: url('/ART/die face 2.png') !important;
-}
+.die[data-face="1"],
+.die-face-display[data-face="1"],
+.die-face-large[data-face="1"] { background-position: 0% 0; }
 
-.die[data-face="3"] {
-    background-image: url('/ART/die face 3.png') !important;
-}
+.die[data-face="2"],
+.die-face-display[data-face="2"],
+.die-face-large[data-face="2"] { background-position: 11.111111% 0; }
 
-.die[data-face="4"] {
-    background-image: url('/ART/die face 4.png') !important;
-}
+.die[data-face="3"],
+.die-face-display[data-face="3"],
+.die-face-large[data-face="3"] { background-position: 22.222222% 0; }
 
-.die[data-face="5"] {
-    background-image: url('/ART/die face 5.png') !important;
-}
+.die[data-face="4"],
+.die-face-display[data-face="4"],
+.die-face-large[data-face="4"] { background-position: 33.333333% 0; }
 
-.die[data-face="6"] {
-    background-image: url('/ART/die face 6.png') !important;
-}
+.die[data-face="5"],
+.die-face-display[data-face="5"],
+.die-face-large[data-face="5"] { background-position: 44.444444% 0; }
 
-.die[data-face="7"] {
-    background-image: url('/ART/die face 7.png') !important;
-}
+.die[data-face="6"],
+.die-face-display[data-face="6"],
+.die-face-large[data-face="6"] { background-position: 55.555556% 0; }
 
-.die[data-face="8"] {
-    background-image: url('/ART/die face 8.png') !important;
-}
+.die[data-face="7"],
+.die-face-display[data-face="7"],
+.die-face-large[data-face="7"] { background-position: 66.666667% 0; }
 
-.die[data-face="9"] {
-    background-image: url('/ART/die face 9.png') !important;
-}
+.die[data-face="8"],
+.die-face-display[data-face="8"],
+.die-face-large[data-face="8"] { background-position: 77.777778% 0; }
 
-.die[data-face="?"] {
-    background-image: url('/ART/dice face question mark.png') !important;
+.die[data-face="9"],
+.die-face-display[data-face="9"],
+.die-face-large[data-face="9"] { background-position: 88.888889% 0; }
+
+.die[data-face="?"],
+.die-face-display[data-face="?"],
+.die-face-large[data-face="?"] {
+    background-position: 100% 0;
     color: transparent;
     font-size: 0;
-}
-
-/* Die face images for enhancement selection */
-.die-option .die-face-display[data-face="1"] {
-    background-image: url('/ART/die face 1.png');
-}
-
-.die-option .die-face-display[data-face="2"] {
-    background-image: url('/ART/die face 2.png');
-}
-
-.die-option .die-face-display[data-face="3"] {
-    background-image: url('/ART/die face 3.png');
-}
-
-.die-option .die-face-display[data-face="4"] {
-    background-image: url('/ART/die face 4.png');
-}
-
-.die-option .die-face-display[data-face="5"] {
-    background-image: url('/ART/die face 5.png');
-}
-
-.die-option .die-face-display[data-face="6"] {
-    background-image: url('/ART/die face 6.png');
-}
-
-.die-option .die-face-display[data-face="7"] {
-    background-image: url('/ART/die face 7.png');
-}
-
-.die-option .die-face-display[data-face="8"] {
-    background-image: url('/ART/die face 8.png');
-}
-
-.die-option .die-face-display[data-face="9"] {
-    background-image: url('/ART/die face 9.png');
-}
-
-.die-option .die-face-display[data-face="?"] {
-    background-image: url('/ART/dice face question mark.png');
 }
 
 /* 6. ROLLING CONTROLS - overlays bottom of dice asset */
@@ -2057,13 +2027,10 @@ body::after {
     background: rgba(0,0,0,0.25) !important;
 }
 
-/* Question mark for unrolled dice */
+/* Question mark face uses sprite art — no text overlay */
 .die[data-face="?"]::before {
-    content: "?";
-    font-size: 3.5rem;
-    color: #6b4b30;
-    text-shadow: 1px 1px 2px rgba(0,0,0,0.3);
-    display: block;
+    content: none;
+    display: none !important;
 }
 
 /* Hide custom pips since we're using art assets */
@@ -2084,22 +2051,12 @@ body::after {
     content: none !important;
 }
 
-/* Ensure consistent die sizing and image display */
+/* Consistent die box size — sprite background-size/position set in sheet rules above */
 .die {
     width: 80px !important;
     height: 80px !important;
-    background-size: 100% 100% !important;
-    background-position: center !important;
-    background-repeat: no-repeat !important;
     object-fit: contain;
     overflow: hidden;
-}
-
-/* Ensure all die faces have consistent appearance */
-.die[data-face] {
-    background-size: 100% 100% !important;
-    background-position: center !important;
-    background-repeat: no-repeat !important;
 }
 
 /* ===== MODAL AND OVERLAY STYLING ===== */

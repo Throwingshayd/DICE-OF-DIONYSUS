@@ -6,14 +6,12 @@ const AssetPreloader = {
     _criticalPromise: null,
     _loaded: new Set(),
 
-    /** URLs needed before the first roll (dice faces + core table UI). */
+    /** URLs needed before the first roll (dice sprite sheet + core table UI). */
     getCriticalUrls() {
         if (typeof AssetMapping === 'undefined') return [];
         const urls = [];
-        Object.values(AssetMapping.diceFaces).forEach((name) => {
-            const path = AssetMapping.getAssetPath(name);
-            if (path) urls.push(path);
-        });
+        const sheet = AssetMapping.getDiceFaceSheetPath?.() || AssetMapping.getAssetPath(AssetMapping.diceFaceSheet);
+        if (sheet) urls.push(sheet);
         ['diceTable', 'rollButton', 'columnScroll', 'inGameTitle'].forEach((key) => {
             const asset = AssetMapping.getUIAsset(key);
             const path = asset ? AssetMapping.getAssetPath(asset) : null;

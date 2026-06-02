@@ -4,11 +4,11 @@
  */
 /** Track ID → project music file (game/public/ART/Music/) */
 const MUSIC_TRACKS = {
-    music1: 'ART/Music/lute 1 effects.wav',
-    music2: 'ART/Music/lute 2 w effects.wav',
-    music3: 'ART/Music/lute 3 w effects.wav',
-    music4: 'ART/Music/lute 4 w effects.wav',
-    music5: 'ART/Music/lute 5 w effects.wav'
+    music1: 'ART/Music/lute 1 effects.ogg',
+    music2: 'ART/Music/lute 2 w effects.ogg',
+    music3: 'ART/Music/lute 3 w effects.ogg',
+    music4: 'ART/Music/lute 4 w effects.ogg',
+    music5: 'ART/Music/lute 5 w effects.ogg'
 };
 
 /** Dry/wet mix for music convolver — lower wet = clearer, less smear (tracks already have “w effects”) */
@@ -205,7 +205,11 @@ class SoundManager {
 
                 if (path.endsWith('.ogg')) {
                     const slash = path.lastIndexOf('/') + 1;
-                    this._resolvedSfxBase = path.slice(0, slash);
+                    if (path.includes('ART/Music/')) {
+                        this._resolvedMusicPrefix = path.startsWith('public/') ? 'public/' : '';
+                    } else {
+                        this._resolvedSfxBase = path.slice(0, slash);
+                    }
                 } else if (path.includes('ART/Music/')) {
                     this._resolvedMusicPrefix = path.startsWith('public/') ? 'public/' : '';
                 }

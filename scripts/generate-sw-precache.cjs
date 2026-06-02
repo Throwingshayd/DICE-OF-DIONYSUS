@@ -20,6 +20,9 @@ const CORE = [
     '/manifest.json',
 ];
 
+/** Runtime uses sprite sheet; skip individual die face source PNGs from install cache */
+const SKIP_ART_FILES = /^die face \d+\.png$|^dice face question mark\.png$/i;
+
 function walkFiles(dir, baseUrl = '') {
     const out = [];
     if (!fs.existsSync(dir)) return out;
@@ -27,11 +30,12 @@ function walkFiles(dir, baseUrl = '') {
         const full = path.join(dir, entry.name);
         const url = `${baseUrl}/${entry.name}`.replace(/\\/g, '/');
         if (entry.isDirectory()) {
-            if (entry.name === 'Music') continue;
             out.push(...walkFiles(full, url));
         } else if (entry.isFile()) {
             const lower = entry.name.toLowerCase();
-            if (lower.endsWith('.png') || lower.endsWith('.ogg') || lower.endsWith('.ttf')) {
+            if (SKIP_ART_FILES.test(entry.name)) continue;
+            if (lower.endsWith('.wav')) continue;
+            if (lower.endsWith('.png') || lower.endsWith('.ogg') || lower.endsWith('.ttf') || lower.endsWith('.json')) {
                 out.push(url);
             }
         }

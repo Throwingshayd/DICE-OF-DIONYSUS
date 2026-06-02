@@ -70,7 +70,24 @@ const AssetMapping = {
         'libation': 'libation frame.png'
     },
 
-    // Dice Face Assets
+    // Dice face sprite sheet (built from diceFaceSources via npm run build-dice-spritesheet)
+    diceFaceSheet: 'dice-faces-sheet.png',
+
+    /** Source PNGs for spritesheet rebuild — not loaded at runtime */
+    diceFaceSources: {
+        1: 'die face 1.png',
+        2: 'die face 2.png',
+        3: 'die face 3.png',
+        4: 'die face 4.png',
+        5: 'die face 5.png',
+        6: 'die face 6.png',
+        7: 'die face 7.png',
+        8: 'die face 8.png',
+        9: 'die face 9.png',
+        'question': 'dice face question mark.png'
+    },
+
+    /** @deprecated use diceFaceSheet + CSS data-face; kept for getDiceFaceAsset compat */
     diceFaces: {
         1: 'die face 1.png',
         2: 'die face 2.png',
@@ -158,7 +175,11 @@ const AssetMapping = {
 
     // Helper function to get dice face asset
     getDiceFaceAsset(face) {
-        return this.diceFaces[face] || this.diceFaces['question'];
+        return this.diceFaceSheet || this.diceFaces[face] || this.diceFaces['question'];
+    },
+
+    getDiceFaceSheetPath() {
+        return this.getAssetPath(this.diceFaceSheet);
     },
 
     // Helper function to get enhancement asset

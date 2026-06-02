@@ -320,9 +320,6 @@ class LibationCard extends Card {
                     const face = diceFaces[index];
                     const dieId = die.dieId || (index + 1);
                     
-                    // Get die asset
-                    const faceAsset = AssetMapping.getAssetPath(AssetMapping.getDiceFaceAsset(face));
-                    
                     // Check if die already has enhancements on this face
                     const faceEnhancements = die.faces[face]?.enhancements || [];
                     const hasEnhancement = faceEnhancements.length > 0;
@@ -336,7 +333,7 @@ class LibationCard extends Card {
                              data-die-id="${dieId}">
                             <div class="die-card">
                                 <div class="die-card-inner">
-                                    <div class="die-face-large" style="background-image: url('${faceAsset}')"></div>
+                                    <div class="die-face-large" data-face="${face}"></div>
                                     ${enhancementBadge}
                                 </div>
                                 <div class="die-card-label">
