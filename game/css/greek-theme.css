@@ -58,12 +58,10 @@
     opacity: 0.96;
 }
 
-/* Subtle gold ring only — do not paint over the table asset */
+/* Felt play oval — no decorative ring (keeps dice-roll-zone for layout/drag). */
 .main-game .center-game-area .dice-roll-zone {
     background: transparent;
-    box-shadow:
-        inset 0 0 0 3px rgba(205, 162, 76, 0.42),
-        inset 0 0 0 7px rgba(244, 214, 128, 0.1);
+    box-shadow: none;
 }
 
 /* ── 4. PANTHEON — rectangular marble frieze (photo reference); chips stay on arch via JS ─ */
@@ -353,18 +351,9 @@
     z-index: 0;
 }
 
-/* Gold vignette frame around the central play column. */
+/* Play column frame removed — no gold vignette outline on the felt stage. */
 .main-game .center-game-area::after {
-    content: "";
-    position: absolute;
-    inset: 4px;
-    border-radius: 22px;
-    border: 1px solid rgba(205, 162, 76, 0.38);
-    box-shadow:
-        inset 0 0 0 1px rgba(244, 214, 128, 0.12),
-        inset 0 0 80px rgba(0, 0, 0, 0.12);
-    pointer-events: none;
-    z-index: 3;
+    content: none;
 }
 
 /* ── Dice + roll control on the felt medallion ─────────────────────────── */
