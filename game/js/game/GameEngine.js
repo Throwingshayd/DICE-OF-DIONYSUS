@@ -226,6 +226,19 @@ class GameEngine {
         this.state.consumables.push(libation);
         if (typeof Logger !== 'undefined') Logger.info(`🧪 TEST MODE: Injected libation "${libId}"`);
     }
+
+    applyWorshipTestMode(worshipId) {
+        const worshipData = typeof CardData !== 'undefined' && CardData.worship
+            ? CardData.worship.find(w => w.id === worshipId)
+            : null;
+        if (!worshipData) {
+            if (typeof Logger !== 'undefined') Logger.warn(`Test mode: Worship "${worshipId}" not found`);
+            return;
+        }
+        const worship = new WorshipCard(worshipData);
+        this.state.consumables.push(worship);
+        if (typeof Logger !== 'undefined') Logger.info(`🧪 TEST MODE: Injected worship "${worshipId}"`);
+    }
     
     /**
      * Test mode: Set up dice with 7s, 8s, and 9s for testing

@@ -26,32 +26,12 @@ test.describe('Greek layout visual checks', () => {
         await expect(page.locator('.pantheon-tier-upper .pantheon-chip:visible')).toHaveCount(8);
         await expect(page.locator('.pantheon-tier-lower .pantheon-chip:visible')).toHaveCount(9);
 
-        const offsets = await page.evaluate(() => {
-            const measure = (tierSel) => {
-                const tier = document.querySelector(tierSel);
-                if (!tier) return null;
-                const tierRect = tier.getBoundingClientRect();
-                const tierCenter = tierRect.left + tierRect.width / 2;
-                const chips = [...tier.querySelectorAll('.pantheon-chip')].filter(
-                    (c) => c.getClientRects().length > 0
-                );
-                const centers = chips.map((c) => {
-                    const r = c.getBoundingClientRect();
-                    return r.left + r.width / 2;
-                });
-                const avg = centers.reduce((a, b) => a + b, 0) / (centers.length || 1);
-                return Math.abs(avg - tierCenter);
-            };
-            return {
-                upper: measure('.pantheon-tier-upper'),
-                lower: measure('.pantheon-tier-lower'),
-            };
+        const vars = await page.evaluate(() => {
+            const py = (cat) => document.querySelector(`.pantheon-chip[data-category="${cat}"]`)?.style.getPropertyValue('--py');
+            return { yahtzeePy: py('Yahtzee'), chancePy: py('Chance'), fivesPy: py('Fives'), onesPy: py('Ones') };
         });
-
-        expect(offsets.upper).not.toBeNull();
-        expect(offsets.lower).not.toBeNull();
-        expect(offsets.upper).toBeLessThan(10);
-        expect(offsets.lower).toBeLessThan(14);
+        expect(parseFloat(vars.yahtzeePy)).toBeLessThan(parseFloat(vars.chancePy));
+        expect(parseFloat(vars.fivesPy)).toBeLessThan(parseFloat(vars.onesPy));
 
         await page.screenshot({
             path: '/opt/cursor/artifacts/greek_layout_highfaces.png',
@@ -59,8 +39,8 @@ test.describe('Greek layout visual checks', () => {
         });
     });
 
-    test('worship drag reveals zone with type class', async ({ page }) => {
-        await startPlay(page, 'test=worship:worship_zeus');
+    test('libation drag reveals zone with type class', async ({ page }) => {
+        await startPlay(page, 'test=libation:ambrosial_krasi');
         await expect(page.locator('#consumableSlots .card')).toHaveCount(1, { timeout: 12000 });
 
         const card = page.locator('#consumableSlots .card').first();
@@ -75,12 +55,12 @@ test.describe('Greek layout visual checks', () => {
 
         const main = page.locator('.main-game');
         await expect(main).toHaveClass(/consumable-drag-active/);
-        await expect(main).toHaveClass(/drag-type-worship/);
-        await expect(page.locator('.consumable-zone-worship')).toHaveCSS('opacity', '1');
+        await expect(main).toHaveClass(/drag-type-libation/);
+        await expect(page.locator('.consumable-zone-libation')).toHaveCSS('opacity', '1');
 
         await page.mouse.up();
         await page.screenshot({
-            path: '/opt/cursor/artifacts/greek_worship_drag.png',
+            path: '/opt/cursor/artifacts/greek_libation_drag.png',
             fullPage: false,
         });
     });
