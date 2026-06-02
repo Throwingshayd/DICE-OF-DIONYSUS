@@ -166,10 +166,6 @@ class GameEngine {
             const libId = testMode.replace('libation:', '').trim();
             this.applyLibationTestMode(libId);
         }
-        if (testMode && testMode.startsWith('worship:')) {
-            const worshipId = testMode.replace('worship:', '').trim();
-            this.applyWorshipTestMode(worshipId);
-        }
         // ?enhance=iron (or parchment, gold) - add enhancements to dice for playtesting
         const enhanceParam = urlParams.get('enhance');
         if (enhanceParam) {
@@ -225,19 +221,6 @@ class GameEngine {
         const libation = new LibationCard(libData);
         this.state.consumables.push(libation);
         if (typeof Logger !== 'undefined') Logger.info(`🧪 TEST MODE: Injected libation "${libId}"`);
-    }
-
-    applyWorshipTestMode(worshipId) {
-        const worshipData = typeof CardData !== 'undefined' && CardData.worship
-            ? CardData.worship.find(w => w.id === worshipId)
-            : null;
-        if (!worshipData) {
-            if (typeof Logger !== 'undefined') Logger.warn(`Test mode: Worship "${worshipId}" not found`);
-            return;
-        }
-        const worship = new WorshipCard(worshipData);
-        this.state.consumables.push(worship);
-        if (typeof Logger !== 'undefined') Logger.info(`🧪 TEST MODE: Injected worship "${worshipId}"`);
     }
     
     /**
@@ -732,6 +715,9 @@ class GameEngine {
         
         // Shuffle dice positions (dice can appear in random slots) — before physics
         this.shuffleDicePositions();
+
+        // Sync DOM to shuffled state so physics uses correct dice/held mapping
+        if (this.domReady) this.updateAllUI();
 
         const held = [...this.state.held];
         const anyToRoll = held.some(h => !h);
@@ -2327,6 +2313,27 @@ class GameEngine {
         return typeof GodUtils !== 'undefined' ? GodUtils.getGodForCategory(category) : null;
     }
 
+
+    /**
+     * Gnosis sub-label under pips while previewing a pantheon score (worship + card pip bonuses).
+     * @param {string|null|undefined} category
+     * @returns {string}
+     */
+    formatGnosisPipsLabel(category) {
+        if (!category) return 'pips';
+        const pb = this.state.pipsBonuses || {};
+        const { pips: worshipBonus } = this.getCategoryLevelBonuses(category);
+        const extras = [];
+        if (category === 'Twos' && pb.twosBonus) extras.push(`+${pb.twosBonus} per 2`);
+        if (category === 'Sixes' && pb.sixesBonus) extras.push(`+${pb.sixesBonus} per 6`);
+        if (category === 'Three of a Kind' && pb.threeOfKindBonus) extras.push(`+${pb.threeOfKindBonus}`);
+        if (category === 'Four of a Kind' && pb.fourOfKindBonus) extras.push(`+${pb.fourOfKindBonus}`);
+        if (worshipBonus > 0 && extras.length) return `+${worshipBonus} pip bonus · ${extras.join(' · ')}`;
+        if (worshipBonus > 0) return `+${worshipBonus} pip bonus`;
+        if (extras.length) return extras.join(' · ');
+        return 'pips';
+    }
+
     /**
      * Gnosis live line: preview hover vs completed pantheon slot ("Offering Sixes" / "Offering made to Dionysus").
      * @param {string|null|undefined} category
@@ -2769,7 +2776,7 @@ class GameEngine {
             this.updateLiveScoreValues(el, {
                 category: this.getLiveOfferingTitle(category, slotFilled),
                 pips: '0',
-                pipsLabel: 'pips',
+                pipsLabel: this.formatGnosisPipsLabel(category),
                 pipsAdd: false,
                 favour: category ? this.formatFavour(levelBonus.mult) : '0',
                 favourLabel: 'favour',
@@ -2786,7 +2793,11 @@ class GameEngine {
 
         if (!isValid) {
             const filled = this.state.scorecard[category] !== undefined;
-            this.updateLiveScoreValues(el, { category: this.getLiveOfferingTitle(category, filled), showNa: true });
+            this.updateLiveScoreValues(el, {
+                category: this.getLiveOfferingTitle(category, filled),
+                pipsLabel: this.formatGnosisPipsLabel(category),
+                showNa: true
+            });
             el.classList.add('visible');
             return;
         }
@@ -2806,7 +2817,7 @@ class GameEngine {
         this.updateLiveScoreValues(el, {
             category: categoryLabel,
             pips: String(Math.floor(p)),
-            pipsLabel: 'pips',
+            pipsLabel: this.formatGnosisPipsLabel(category),
             pipsAdd: false,
             favour: this.formatFavour(f),
             favourLabel: 'favour',

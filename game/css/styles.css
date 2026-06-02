@@ -8599,6 +8599,10 @@ body::after {
 .center-game-area .live-score-display.felt-live .gnosis-pips-bonus,
 .center-game-area .live-score-display.felt-live .gnosis-mult-bonus {
     color: rgba(245, 230, 211, 0.88);
+    max-width: 148px;
+    line-height: 1.15;
+    text-align: center;
+    white-space: normal;
 }
 .center-game-area .live-score-display.felt-live .plus-symbol,
 .center-game-area .live-score-display.felt-live .multiply-symbol,
