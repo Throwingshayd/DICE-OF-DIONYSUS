@@ -328,6 +328,54 @@ class ShopUI {
         document.removeEventListener('pointercancel', this._onShopDragDocUp);
     }
 
+    /** Lift dragged shop card out of #shopStage (overflow:hidden) so it tracks the pointer over side panels. */
+    _promoteShopDragToViewport(st, e) {
+        if (st.promoted) return;
+        const el = st.el;
+        const r = el.getBoundingClientRect();
+        st.anchor = { parent: el.parentNode, next: el.nextSibling };
+        st.grabOffsetX = e.clientX - r.left;
+        st.grabOffsetY = e.clientY - r.top;
+        document.body.appendChild(el);
+        el.classList.add('shop-drag-lift');
+        el.style.position = 'fixed';
+        el.style.left = `${r.left}px`;
+        el.style.top = `${r.top}px`;
+        el.style.width = `${r.width}px`;
+        el.style.height = `${r.height}px`;
+        el.style.margin = '0';
+        el.style.zIndex = '12050';
+        el.style.transform = 'none';
+        el.style.pointerEvents = 'none';
+        st.promoted = true;
+        window.balatroEffects?.hideAllTooltips();
+    }
+
+    _positionShopDragAt(st, clientX, clientY) {
+        if (!st.promoted) return;
+        st.el.style.left = `${clientX - st.grabOffsetX}px`;
+        st.el.style.top = `${clientY - st.grabOffsetY}px`;
+    }
+
+    _clearShopDragInlineStyles(el) {
+        ['position', 'left', 'top', 'width', 'height', 'margin', 'z-index', 'transform', 'pointer-events']
+            .forEach((prop) => el.style.removeProperty(prop));
+    }
+
+    _restoreShopDragElement(st) {
+        if (!st?.promoted) return;
+        const el = st.el;
+        const { parent, next } = st.anchor || {};
+        el.classList.remove('shop-drag-lift');
+        this._clearShopDragInlineStyles(el);
+        if (parent) {
+            if (next) parent.insertBefore(el, next);
+            else parent.appendChild(el);
+        }
+        st.promoted = false;
+    }
+
+
     _handleShopDragDocMove(e) {
         const st = this._shopDrag;
         if (!st || e.pointerId !== st.pointerId) return;
@@ -336,7 +384,7 @@ class ShopUI {
         const TH = 14;
         if (!st.dragging && (dx * dx + dy * dy) >= TH * TH) {
             st.dragging = true;
-            st.el.classList.add('shop-drag-lift');
+            this._promoteShopDragToViewport(st, e);
             document.querySelector('.main-game')?.classList.add('shop-drag-active');
             const gold = document.getElementById('goldStone');
             const boonBar = document.getElementById('rightBoonBar');
@@ -353,7 +401,7 @@ class ShopUI {
             }
         }
         if (st.dragging) {
-            st.el.style.transform = `translate(${dx}px, ${dy}px)`;
+            this._positionShopDragAt(st, e.clientX, e.clientY);
             const gold = document.getElementById('goldStone');
             const boonBar = document.getElementById('rightBoonBar');
             const consumableBar = document.getElementById('leftConsumableBar');
@@ -385,48 +433,62 @@ class ShopUI {
             if (!n) return;
             n.classList.remove('shop-drop-glow', 'shop-drop-target-hot');
         });
-        st.el.classList.remove('shop-drag-lift');
-        st.el.style.removeProperty('transform');
 
         const { ctx, dragging } = st;
+        const promoted = st.promoted;
         this._shopDrag = null;
 
-        if (!dragging) return;
+        if (!dragging) {
+            this._restoreShopDragElement(st);
+            return;
+        }
 
-        if (ctx.mode === 'packShelf' && ctx.packData && this._shopPointIn(px, py, gold)) {
-            this.purchasePack(ctx.packData, ctx.gameState, ctx.gameEngine, st.el);
-            return;
-        }
-        if (ctx.mode === 'artifact' && ctx.artifactData && this._shopPointIn(px, py, gold)) {
-            this.buyArtifact(ctx.artifactData, ctx.gameState, ctx.gameEngine, st.el);
-            return;
-        }
-        if (ctx.mode === 'direct' && ctx.card) {
-            const isBoon = ctx.card instanceof Boon;
-            const okSlot = isBoon ? this._shopPointIn(px, py, boonBar) : this._shopPointIn(px, py, consumableBar);
-            if (okSlot) {
-                this.buyCard(ctx.card, ctx.gameState, ctx.gameEngine, st.el);
-            } else {
+        st.el.classList.remove('shop-drag-lift');
+        if (promoted) this._clearShopDragInlineStyles(st.el);
+
+        const commitDrop = () => {
+            if (ctx.mode === 'packShelf' && ctx.packData && this._shopPointIn(px, py, gold)) {
+                this.purchasePack(ctx.packData, ctx.gameState, ctx.gameEngine, st.el);
+                return !document.contains(st.el);
+            }
+            if (ctx.mode === 'artifact' && ctx.artifactData && this._shopPointIn(px, py, gold)) {
+                this.buyArtifact(ctx.artifactData, ctx.gameState, ctx.gameEngine, st.el);
+                return !document.contains(st.el);
+            }
+            if (ctx.mode === 'direct' && ctx.card) {
+                const isBoon = ctx.card instanceof Boon;
+                const okSlot = isBoon ? this._shopPointIn(px, py, boonBar) : this._shopPointIn(px, py, consumableBar);
+                if (okSlot) {
+                    this.buyCard(ctx.card, ctx.gameState, ctx.gameEngine, st.el);
+                    if (!document.contains(st.el) || this.expulsionPending) return true;
+                    return false;
+                }
                 if (window.soundManager) window.soundManager.play('cancel', { volume: 0.45 });
                 ctx.gameEngine?.showMessage?.(isBoon
                     ? 'Drag the boon onto your Boon column (right).'
                     : 'Drag the blessing onto your Libation column (left).');
+                return false;
             }
-            return;
-        }
-        if (ctx.mode === 'packReveal' && ctx.card) {
-            const isBoon = ctx.card instanceof Boon;
-            const okSlot = isBoon ? this._shopPointIn(px, py, boonBar) : this._shopPointIn(px, py, consumableBar);
-            if (okSlot) {
-                if (window.soundManager) window.soundManager.play(ctx.card instanceof Boon ? 'card1' : 'tarot1', { pitch: 0.92 + Math.random() * 0.1, volume: 0.55 });
-                this.claimCard(ctx.card, ctx.gameState, ctx.gameEngine, st.el);
-            } else {
+            if (ctx.mode === 'packReveal' && ctx.card) {
+                const isBoon = ctx.card instanceof Boon;
+                const okSlot = isBoon ? this._shopPointIn(px, py, boonBar) : this._shopPointIn(px, py, consumableBar);
+                if (okSlot) {
+                    if (window.soundManager) window.soundManager.play(ctx.card instanceof Boon ? 'card1' : 'tarot1', { pitch: 0.92 + Math.random() * 0.1, volume: 0.55 });
+                    this.claimCard(ctx.card, ctx.gameState, ctx.gameEngine, st.el);
+                    if (!document.contains(st.el) || this.expulsionPending) return true;
+                    return false;
+                }
                 if (window.soundManager) window.soundManager.play('cancel', { volume: 0.45 });
                 ctx.gameEngine?.showMessage?.(isBoon
                     ? 'Drag onto your Boon column to claim.'
                     : 'Drag onto your Libation column to claim.');
+                return false;
             }
-        }
+            return false;
+        };
+
+        const dropped = commitDrop();
+        if (!dropped) this._restoreShopDragElement(st);
     }
 
     purchasePack(packData, gameState, gameEngine, packElement) {
