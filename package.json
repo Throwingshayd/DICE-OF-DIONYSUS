@@ -19,6 +19,8 @@
     "playtest:boons": "playwright test tests/e2e/boon-playtest.spec.js",
     "lint": "eslint game/js/**/*.js",
     "lint:fix": "eslint game/js/**/*.js --fix",
+    "optimize-art": "node scripts/optimize-art.cjs",
+    "optimize-art:dry": "node scripts/optimize-art.cjs --dry-run",
     "type-check": "tsc --noEmit"
   },
   "keywords": [
@@ -40,6 +42,7 @@
     "baseline-browser-mapping": "^2.10.0",
     "concurrently": "^8.2.2",
     "eslint": "^8.0.0",
+    "sharp": "^0.34.5",
     "typescript": "^5.0.0",
     "vite": "^5.0.0",
     "vitest": "^1.0.0"
