@@ -48,6 +48,11 @@ class App {
         
         // Register PWA ServiceWorker (HTTPS or localhost only)
         this.registerServiceWorker();
+
+        // Warm dice + table art while the player is on the menu
+        if (typeof AssetPreloader !== 'undefined') {
+            AssetPreloader.preloadCritical();
+        }
         
         // Show start screen
         this.showStartScreen();
@@ -291,7 +296,16 @@ class App {
      * Start game — new run or continue saved (Balatro: start_setup_run with New Run vs Continue)
      * @param {boolean} [continueRun=false] - If true, load from save instead of starting fresh
      */
-    startGame(continueRun = false) {
+    async startGame(continueRun = false) {
+        const playBtn = document.getElementById('playButton');
+        const continueBtn = document.getElementById('continueButton');
+        if (playBtn) playBtn.disabled = true;
+        if (continueBtn) continueBtn.disabled = true;
+
+        if (typeof AssetPreloader !== 'undefined') {
+            await AssetPreloader.ensureCritical();
+        }
+
         // Switch to game screen
         this.switchToScreen('game');
         this.currentScreen = 'game';
@@ -342,6 +356,9 @@ class App {
 
         // First-run tutorial overlay (when showTutorial enabled)
         if (s.showTutorial !== false) this.maybeShowTutorialOverlay();
+
+        if (playBtn) playBtn.disabled = false;
+        this.updateContinueButton();
     }
 
     /** Show tutorial overlay on first run when showTutorial is enabled */
