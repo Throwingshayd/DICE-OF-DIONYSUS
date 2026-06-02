@@ -8517,6 +8517,12 @@ body::after {
 }
 
 /* ── 9. SHOP-ACTIVE STATE — hide felt widgets, keep Gold + Ante ── */
+.main-game.shop-active .center-game-area .game-board-bg {
+    opacity: 0;
+    visibility: hidden;
+    pointer-events: none;
+}
+
 .main-game.shop-active .felt-label,
 .main-game.shop-active .felt-stone-rolls,
 .main-game.shop-active .felt-stone-turn,
@@ -8591,7 +8597,6 @@ body::after {
 /* Same typeface as global live row; slightly stronger shadow on dark felt. */
 .center-game-area .live-score-display.felt-live .pips,
 .center-game-area .live-score-display.felt-live .favour {
-    color: #f5e6d3;
     font-family: 'DisneyHeroic', sans-serif;
     text-shadow:
         0 1px 2px rgba(0, 0, 0, 0.35),
@@ -8599,7 +8604,7 @@ body::after {
 }
 .center-game-area .live-score-display.felt-live .gnosis-pips-bonus,
 .center-game-area .live-score-display.felt-live .gnosis-mult-bonus {
-    color: #f5e6d3;
+    color: rgba(245, 230, 211, 0.88);
 }
 .center-game-area .live-score-display.felt-live .plus-symbol,
 .center-game-area .live-score-display.felt-live .multiply-symbol,

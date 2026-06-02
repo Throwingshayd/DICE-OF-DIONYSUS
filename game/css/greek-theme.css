@@ -466,6 +466,12 @@
     z-index: 0;
 }
 
+.main-game.shop-active .center-game-area .game-board-bg {
+    opacity: 0;
+    visibility: hidden;
+    pointer-events: none;
+}
+
 .main-game .center-game-area .dice-roll-zone {
     z-index: 1;
 }
