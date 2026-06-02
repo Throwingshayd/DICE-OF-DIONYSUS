@@ -7,6 +7,7 @@ game/ART
 # Build artifacts
 dist/
 dist-app/
+src-tauri/target/
 .parcel-cache/
 .cache/
 
