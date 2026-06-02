@@ -132,7 +132,7 @@
 }
 
 .main-game .pantheon-frieze .pantheon-tier-upper::before {
-    content: "COMBINATIONS";
+    content: "Greater Pantheon";
     position: absolute;
     top: 4px;
     left: 50%;
@@ -140,7 +140,7 @@
     font-family: "Cinzel", "Cormorant Garamond", serif;
     font-size: 11px;
     font-weight: 700;
-    letter-spacing: 0.22em;
+    letter-spacing: 0.14em;
     color: var(--gk-ink-soft);
     opacity: 0.88;
     pointer-events: none;
@@ -149,7 +149,7 @@
 }
 
 .main-game .pantheon-frieze .pantheon-tier-lower::before {
-    content: "OFFERINGS";
+    content: "Lesser Pantheon";
     position: absolute;
     top: 2px;
     left: 50%;
@@ -157,7 +157,7 @@
     font-family: "Cinzel", "Cormorant Garamond", serif;
     font-size: 11px;
     font-weight: 700;
-    letter-spacing: 0.22em;
+    letter-spacing: 0.14em;
     color: var(--gk-ink-soft);
     opacity: 0.88;
     pointer-events: none;
