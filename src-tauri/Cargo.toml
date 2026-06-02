@@ -1,6 +1,6 @@
 [package]
 name = "app"
-version = "1.5.0"
+version = "1.6.0"
 description = "Dice of Dionysus — desktop shell"
 authors = ["Dice of Dionysus Team"]
 license = ""

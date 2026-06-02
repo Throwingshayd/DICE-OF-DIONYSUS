@@ -7818,10 +7818,10 @@ body::after {
 /* Straights/ends lowered slightly to tighten spacing to lower tier (Heureka + Full House untouched) */
 .pantheon-frieze .pantheon-tier-upper .pantheon-chip[data-category="Small Straight"] { --px: 38%; --py: 118px; z-index: 6; }
 .pantheon-frieze .pantheon-tier-upper .pantheon-chip[data-category="Large Straight"] { --px: 62%; --py: 118px; z-index: 6; }
-.pantheon-frieze .pantheon-tier-upper .pantheon-chip[data-category="Chance"] { --px: 11%; --py: 158px; z-index: 5; }
+.pantheon-frieze .pantheon-tier-upper .pantheon-chip[data-category="Chance"] { --px: 11%; --py: 146px; z-index: 5; }
 .pantheon-frieze .pantheon-tier-upper .pantheon-chip[data-category="Pandora's Box"] { --px: 89%; --py: 158px; z-index: 5; }
-/* ToK/FoK: outer lower gap midpoints */
-.pantheon-frieze .pantheon-tier-upper .pantheon-chip[data-category="Three of a Kind"] { --px: 25%; --py: 146px; z-index: 5; }
+/* ToK/FoK: outer lower gap midpoints (Chance shares ToK row, left of ToK) */
+.pantheon-frieze .pantheon-tier-upper .pantheon-chip[data-category="Three of a Kind"] { --px: 25%; --py: 158px; z-index: 5; }
 .pantheon-frieze .pantheon-tier-upper .pantheon-chip[data-category="Four of a Kind"] { --px: 75%; --py: 146px; z-index: 5; }
 /* Lower row: even horizontal ladder (18→82, step 13); Threes/Fours peak; symmetric wing --py */
 .pantheon-frieze .pantheon-tier-lower .pantheon-chip[data-category="Ones"] { --px: 18%; --py: 86px; z-index: 3; }

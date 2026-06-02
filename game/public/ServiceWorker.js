@@ -3,9 +3,9 @@
  * Served from root to control entire origin. Provides offline support, caching, and app-like experience.
  */
 
-const CACHE_NAME = 'dice-of-dionysus-v1.5.0';
-const STATIC_CACHE_NAME = 'dice-of-dionysus-static-v1.5.0';
-const DYNAMIC_CACHE_NAME = 'dice-of-dionysus-dynamic-v1.5.0';
+const CACHE_NAME = 'dice-of-dionysus-v1.6.0';
+const STATIC_CACHE_NAME = 'dice-of-dionysus-static-v1.6.0';
+const DYNAMIC_CACHE_NAME = 'dice-of-dionysus-dynamic-v1.6.0';
 
 try {
   importScripts('/sw-precache-manifest.js');
