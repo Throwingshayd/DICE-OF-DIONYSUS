@@ -13,7 +13,6 @@
     <link rel="stylesheet" href="css/balatro-effects.css">
     <link rel="stylesheet" href="css/juice-effects.css">
     <link rel="stylesheet" href="css/visual-tokens.css">
-    <!-- Greek marble theme: pantheon frieze + libations/boons stelae (must load last) -->
     <link rel="stylesheet" href="css/greek-theme.css">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -210,6 +209,9 @@
                             <h2 class="shop-title"></h2>
                         </div>
                         <div id="shopDefaultView">
+                            <div id="shopInventory" class="shop-drag-hint-banner">
+                                <p class="shop-drag-hint-text"><strong>Packs</strong> — drag to <span class="hint-gold">Gold</span> to buy. <strong>Wares</strong> — drag to your <strong>Boon</strong> (right) or <strong>Libation</strong> (left) column. <strong>Artifacts</strong> — drag to <span class="hint-gold">Gold</span> to claim.</p>
+                            </div>
                             <div class="shop-row shop-items" id="shopItemsRow">
                                 <div class="shop-section" id="shopArtifactsArea"><h4>Divine Artifacts</h4></div>
                                 <div class="shop-section" id="shopDirectSales"><h4>Wares</h4></div>
@@ -219,8 +221,10 @@
                             </div>
                         </div>
                         <div id="packOpeningView" class="hidden">
+                            <p class="pack-open-drag-hint">Drag one card to your <strong>Boon</strong> (right) or <strong>Libation</strong> (left) column to claim.</p>
                             <div class="shop-main-area">
-                                <div class="shop-section" id="packRevealedCards"></div>
+                                <div class="shop-section" id="packRevealedCards"><h4>Pack Contents</h4></div>
+                                <div class="shop-section" id="packPlayerConsumables"><h4>Your Libations</h4></div>
                             </div>
                         </div>
                     </div>
@@ -310,7 +314,6 @@
     <script defer src="js/engine/ShopStockGenerator.js"></script>
     <script defer src="js/engine/GameStateManager.js"></script>
     <script defer src="js/utils/GameTiming.js"></script>
-    <script defer src="js/utils/AssetPreloader.js"></script>
     <script defer src="js/game/GameEngine.js"></script>
     <script defer src="js/ui/renderers/InfoBarRenderer.js"></script>
     <script defer src="js/ui/renderers/DiceRenderer.js"></script>

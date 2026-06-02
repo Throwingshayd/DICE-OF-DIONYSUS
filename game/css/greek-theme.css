@@ -399,23 +399,23 @@
 }
 
 .center-game-area .live-score-display.felt-live .pips {
-    color: #5a3d8a;
+    color: var(--gk-gold-1);
     font-family: 'DisneyHeroic', sans-serif;
     text-shadow: 0 1px 2px rgba(0, 0, 0, 0.35), 0 2px 6px rgba(0, 0, 0, 0.45);
 }
 
 .center-game-area .live-score-display.felt-live .favour {
-    color: #8b2a2a;
+    color: var(--gk-gold-1);
     font-family: 'DisneyHeroic', sans-serif;
     text-shadow: 0 1px 2px rgba(0, 0, 0, 0.35), 0 2px 6px rgba(0, 0, 0, 0.45);
 }
 
 .center-game-area .live-score-display.felt-live .gnosis-pips-bonus {
-    color: #5a3d8a;
+    color: var(--gk-gold-1);
 }
 
 .center-game-area .live-score-display.felt-live .gnosis-mult-bonus {
-    color: #8b2a2a;
+    color: var(--gk-gold-1);
 }
 
 /* In-run menu control. */

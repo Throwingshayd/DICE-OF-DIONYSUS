@@ -8591,6 +8591,7 @@ body::after {
 /* Same typeface as global live row; slightly stronger shadow on dark felt. */
 .center-game-area .live-score-display.felt-live .pips,
 .center-game-area .live-score-display.felt-live .favour {
+    color: #f5e6d3;
     font-family: 'DisneyHeroic', sans-serif;
     text-shadow:
         0 1px 2px rgba(0, 0, 0, 0.35),
@@ -8598,11 +8599,7 @@ body::after {
 }
 .center-game-area .live-score-display.felt-live .gnosis-pips-bonus,
 .center-game-area .live-score-display.felt-live .gnosis-mult-bonus {
-    color: rgba(245, 230, 211, 0.88);
-    max-width: 148px;
-    line-height: 1.15;
-    text-align: center;
-    white-space: normal;
+    color: #f5e6d3;
 }
 .center-game-area .live-score-display.felt-live .plus-symbol,
 .center-game-area .live-score-display.felt-live .multiply-symbol,
@@ -8696,13 +8693,7 @@ body::after {
     cursor: grabbing;
 }
 
-.shop-drag-lift {
-    z-index: 12050;
-    position: fixed;
-    filter: drop-shadow(0 10px 18px rgba(0, 0, 0, 0.45));
-    pointer-events: none;
-}
-
+.shop-drag-lift,
 .boon-card-dragging {
     z-index: 12040;
     position: relative;
