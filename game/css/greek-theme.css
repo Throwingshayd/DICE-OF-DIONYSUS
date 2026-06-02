@@ -398,14 +398,24 @@
     letter-spacing: 0.06em;
 }
 
-.center-game-area .live-score-display.felt-live .pips,
-.center-game-area .live-score-display.felt-live .favour {
-    color: #fff8e8;
+.center-game-area .live-score-display.felt-live .pips {
+    color: #5a3d8a;
+    font-family: 'DisneyHeroic', sans-serif;
+    text-shadow: 0 1px 2px rgba(0, 0, 0, 0.35), 0 2px 6px rgba(0, 0, 0, 0.45);
 }
 
-.center-game-area .live-score-display.felt-live .gnosis-pips-bonus,
+.center-game-area .live-score-display.felt-live .favour {
+    color: #8b2a2a;
+    font-family: 'DisneyHeroic', sans-serif;
+    text-shadow: 0 1px 2px rgba(0, 0, 0, 0.35), 0 2px 6px rgba(0, 0, 0, 0.45);
+}
+
+.center-game-area .live-score-display.felt-live .gnosis-pips-bonus {
+    color: #5a3d8a;
+}
+
 .center-game-area .live-score-display.felt-live .gnosis-mult-bonus {
-    color: rgba(244, 214, 128, 0.88);
+    color: #8b2a2a;
 }
 
 /* In-run menu control. */
