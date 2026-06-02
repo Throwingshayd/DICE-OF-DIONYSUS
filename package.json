@@ -21,6 +21,8 @@
     "lint:fix": "eslint game/js/**/*.js --fix",
     "optimize-art": "node scripts/optimize-art.cjs",
     "optimize-art:dry": "node scripts/optimize-art.cjs --dry-run",
+    "generate-sw-precache": "node scripts/generate-sw-precache.cjs",
+    "prebuild": "node scripts/generate-sw-precache.cjs",
     "type-check": "tsc --noEmit"
   },
   "keywords": [

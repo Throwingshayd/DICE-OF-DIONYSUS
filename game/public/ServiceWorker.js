@@ -3,11 +3,17 @@
  * Served from root to control entire origin. Provides offline support, caching, and app-like experience.
  */
 
-const CACHE_NAME = 'dice-of-dionysus-v1.4.1';
-const STATIC_CACHE_NAME = 'dice-of-dionysus-static-v1.4.1';
-const DYNAMIC_CACHE_NAME = 'dice-of-dionysus-dynamic-v1.4.1';
+const CACHE_NAME = 'dice-of-dionysus-v1.5.0';
+const STATIC_CACHE_NAME = 'dice-of-dionysus-static-v1.5.0';
+const DYNAMIC_CACHE_NAME = 'dice-of-dionysus-dynamic-v1.5.0';
 
-// Files to cache for offline use
+try {
+  importScripts('/sw-precache-manifest.js');
+} catch (e) {
+  console.warn('Service Worker: precache manifest missing', e);
+}
+
+// Files to cache for offline use (core shell + generated art/sfx manifest)
 const STATIC_ASSETS = [
   '/',
   '/index.html',
@@ -33,8 +39,10 @@ const STATIC_ASSETS = [
   '/js/ui/SoundManager.js',
   '/js/utils/seededRNG.js',
   '/js/utils/dataManager.js',
-  '/ART/Title art.png',
-  '/ART/background swirl.png'
+  '/js/utils/AssetPreloader.js',
+  '/js/utils/PointerDragGhost.js',
+  '/manifest.json',
+  ...(self.__SW_PRECACHE_ASSETS || []),
 ];
 
 // Install event - cache static assets
@@ -45,7 +53,8 @@ self.addEventListener('install', (event) => {
     caches.open(STATIC_CACHE_NAME)
       .then((cache) => {
         console.log('Service Worker: Caching static assets');
-        return cache.addAll(STATIC_ASSETS);
+        const urls = [...new Set(STATIC_ASSETS)];
+        return cache.addAll(urls);
       })
       .then(() => {
         console.log('Service Worker: Static assets cached successfully');
