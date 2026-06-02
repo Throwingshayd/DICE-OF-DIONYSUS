@@ -338,6 +338,10 @@ class ShopUI {
             st.dragging = true;
             st.el.classList.add('shop-drag-lift');
             document.querySelector('.main-game')?.classList.add('shop-drag-active');
+            if (typeof PointerDragGhost !== 'undefined') {
+                st.ghost = PointerDragGhost.attach(st.el, 'drag-ghost');
+                st.ghost.start();
+            }
             const gold = document.getElementById('goldStone');
             const boonBar = document.getElementById('rightBoonBar');
             const consumableBar = document.getElementById('leftConsumableBar');
@@ -353,7 +357,8 @@ class ShopUI {
             }
         }
         if (st.dragging) {
-            st.el.style.transform = `translate(${dx}px, ${dy}px)`;
+            if (st.ghost) st.ghost.move(dx, dy);
+            else st.el.style.transform = `translate(${dx}px, ${dy}px)`;
             const gold = document.getElementById('goldStone');
             const boonBar = document.getElementById('rightBoonBar');
             const consumableBar = document.getElementById('leftConsumableBar');
@@ -386,7 +391,12 @@ class ShopUI {
             n.classList.remove('shop-drop-glow', 'shop-drop-target-hot');
         });
         st.el.classList.remove('shop-drag-lift');
-        st.el.style.removeProperty('transform');
+        if (st.ghost) {
+            st.ghost.end();
+            st.ghost = null;
+        } else {
+            st.el.style.removeProperty('transform');
+        }
 
         const { ctx, dragging } = st;
         this._shopDrag = null;

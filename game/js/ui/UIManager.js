@@ -267,6 +267,7 @@ class UIManager {
                 startX: e.clientX,
                 startY: e.clientY,
                 dragging: false,
+                ghost: null,
             };
             try { cardEl.setPointerCapture(e.pointerId); } catch (_) { /* ignore */ }
         });
@@ -282,8 +283,13 @@ class UIManager {
             gold?.classList.remove('drop-target-sell');
             st.cardEl.classList.remove('boon-card-dragging');
             document.querySelector('.main-game')?.classList.remove('boon-drag-active');
+            if (st.ghost) {
+                st.ghost.end();
+                st.ghost = null;
+            } else {
+                st.cardEl.style.removeProperty('transform');
+            }
             if (!st.dragging) return;
-            st.cardEl.style.removeProperty('transform');
             const boon = findBoon(st.id);
             if (!boon || !gameEngine) return;
             if (pointIn(px, py, gold)) {
@@ -321,9 +327,14 @@ class UIManager {
                 st.dragging = true;
                 st.cardEl.classList.add('boon-card-dragging');
                 document.querySelector('.main-game')?.classList.add('boon-drag-active');
+                if (typeof PointerDragGhost !== 'undefined') {
+                    st.ghost = PointerDragGhost.attach(st.cardEl, 'drag-ghost');
+                    st.ghost.start();
+                }
             }
             if (st.dragging) {
-                st.cardEl.style.transform = `translate(${dx}px, ${dy}px)`;
+                if (st.ghost) st.ghost.move(dx, dy);
+                else st.cardEl.style.transform = `translate(${dx}px, ${dy}px)`;
                 const gold = document.getElementById('goldStone');
                 gold?.classList.toggle('drop-target-sell', pointIn(e.clientX, e.clientY, gold));
             }
@@ -401,7 +412,12 @@ class UIManager {
             if (main) main.classList.remove('consumable-drag-active');
             document.getElementById('goldStone')?.classList.remove('drop-target-sell');
             if (cancelled && cardEl) {
-                cardEl.style.removeProperty('transform');
+                if (state.ghost) {
+                    state.ghost.end();
+                    state.ghost = null;
+                } else {
+                    cardEl.style.removeProperty('transform');
+                }
             }
         };
 
@@ -449,6 +465,7 @@ class UIManager {
                 startY: e.clientY,
                 dragging: false,
                 main: null,
+                ghost: null,
             };
             cardEl.setPointerCapture(e.pointerId);
         });
@@ -463,9 +480,14 @@ class UIManager {
                 st.main = getZones().main;
                 st.main?.classList.add('consumable-drag-active');
                 st.cardEl.classList.add('consumable-card-dragging');
+                if (typeof PointerDragGhost !== 'undefined') {
+                    st.ghost = PointerDragGhost.attach(st.cardEl, 'drag-ghost');
+                    st.ghost.start();
+                }
             }
             if (st.dragging) {
-                st.cardEl.style.transform = `translate(${dx}px, ${dy}px)`;
+                if (st.ghost) st.ghost.move(dx, dy);
+                else st.cardEl.style.transform = `translate(${dx}px, ${dy}px)`;
                 const sellStone = getZones().sellStone;
                 if (sellStone) sellStone.classList.toggle('drop-target-sell', pointIn(e.clientX, e.clientY, sellStone));
             }
@@ -486,7 +508,12 @@ class UIManager {
                 ev.preventDefault();
                 ev.stopImmediatePropagation();
             }, { capture: true, once: true });
-            st.cardEl.style.removeProperty('transform');
+            if (st.ghost) {
+                st.ghost.end();
+                st.ghost = null;
+            } else {
+                st.cardEl.style.removeProperty('transform');
+            }
             const px = e.clientX;
             const py = e.clientY;
             const z = getZones();

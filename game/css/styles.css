@@ -7630,7 +7630,6 @@ body::after {
 
 .consumable-card-dragging {
     z-index: 100 !important;
-    filter: drop-shadow(0 8px 16px rgba(0, 0, 0, 0.45));
 }
 
 @keyframes consumableWorshipPantheon {
@@ -8696,7 +8695,14 @@ body::after {
 .boon-card-dragging {
     z-index: 12040;
     position: relative;
-    filter: drop-shadow(0 10px 18px rgba(0, 0, 0, 0.45));
+}
+
+.drag-ghost {
+    box-shadow: 0 10px 18px rgba(0, 0, 0, 0.45);
+}
+
+.consumable-card-dragging {
+    z-index: 100 !important;
 }
 
 .main-game.shop-drag-active .felt-stone-gold.shop-drop-glow {
