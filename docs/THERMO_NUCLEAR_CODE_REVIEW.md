@@ -162,8 +162,8 @@ ScoringEngine.runPipeline(category, state, opts)
 
 ## Recommended execution order (behavior-preserving)
 
-1. **Live score canonical breakdown** (fixes highest bug class; enables animation simplification).  
-2. **Extract `LiveScoreController`** from `GameEngine`.  
+1. ~~**Live score canonical breakdown**~~ — **Done** on `refactor/live-score`: `GnosisDisplay.buildPreviewSplit`, removed duplicate `before_score` preview loop and legacy `!fromPipeline` confirm path.  
+2. ~~**Extract `LiveScoreController`**~~ — **Done**: `game/js/ui/LiveScoreController.js`; `GameEngine` delegates preview/cashout.  
 3. **Extract drag controllers** from `UIManager`; shrink file under 900 lines.  
 4. **Extract `CollectionManager.js`**.  
 5. **Thin `calculateScore` wrapper** around `ScoringEngine` only.  

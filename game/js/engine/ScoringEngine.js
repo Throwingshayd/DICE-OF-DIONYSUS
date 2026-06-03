@@ -17,6 +17,26 @@ const resolveDieFace = (die, fallback = 0) => (
 
 const ScoringEngine = {
     /**
+     * Fast precondition check before runPipeline / preview.
+     * @returns {{ ok: true }|{ ok: false, reason: string }}
+     */
+    validateRun(state, category) {
+        if (!category || typeof category !== 'string') return { ok: false, reason: 'category' };
+        if (!state) return { ok: false, reason: 'state' };
+        if (!Array.isArray(state.dice)) return { ok: false, reason: 'dice' };
+        const expected = typeof GAME_BALANCE !== 'undefined' ? GAME_BALANCE.STARTING_DICE_COUNT : 5;
+        if (state.dice.length !== expected) return { ok: false, reason: 'dice_count' };
+        for (let i = 0; i < state.dice.length; i++) {
+            const die = state.dice[i];
+            if (!die || typeof die.getEffectiveFace !== 'function') return { ok: false, reason: 'die_shape' };
+        }
+        if (['Sevens', 'Eights', 'Nines'].includes(category) && !state.unlockedCategories?.[category]) {
+            return { ok: false, reason: 'locked' };
+        }
+        return { ok: true };
+    },
+
+    /**
      * Build scoring context from game state
      * @param {Object} state - Game state
      * @returns {{ pipsBonuses: Object, boons: Object[], activeBlind: string|null, unlockedCategories: Object }}

@@ -10,6 +10,15 @@ class GameEngine {
         if (typeof PlaytestRecorder !== 'undefined') {
             PlaytestRecorder.onEngineReady(this);
         }
+        /** @type {LiveScoreController|null} */
+        this.liveScore = null;
+    }
+
+    ensureLiveScore() {
+        if (!this.liveScore && typeof LiveScoreController !== 'undefined') {
+            this.liveScore = new LiveScoreController(this);
+        }
+        return this.liveScore;
     }
 
     /** Balatro: G.SETTINGS.GAMESPEED — scale animation delays (2x = half delay, 4x = quarter) */
@@ -376,6 +385,7 @@ class GameEngine {
         if (this.dom.liveScoreDisplay && !this.dom.liveScoreDisplay.classList.contains('live-score-display')) {
             this.dom.liveScoreDisplay.classList.add('live-score-display');
         }
+        this.ensureLiveScore();
         
         // Check if essential elements exist
         if (!this.dom.rollButton) {
@@ -529,7 +539,7 @@ class GameEngine {
         // Wait a brief moment to ensure DOM is ready, then update UI
         setTimeout(() => {
             this.updateAllUI();
-            this.updateLiveScoreDisplay(null); // Ensure Gnosis appears from game start
+            this.ensureLiveScore()?.updateDisplay(null); // Ensure Gnosis appears from game start
         }, 100);
     }
 
@@ -1003,7 +1013,7 @@ class GameEngine {
             this.state.upperSanctumStreak = 0;
         }
         
-        let { pips, favour, isValid, fromPipeline } = this.calculateScore(category, true);
+        let { pips, favour, isValid } = this.calculateScore(category, true);
         let finalScore = 0;
 
         if (typeof PlaytestRecorder !== 'undefined' && PlaytestRecorder.active) {
@@ -1012,7 +1022,7 @@ class GameEngine {
                 targetCategory,
                 isSwap,
                 isValid,
-                fromPipeline,
+                fromPipeline: true,
                 pips,
                 favour,
                 tempPips: this.state.tempPips,
@@ -1021,49 +1031,9 @@ class GameEngine {
         }
         
         if (isValid) {
-            if (!fromPipeline) {
-                pips += this.state.tempPips;
-                favour += this.state.tempFavour;
-                let eventData = { category, pips, favour, favourMult: 1 };
-                const PR = typeof PlaytestRecorder !== 'undefined' && PlaytestRecorder.active;
-                const chainSteps = [];
-                this.state.boons.forEach((boon) => {
-                    const before = { p: eventData.pips, f: eventData.favour, fm: eventData.favourMult || 1 };
-                    eventData = boon.onTimingEvent('before_score', this.state, eventData);
-                    if (PR) {
-                        chainSteps.push({
-                            id: boon.id,
-                            before,
-                            after: {
-                                p: eventData.pips,
-                                f: eventData.favour,
-                                fm: eventData.favourMult || 1,
-                            },
-                        });
-                    }
-                });
-                if (PR) {
-                    PlaytestRecorder.log('before_score_chain', {
-                        category,
-                        steps: chainSteps,
-                        after: {
-                            pips: eventData.pips,
-                            favour: eventData.favour,
-                            favourMult: eventData.favourMult || 1,
-                        },
-                        boonOrder: this.state.boons.map((b) => b.id),
-                    });
-                }
-                pips = eventData.pips;
-                favour = eventData.favour * (eventData.favourMult || 1);
-                pips = Math.max(0, pips);
-                favour = Math.max(0.1, favour);
-                if (this.state.globalBonuses.fivesToAll) {
-                    const fivesCount = this.state.dice.filter((die) => this.getDieFaceValue(die, 0) === 5).length;
-                    pips += fivesCount * 5;
-                }
-            }
-            finalScore = Math.floor(pips * favour);
+            finalScore = typeof SafeMath !== 'undefined'
+                ? SafeMath.safeMultiply(pips, favour)
+                : Math.floor(pips * favour);
             
             // BALATRO-STYLE ANIMATED SCORING
             // Show pips × favour breakdown, count up, particles, enhanced shake
@@ -1198,7 +1168,7 @@ class GameEngine {
         const categoryBaseFavour = 1 + worshipLevel;
         const diceContributions = this.getDiceContributions(category);
         const boonContributions = this.getBoonContributions(category, basePips, categoryBaseFavour);
-        const up = (o) => this.updateLiveScoreValues(liveScoreEl, { ...o, category: categoryLabel, pipsLabel: 'pips', favourLabel: 'favour', showNa: false });
+        const up = (o) => this.ensureLiveScore()?.updateValues(liveScoreEl, { ...o, category: categoryLabel, pipsLabel: 'pips', favourLabel: 'favour', showNa: false });
 
         let currentPips = 0;
         let currentFavour = categoryBaseFavour;
@@ -1327,7 +1297,7 @@ class GameEngine {
                     const afterResolve = () => {
                         this.isScoring = false;
                         setTimeout(() => {
-                            this.updateLiveScoreDisplay(null);
+                            this.ensureLiveScore()?.updateDisplay(null);
                         }, this.scaleDelay(2500));
                         this.updateAllUI();
                         callback();
@@ -2095,199 +2065,80 @@ class GameEngine {
      * // { pips: 23, favour: 2, isValid: true }
      */
     calculateScore(category, isActualScoring = false) {
-        // ===== DEFENSIVE PROGRAMMING: Validate inputs =====
-        
-        // Validate category exists
-        if (!category || typeof category !== 'string') {
-            Logger.error('Invalid category provided to calculateScore', { category });
-            return { pips: 0, favour: 0, isValid: false };
+        const fail = { pips: 0, favour: 0, isValid: false, fromPipeline: false };
+        if (typeof ScoringEngine === 'undefined' || typeof ScoringEngine.runPipeline !== 'function') {
+            Logger.error('ScoringEngine.runPipeline unavailable');
+            return fail;
         }
-        
-        // Validate game state exists
-        if (!this.state) {
-            Logger.error('Game state is undefined');
-            return { pips: 0, favour: 0, isValid: false };
-        }
-        
-        // Validate dice array
-        if (!Array.isArray(this.state.dice)) {
-            Logger.error('Dice array is not an array', { dice: this.state.dice });
-            return { pips: 0, favour: 0, isValid: false };
-        }
-        
-        if (this.state.dice.length !== GAME_BALANCE.STARTING_DICE_COUNT) {
-            Logger.error('Invalid dice count', { actual: this.state.dice.length, expected: GAME_BALANCE.STARTING_DICE_COUNT });
-            return { pips: 0, favour: 0, isValid: false };
-        }
-        
-        // Validate each die object
-        for (let i = 0; i < this.state.dice.length; i++) {
-            const die = this.state.dice[i];
-            if (!die || typeof die.getEffectiveFace !== 'function') {
-                Logger.error('Invalid die at index', { index: i, die });
-                return { pips: 0, favour: 0, isValid: false };
+        const validation = ScoringEngine.validateRun(this.state, category);
+        if (!validation.ok) {
+            if (validation.reason !== 'locked') {
+                Logger.error('calculateScore validation failed', { category, reason: validation.reason });
             }
-        }
-        
-        // ===== END VALIDATION =====
-        
-        // Check if category is locked (for 7s, 8s, 9s)
-        if (['Sevens', 'Eights', 'Nines'].includes(category) && !this.state.unlockedCategories[category]) {
-            return { pips: 0, favour: 0, isValid: false };
-        }
-        
-        // Get face values with safe fallbacks
-        const faces = this.state.dice.map((d, index) => {
-            try {
-                let face = d.getEffectiveFace();
-                
-                const faceData = d.faces[d.currentFace];
-                Logger.trace(`Die ${index}: face=${face}`, faceData);
-                
-                // Validate face value
-                if (typeof face !== 'number' || isNaN(face)) {
-                    Logger.warn(`Die ${index} returned invalid face: ${face}. Using 0.`);
-                    return 0;
-                }
-                
-                // Apply substitutions
-                if (this.state.diceSubstitutions && this.state.diceSubstitutions.foursAsFives && face === 4) {
-                    face = 5;
-                }
-                
-                return face;
-            } catch (error) {
-                Logger.error(`Error getting face for die ${index}:`, error);
-                return 0;
-            }
-        });
-        
-        // Build counts with safe defaults
-        const counts = {};
-        this.state.dice.forEach((die, index) => {
-            const val = faces[index];
-            if (val > 0) {  // Only count valid faces
-                counts[val] = (counts[val] || 0) + 1;
-            }
-        });
-        
-        Logger.trace(`Scoring ${category}: faces=[${faces.join(',')}]`, counts);
-
-        let pips, favour, isValid, fromPipeline = false;
-        if (typeof ScoringEngine !== 'undefined' && typeof ScoringEngine.runPipeline === 'function') {
-            const pipeResult = ScoringEngine.runPipeline(category, this.state, {
-                tempPips: isActualScoring ? (this.state.tempPips || 0) : 0,
-                tempFavour: isActualScoring ? (this.state.tempFavour || 0) : 0
-            });
-            pips = pipeResult.pips;
-            favour = pipeResult.favour * (pipeResult.favourMult || 1);
-            isValid = pipeResult.isValid;
-            fromPipeline = true;
-        } else {
-            const context = typeof ScoringEngine !== 'undefined'
-                ? ScoringEngine.buildContext(this.state)
-                : { pipsBonuses: this.state.pipsBonuses || {}, boons: this.state.boons || [], activeBlind: this.state.activeBlind || null, unlockedCategories: this.state.unlockedCategories || {} };
-            let evalResult = typeof ScoringEngine !== 'undefined'
-                ? ScoringEngine.evaluateCategory(category, faces, counts, context)
-                : { pips: 0, isValid: false };
-            pips = evalResult.pips;
-            isValid = evalResult.isValid;
-            favour = this.getFavourForCategory(category);
-            const god = this.getGodForCategory(category);
-            // Worship bonus only on non-zero dice entries; boons apply even on scratch
-            const hasValidDiceScore = pips > 0;
-            if (hasValidDiceScore) {
-                if (god && this.state.worshipLevels[god]) favour += this.state.worshipLevels[god];
-                const worshipLevel = (god && this.state.worshipLevels[god]) ? this.state.worshipLevels[god] : 0;
-                const pipsPerLevel = (typeof CATEGORY_PIPS_PER_LEVEL !== 'undefined' && CATEGORY_PIPS_PER_LEVEL[category]) || 0;
-                pips += worshipLevel * pipsPerLevel;
-                this.state.consumables.forEach((consumable) => {
-                    if (consumable instanceof WorshipCard) {
-                        const worshipResult = consumable.applyBasicWorshipEffect(this.state, { category, pips, favour });
-                        favour = worshipResult.favour;
-                    }
-                });
-            }
+            return fail;
         }
 
-        // Side-effect messages (only when actually scoring, not previewing)
+        const pipeResult = ScoringEngine.runPipeline(category, this.state, {
+            tempPips: isActualScoring ? (this.state.tempPips || 0) : 0,
+            tempFavour: isActualScoring ? (this.state.tempFavour || 0) : 0,
+        });
+        let pips = pipeResult.pips;
+        let favour = pipeResult.favour * (pipeResult.favourMult || 1);
+        const isValid = pipeResult.isValid;
+        const counts = typeof GnosisDisplay !== 'undefined'
+            ? GnosisDisplay.getFacesAndCounts(this.state).counts
+            : {};
+
         if (isActualScoring && isValid) {
             const hasBellows = this.state.boons?.some(j => j.id === 'bellows_of_war');
             const hasDionysus = this.state.boons?.some(j => j.id === 'dionysus_revelry');
             if (hasBellows && ['Three of a Kind', 'Four of a Kind'].includes(category)) {
-                window.game?.showMessage?.("Bellows of War: Virtual die added!", 2000);
+                window.game?.showMessage?.('Bellows of War: Virtual die added!', 2000);
             }
             if (hasDionysus && category === 'Full House') {
                 const has3 = Object.values(counts).includes(SCORING_THRESHOLDS.FULL_HOUSE_THREE);
                 const has2 = Object.values(counts).includes(SCORING_THRESHOLDS.FULL_HOUSE_TWO);
-                const pairCount = Object.values(counts).filter(c => c === 2).length;
+                const pairCount = Object.values(counts).filter((c) => c === 2).length;
                 if (pairCount >= 2 && !(has3 && has2)) {
                     window.game?.showMessage?.("Dionysus' Revelry: 2 pairs counted as Full House!", 3000);
                 }
             }
         }
 
-        // Apply enhancement effects (gold, parchment) - only when actually scoring a valid hand
         if (isActualScoring && isValid) {
             this.state.dice.forEach((die, index) => {
-                const currentFace = die.currentFace;
-                const currentFaceData = die.faces[currentFace];
+                const currentFaceData = die.faces?.[die.currentFace];
                 if (currentFaceData?.enhancements?.size > 0) {
                     Logger.trace(`Die ${index + 1} enhancements:`, Array.from(currentFaceData.enhancements));
                 }
-                if (die.hasEnhancementForCurrentFace && die.hasEnhancementForCurrentFace('gold')) {
-                    this.updateGoldAnimated(ENHANCEMENT_BONUSES.GOLD_COINS, "gold enhancement");
-                    window.game?.showMessage?.("Gold enhancement: +1 Gold!");
+                if (die.hasEnhancementForCurrentFace?.('gold')) {
+                    this.updateGoldAnimated(ENHANCEMENT_BONUSES.GOLD_COINS, 'gold enhancement');
+                    window.game?.showMessage?.('Gold enhancement: +1 Gold!');
                 }
-                if (die.hasEnhancementForCurrentFace && die.hasEnhancementForCurrentFace('parchment')) {
-                    const parchmentRoll = this.prng.random(); // Use seeded RNG for determinism
+                if (die.hasEnhancementForCurrentFace?.('parchment')) {
+                    const parchmentRoll = this.prng.random();
                     if (parchmentRoll < ENHANCEMENT_CHANCES.PARCHMENT_GOLD_CHANCE) {
-                        this.updateGoldAnimated(ENHANCEMENT_BONUSES.PARCHMENT_GOLD, "parchment");
+                        this.updateGoldAnimated(ENHANCEMENT_BONUSES.PARCHMENT_GOLD, 'parchment');
                         window.game?.showMessage?.(`Parchment fortune: +${ENHANCEMENT_BONUSES.PARCHMENT_GOLD} Gold!`);
                     }
                 }
             });
         }
-        
-        // Apply enhancement effects that only trigger on VALID hands (pips, favour)
-        // When using runPipeline, iron/mop/wild are already included; only run parchment favour + side-effect messages
-        const usePipeline = typeof ScoringEngine !== 'undefined' && typeof ScoringEngine.runPipeline === 'function';
+
         if (isValid) {
-            const upperSection = ['Ones', 'Twos', 'Threes', 'Fours', 'Fives', 'Sixes', 'Sevens', 'Eights', 'Nines'];
-            this.state.dice.forEach((die, index) => {
-                if (!usePipeline) {
-                    if (die.hasEnhancementForCurrentFace && die.hasEnhancementForCurrentFace('iron')) {
-                        pips += ENHANCEMENT_BONUSES.IRON_PIPS;
-                        window.game?.showMessage?.(`Clockwork enhancement: +${ENHANCEMENT_BONUSES.IRON_PIPS} Pips!`);
-                    }
-                    if (die.hasEnhancementForCurrentFace && die.hasEnhancementForCurrentFace('mother_of_pearl') && die.motherOfPearlBonus !== undefined) {
-                        pips += die.motherOfPearlBonus;
-                    }
-                    // Mirror (Balatro Red Seal): die scores twice, including enhancements
-                    if (die.hasEnhancementForCurrentFace && die.hasEnhancementForCurrentFace('mirror')) {
-                        const faceVal = faces[index] || 0;
-                        const contributes = !upperSection.includes(category) ||
-                            (typeof CATEGORY_TO_NUMBER !== 'undefined' && faceVal === CATEGORY_TO_NUMBER[category]);
-                        if (contributes) {
-                            pips += faceVal;
-                            if (die.hasEnhancementForCurrentFace('iron')) pips += ENHANCEMENT_BONUSES.IRON_PIPS;
-                            if (die.hasEnhancementForCurrentFace('mother_of_pearl') && die.motherOfPearlBonus !== undefined) pips += die.motherOfPearlBonus;
-                        }
-                    }
-                    // Wild: getEffectiveFace() already includes wildValue in base pips - no extra pips
-                }
-                if (die.hasEnhancementForCurrentFace && die.hasEnhancementForCurrentFace('parchment')) {
+            this.state.dice.forEach((die) => {
+                if (die.hasEnhancementForCurrentFace?.('parchment')) {
                     const parchmentRoll = this.prng.random();
-                    if (parchmentRoll >= ENHANCEMENT_CHANCES.PARCHMENT_GOLD_CHANCE &&
-                        parchmentRoll < ENHANCEMENT_CHANCES.PARCHMENT_GOLD_CHANCE + ENHANCEMENT_CHANCES.PARCHMENT_FAVOUR_CHANCE) {
+                    if (parchmentRoll >= ENHANCEMENT_CHANCES.PARCHMENT_GOLD_CHANCE
+                        && parchmentRoll < ENHANCEMENT_CHANCES.PARCHMENT_GOLD_CHANCE + ENHANCEMENT_CHANCES.PARCHMENT_FAVOUR_CHANCE) {
                         favour += ENHANCEMENT_BONUSES.PARCHMENT_FAVOUR;
-                        window.game?.showMessage?.("Parchment blessing: +1 Favour!");
+                        if (isActualScoring) window.game?.showMessage?.('Parchment blessing: +1 Favour!');
                     }
                 }
             });
         }
-        
-        return { pips, favour, isValid, fromPipeline };
+
+        return { pips, favour, isValid, fromPipeline: true };
     }
 
     getFavourForCategory(_category) {
@@ -2313,64 +2164,29 @@ class GameEngine {
         return typeof GodUtils !== 'undefined' ? GodUtils.getGodForCategory(category) : null;
     }
 
-    /**
-     * Faces + value counts for gnosis preview (matches calculateScore substitutions).
-     * @returns {{ faces: number[], counts: Object<number, number> }}
-     */
     _getScoringFacesAndCounts() {
-        const faces = this.state.dice.map((d) => {
-            try {
-                let face = d.getEffectiveFace();
-                if (typeof face !== 'number' || isNaN(face)) return 0;
-                if (this.state.diceSubstitutions?.foursAsFives && face === 4) face = 5;
-                return face;
-            } catch (_) {
-                return 0;
-            }
-        });
-        const counts = {};
-        faces.forEach((val) => {
-            if (val > 0) counts[val] = (counts[val] || 0) + 1;
-        });
-        return { faces, counts };
+        return typeof GnosisDisplay !== 'undefined'
+            ? GnosisDisplay.getFacesAndCounts(this.state)
+            : { faces: [], counts: {} };
     }
 
     getGnosisDicePips(category, isValid) {
         if (!isValid) return 0;
-        const { faces, counts } = this._getScoringFacesAndCounts();
-        const upper = ['Ones', 'Twos', 'Threes', 'Fours', 'Fives', 'Sixes', 'Sevens', 'Eights', 'Nines'];
-        if (upper.includes(category)) {
-            const num = CATEGORY_TO_NUMBER[category];
-            return (counts[num] || 0) * num;
-        }
-        let sum = faces.reduce((a, b) => a + b, 0);
-        if (['Three of a Kind', 'Four of a Kind'].includes(category)
-            && this.state.boons?.some((j) => j.id === 'bellows_of_war')) {
-            const threshold = (category === 'Three of a Kind'
-                ? SCORING_THRESHOLDS.THREE_OF_KIND_REQUIRED
-                : SCORING_THRESHOLDS.FOUR_OF_KIND_REQUIRED) - 1;
-            const matchKey = Object.keys(counts).find((k) => counts[k] >= threshold);
-            if (matchKey) sum += parseInt(matchKey, 10);
-        }
-        return sum;
+        return typeof GnosisDisplay !== 'undefined'
+            ? GnosisDisplay.getDicePips(category, this.state)
+            : 0;
     }
 
     getGnosisCategoryPipBonus(category, counts = {}) {
-        if (!category) return 0;
-        let bonus = this.getCategoryLevelBonuses(category).pips;
-        const pb = this.state.pipsBonuses || {};
-        if (category === 'Twos' && pb.twosBonus) bonus += (counts[2] || 0) * pb.twosBonus;
-        if (category === 'Sixes' && pb.sixesBonus) bonus += (counts[6] || 0) * pb.sixesBonus;
-        if (category === 'Three of a Kind' && pb.threeOfKindBonus) bonus += pb.threeOfKindBonus;
-        if (category === 'Four of a Kind' && pb.fourOfKindBonus) bonus += pb.fourOfKindBonus;
-        return bonus;
+        return typeof GnosisDisplay !== 'undefined'
+            ? GnosisDisplay.getCategoryPipBonus(category, this.state, counts)
+            : 0;
     }
 
     formatGnosisPipsLabel(category, counts = null) {
-        if (!category) return 'pips';
-        const bonus = this.getGnosisCategoryPipBonus(category, counts || {});
-        if (bonus > 0) return `+${bonus} pip bonus`;
-        return 'pips';
+        return typeof GnosisDisplay !== 'undefined'
+            ? GnosisDisplay.formatPipsLabel(category, this.state, counts)
+            : 'pips';
     }
 
     /**
@@ -2419,7 +2235,7 @@ class GameEngine {
             die.resetTempModifier();
         });
         
-        this.updateLiveScoreDisplay(null);
+        this.ensureLiveScore()?.updateDisplay(null);
         
         if (this.state.turn > this.state.maxTurns) {
             this.endAnte();
@@ -2733,154 +2549,20 @@ class GameEngine {
         this._updateAllUIRafId = requestAnimationFrame(run);
     }
 
-    /**
-     * Debounced Gnosis preview for score row hover. Rapid hovers only trigger one calculation.
-     */
     scheduleLiveScorePreview(category) {
-        if (this._liveScorePreviewTimeout) clearTimeout(this._liveScorePreviewTimeout);
-        this._liveScorePreviewTimeout = setTimeout(() => {
-            this._liveScorePreviewTimeout = null;
-            this.updateLiveScoreDisplay(category);
-        }, typeof TIMING !== 'undefined' ? TIMING.LIVE_SCORE_DEBOUNCE_MS : 70);
+        this.ensureLiveScore()?.schedulePreview(category);
     }
 
     cancelLiveScorePreview() {
-        if (this._liveScorePreviewTimeout) {
-            clearTimeout(this._liveScorePreviewTimeout);
-            this._liveScorePreviewTimeout = null;
-        }
-        this.updateLiveScoreDisplay(null);
+        this.ensureLiveScore()?.cancelPreview();
     }
 
-    /**
-     * Procedural live score update – textContent only, no innerHTML.
-     * @param {HTMLElement} el - Live score display root
-     * @param {Object} o - Values: category, pips, pipsLabel, pipsAdd, pipsContrib, favour, favourLabel, favourAdd, favourContrib, showNa
-     */
     updateLiveScoreValues(el, o) {
-        if (!el || !el.hasAttribute('data-live-root')) return;
-        const q = (key) => el.querySelector(`[data-live="${key}"]`);
-        const set = (key, val) => { const n = q(key); if (n) n.textContent = val ?? ''; };
-        const hide = (key) => { const n = q(key); if (n) n.setAttribute('hidden', ''); };
-        const show = (key) => { const n = q(key); if (n) n.removeAttribute('hidden'); };
-
-        set('category', o.category);
-        const row = q('row');
-        const rowNa = q('row-na');
-        if (o.showNa) {
-            if (row) row.setAttribute('hidden', '');
-            if (rowNa) rowNa.removeAttribute('hidden');
-            return;
-        }
-        if (row) row.removeAttribute('hidden');
-        if (rowNa) rowNa.setAttribute('hidden', '');
-
-        set('pips', o.pips);
-        set('pips-label', o.pipsLabel);
-        set('favour', o.favour);
-        set('favour-label', o.favourLabel);
-
-        if (o.pipsAdd != null) {
-            set('pips-contrib', o.pipsAdd ? o.pipsContrib : '');
-            o.pipsAdd ? show('pips-add') : hide('pips-add');
-        }
-        if (o.favourAdd != null) {
-            set('favour-contrib', o.favourAdd ? o.favourContrib : '');
-            o.favourAdd ? show('favour-add') : hide('favour-add');
-        }
-        if (o.pipsPulse) {
-            const p = q('pips');
-            if (p) { p.classList.add('pips-pulse'); setTimeout(() => p.classList.remove('pips-pulse'), 300); }
-        }
-        if (o.favourPulse) {
-            const f = q('favour');
-            if (f) { f.classList.add('favour-pulse'); setTimeout(() => f.classList.remove('favour-pulse'), 300); }
-        }
+        this.ensureLiveScore()?.updateValues(el, o);
     }
 
     updateLiveScoreDisplay(category) {
-        if (!this.domReady || !this.dom.liveScoreDisplay) return;
-        if (this.liveScoreAnimationTimeout) clearTimeout(this.liveScoreAnimationTimeout);
-        const el = this.dom.liveScoreDisplay;
-        if (window.juiceManager) {
-            window.juiceManager.cancelJuice(el);
-            const row = el.querySelector('[data-live="row"]');
-            if (row) window.juiceManager.cancelJuice(row);
-        }
-
-        const slotFilled = !!(category && this.state.scorecard[category] !== undefined);
-
-        if (!category || !this.state.hasRolled) {
-            const levelBonus = category ? this.getCategoryLevelBonuses(category) : { pips: 0, mult: 1 };
-            this.updateLiveScoreValues(el, {
-                category: this.getLiveOfferingTitle(category, slotFilled),
-                pips: '0',
-                pipsLabel: this.formatGnosisPipsLabel(category),
-                pipsAdd: false,
-                favour: category ? this.formatFavour(levelBonus.mult) : '0',
-                favourLabel: 'favour',
-                favourAdd: false,
-                showNa: false
-            });
-            el.classList.remove('balatro-preview');
-            el.classList.add('visible');
-            this.lastPreviewPips = 0;
-            this.lastPreviewFavour = 0;
-            return;
-        }
-
-        const { pips, favour, isValid, fromPipeline } = this.calculateScore(category);
-
-        if (!isValid) {
-            const filled = this.state.scorecard[category] !== undefined;
-            this.updateLiveScoreValues(el, {
-                category: this.getLiveOfferingTitle(category, filled),
-                pipsLabel: this.formatGnosisPipsLabel(category, this._getScoringFacesAndCounts().counts),
-                showNa: true
-            });
-            el.classList.remove('balatro-preview');
-            el.classList.add('visible');
-            return;
-        }
-
-        let p = pips, f = favour;
-        if (!fromPipeline) {
-            let eventData = { category, pips: p, favour: f, favourMult: 1 };
-            this.state.boons.forEach((j) => {
-                if (j.timing?.before_score) eventData = j.onTimingEvent('before_score', this.state, eventData);
-            });
-            p = eventData.pips;
-            f = eventData.favour * (eventData.favourMult || 1);
-        }
-
-        const isScored = this.state.scorecard[category] !== undefined;
-        const categoryLabel = this.getLiveOfferingTitle(category, isScored);
-        const { counts } = this._getScoringFacesAndCounts();
-        const dicePips = this.getGnosisDicePips(category, true);
-        const categoryBonus = this.getGnosisCategoryPipBonus(category, counts);
-        const extraPips = Math.max(0, Math.floor(p) - dicePips - categoryBonus);
-        this.updateLiveScoreValues(el, {
-            category: categoryLabel,
-            pips: String(dicePips),
-            pipsLabel: this.formatGnosisPipsLabel(category, counts),
-            pipsAdd: extraPips > 0,
-            pipsContrib: extraPips > 0 ? String(extraPips) : '',
-            favour: this.formatFavour(f),
-            favourLabel: 'favour',
-            favourAdd: false,
-            showNa: false
-        });
-        el.classList.add('balatro-preview', 'visible');
-
-        if (window.juiceManager && (this.lastPreviewPips !== undefined || this.lastPreviewFavour !== undefined)) {
-            const dP = p - (this.lastPreviewPips ?? 0), dF = f - (this.lastPreviewFavour ?? 0);
-            if (dP !== 0 || dF !== 0) {
-                const row = el.querySelector('[data-live="row"]');
-                if (row) window.juiceManager.juiceUp(row, 0.12);
-            }
-        }
-        this.lastPreviewPips = p;
-        this.lastPreviewFavour = f;
+        this.ensureLiveScore()?.updateDisplay(category);
     }
 
     // Utility methods
@@ -2916,99 +2598,10 @@ class GameEngine {
         );
     }
 
-    // Pre-shop sentence ticker in live-score area, then open shop.
     showInterestThenOpenShop(opts = {}) {
-        if (this._cashoutInProgress) return;
-        this._cashoutInProgress = true;
-        this.state.transitioningToShop = true;
-        this.updateAllUI(true);
-
-        const pantheonTotal = opts.pantheonTotal;
-        const scoresCount = this.state.scoresThisRound || 0;
-        const scoresGold = scoresCount * GAME_BALANCE.GOLD_PER_SCORE;
-        // Interest on (gold + scores).
-        const goldAfterScores = this.state.gold + scoresGold;
-        const interest = this.calculateInterestOnAmount(goldAfterScores);
-        const roundGained = scoresGold + interest;
-        let payoutAwarded = false;
-
-        const doOpenShop = () => {
-            // Fallback payout (normal path awards during the payout sentence beat).
-            if (!payoutAwarded && roundGained > 0) {
-                this.updateGoldAnimated(roundGained, "cashout");
-                payoutAwarded = true;
-            }
-            this.state.scoresThisRound = 0;
-            if (opts.pantheonTotal != null) {
-                this.state.scorecard = {};
-                this.state.totalScore = 0;
-            }
-            this._cashoutInProgress = false;
-            this.state.transitioningToShop = false;
-            this.openShop();
-        };
-
-        const liveScoreDisplay = this.dom.liveScoreDisplay;
-        const cashoutContent = this.dom.liveCashoutContent;
-        const cashoutLine = this.dom.liveCashoutLine;
-        if (!this.domReady || !liveScoreDisplay || !cashoutContent || !cashoutLine) {
-            doOpenShop();
-            return;
-        }
-
-        const drachmaWord = (n) => (Math.abs(n) === 1 ? 'drachma' : 'drachmae');
-
-        // Single-slot sentence ticker: each beat replaces the previous text.
-        const steps = [];
-        if (pantheonTotal != null) {
-            steps.push({ type: 'pantheon', text: `Pantheon reckoning: ${pantheonTotal}` });
-        }
-        steps.push({ type: 'offerings', text: `Offerings made: +${scoresGold} ${drachmaWord(scoresGold)}` });
-        steps.push({ type: 'surplus', text: `Surplus of the gods: +${interest} ${drachmaWord(interest)}` });
-        steps.push({ type: 'payout', text: `Drachma received: +${roundGained} ${drachmaWord(roundGained)}` });
-        steps.push({ type: 'footer', text: 'Off to market' });
-
-        let i = 0;
-        const stepMs = this.scaleDelay(850);
-
-        const renderStep = (stepIndex) => {
-            const s = steps[stepIndex];
-            cashoutLine.textContent = s.text;
-            cashoutLine.classList.remove('gnosis-pantheon-value', 'pantheon-success-flash');
-
-            if (s.type === 'pantheon') {
-                const scoreExceedsRequired = opts.pantheonThreshold != null && pantheonTotal >= opts.pantheonThreshold;
-                cashoutLine.classList.add('gnosis-pantheon-value');
-                if (scoreExceedsRequired) cashoutLine.classList.add('pantheon-success-flash');
-            }
-            if (s.type === 'payout' && !payoutAwarded && roundGained > 0) {
-                this.updateGoldAnimated(roundGained, "cashout");
-                payoutAwarded = true;
-            }
-            cashoutContent.classList.remove('hidden');
-            liveScoreDisplay.classList.add('cashout-mode', 'visible');
-        };
-
-        const advance = () => {
-            if (i >= steps.length) {
-                if (window.soundManager) window.soundManager.play('cardSlide1', { pitch: 0.95, volume: 0.5 });
-                setTimeout(() => {
-                    liveScoreDisplay.classList.remove('cashout-mode');
-                    cashoutContent.classList.add('hidden');
-                    cashoutLine.textContent = '';
-                    this.updateLiveScoreDisplay(null);
-                    Logger.info(`Cashout: +${roundGained}g (scores ${scoresGold}g + interest ${interest}g)`);
-                    doOpenShop();
-                }, this.scaleDelay(650));
-                return;
-            }
-            renderStep(i);
-            i++;
-            setTimeout(advance, stepMs);
-        };
-        advance();
+        this.ensureLiveScore()?.showInterestThenOpenShop(opts);
     }
-    
+
     // Shop methods (will be expanded in next file)
     openShop() {
         if (typeof PlaytestRecorder !== 'undefined' && PlaytestRecorder.active) {
