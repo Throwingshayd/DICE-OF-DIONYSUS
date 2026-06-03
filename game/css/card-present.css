@@ -1,0 +1,776 @@
+/**
+ * Card presentation (canonical) — see docs/UI_CONSISTENCY_CHECKLIST.md
+ * Sizes: card-sizes.css (--card-w/h)
+ * Surfaces: data-card-surface from Card.render()
+ * Also: drag ghosts, shop drag hide, motion policy, anthology locked state
+ *
+ * Play face (owned + rack): name via .card-type-indicator only; effect in tooltip.
+ * Rack adds .card-shop-cost on direct shop sales.
+ */
+
+
+
+/* ── Shared play face: owned (sidebars) + rack (shop / pack / anthology) ── */
+
+.card[data-card-surface="owned"] .card-content > .card-name,
+
+.card[data-card-surface="owned"] .card-content > .card-effect,
+
+.card[data-card-surface="owned"] .card-content > .card-rarity,
+
+.card[data-card-surface="owned"] .card-content > .card-god,
+
+.card[data-card-surface="owned"] .card-content > .card-uses,
+
+.card[data-card-surface="rack"] .card-content > .card-name,
+
+.card[data-card-surface="rack"] .card-content > .card-effect,
+
+.card[data-card-surface="rack"] .card-content > .card-rarity,
+
+.card[data-card-surface="rack"] .card-content > .card-god,
+
+.card[data-card-surface="rack"] .card-content > .card-uses,
+
+.card[data-card-surface="owned"] .fallback-name,
+
+.card[data-card-surface="rack"] .fallback-name {
+
+    display: none !important;
+
+    visibility: hidden !important;
+
+}
+
+
+
+.card[data-card-surface="owned"] .card-content,
+
+.card[data-card-surface="rack"] .card-content {
+
+    justify-content: center !important;
+
+    align-items: center !important;
+
+}
+
+
+
+.card[data-card-surface="owned"] .card-type-indicator,
+
+.card[data-card-surface="rack"] .card-type-indicator,
+
+#shopDefaultView .card[data-card-surface="rack"] .card-type-indicator,
+
+#packOpeningView .card[data-card-surface="rack"] .card-type-indicator,
+
+.pack-cards-grid .card[data-card-surface="rack"] .card-type-indicator {
+
+    display: flex !important;
+
+    visibility: visible !important;
+
+    align-items: center;
+
+    justify-content: center;
+
+    text-align: center !important;
+
+    width: 100%;
+
+    flex: 1;
+
+    padding: 8px;
+
+    font-family: 'DisneyHeroic', sans-serif !important;
+
+    font-size: 1.1rem !important;
+
+    font-weight: bold !important;
+
+    pointer-events: none;
+
+    background: transparent !important;
+
+}
+
+
+
+.card[data-card-surface="owned"].boon-card .card-type-indicator,
+
+.card[data-card-surface="rack"].boon-card .card-type-indicator {
+
+    color: #2F1C10 !important;
+
+    text-shadow: 0 1px 1px rgba(255, 255, 255, 0.5);
+
+}
+
+
+
+.card[data-card-surface="owned"].boon-card.no-asset .card-type-indicator,
+
+.card[data-card-surface="rack"].boon-card.no-asset .card-type-indicator {
+
+    color: rgba(255, 255, 255, 0.95) !important;
+
+    text-shadow: 0 1px 2px rgba(0, 0, 0, 0.5);
+
+}
+
+
+
+.card[data-card-surface="owned"].worship-card .card-type-indicator,
+
+.card[data-card-surface="owned"].libation-card .card-type-indicator,
+
+.card[data-card-surface="owned"].libation .card-type-indicator,
+
+.card[data-card-surface="rack"].worship-card .card-type-indicator,
+
+.card[data-card-surface="rack"].libation-card .card-type-indicator,
+
+.card[data-card-surface="rack"].libation .card-type-indicator {
+
+    color: rgba(255, 255, 255, 0.95) !important;
+
+    text-shadow: 0 1px 2px rgba(0, 0, 0, 0.4) !important;
+
+}
+
+
+
+/* Rack-only: price chip on shop wares (direct sales) */
+
+.card[data-card-surface="rack"] .card-shop-cost {
+
+    display: block !important;
+
+    visibility: visible !important;
+
+}
+
+
+
+/* Artifacts: rack/owned use type indicator (name); effect in tooltip */
+
+.card.artifact-card[data-card-surface="rack"] .artifact-name,
+
+.card.artifact-card[data-card-surface="rack"] .artifact-effect,
+
+.card.artifact-card[data-card-surface="rack"] .artifact-description,
+
+.card.artifact-card[data-card-surface="owned"] .artifact-name,
+
+.card.artifact-card[data-card-surface="owned"] .artifact-effect,
+
+.card.artifact-card[data-card-surface="owned"] .artifact-description {
+
+    display: none !important;
+
+    visibility: hidden !important;
+
+}
+
+
+
+.card.artifact-card[data-card-surface="rack"] .card-type-indicator,
+
+.card.artifact-card[data-card-surface="owned"] .card-type-indicator {
+
+    display: flex !important;
+
+    visibility: visible !important;
+
+    align-items: center;
+
+    justify-content: center;
+
+    text-align: center !important;
+
+    width: 100%;
+
+    flex: 1;
+
+    padding: 8px;
+
+    font-family: 'DisneyHeroic', sans-serif !important;
+
+    font-size: 1rem !important;
+
+    font-weight: bold !important;
+
+    color: #2F1C10 !important;
+
+    text-shadow: 0 1px 1px rgba(255, 255, 255, 0.5);
+
+    background: rgba(47, 28, 16, 0.12) !important;
+
+    border-radius: 4px;
+
+    pointer-events: none;
+
+}
+
+
+
+.card.artifact-card .card-frame {
+
+    background: linear-gradient(135deg, #FFD700, #DAA520) !important;
+
+    border: 2px solid rgba(184, 134, 11, 0.6) !important;
+
+    border-radius: 8px !important;
+
+    box-shadow: 0 0 8px rgba(255, 215, 0, 0.3) !important;
+
+}
+
+
+
+#shopDefaultView .artifact-card[data-card-surface="rack"] .card-content,
+
+.collection-grid .artifact-card[data-card-surface="rack"] .card-content {
+
+    justify-content: center !important;
+
+    align-items: center !important;
+
+    height: 100%;
+
+}
+
+
+
+/* ── Drag: same play face when lifting shop/pack cards ── */
+
+.shop-drag-lift.card:not(.pack-card),
+
+.drag-ghost.card:not(.pack-card),
+
+.card-drag-appearance.card:not(.pack-card) {
+
+    padding: 0 !important;
+
+    margin: 0 !important;
+
+    border: none !important;
+
+    background: transparent !important;
+
+    background-color: transparent !important;
+
+    overflow: hidden !important;
+
+    box-sizing: border-box !important;
+
+}
+
+
+
+.drag-ghost.card:not(.pack-card) .card-content,
+
+.card-drag-appearance.card:not(.pack-card) .card-content,
+
+.shop-drag-lift.card:not(.pack-card) .card-content {
+
+    width: 100% !important;
+
+    height: 100% !important;
+
+    box-sizing: border-box !important;
+
+}
+
+
+
+.drag-ghost.card .card-background,
+
+.card-drag-appearance.card .card-background,
+
+.shop-drag-lift.card .card-background {
+
+    position: absolute;
+
+    top: 0;
+
+    left: 0;
+
+    width: 100% !important;
+
+    height: 100% !important;
+
+    z-index: 1;
+
+    background-size: contain !important;
+
+    background-position: center !important;
+
+    background-repeat: no-repeat !important;
+
+}
+
+
+
+.shop-drag-lift.card .card-shop-cost,
+
+.drag-ghost.card .card-shop-cost,
+
+.card-drag-appearance .card-shop-cost,
+
+.shop-drag-lift .action-labels-row,
+
+.drag-ghost .action-labels-row,
+
+.card-drag-appearance .action-labels-row {
+
+    display: none !important;
+
+}
+
+
+
+.card-drag-appearance.card .card-content > .card-name,
+
+.card-drag-appearance.card .card-content > .card-effect,
+
+.card-drag-appearance.card .card-content > .card-rarity,
+
+.card-drag-appearance.card .card-content > .card-god,
+
+.shop-drag-lift.card .card-content > .card-name,
+
+.shop-drag-lift.card .card-content > .card-effect,
+
+.shop-drag-lift.card .card-content > .card-rarity,
+
+.shop-drag-lift.card .card-content > .card-god,
+
+.drag-ghost.card .card-content > .card-name,
+
+.drag-ghost.card .card-content > .card-effect,
+
+.drag-ghost.card .card-content > .card-rarity,
+
+.drag-ghost.card .card-content > .card-god,
+
+.card-drag-appearance .fallback-name,
+
+.shop-drag-lift .fallback-name,
+
+.drag-ghost .fallback-name {
+
+    display: none !important;
+
+}
+
+
+
+.card-drag-appearance.card .card-content,
+
+.shop-drag-lift.card .card-content,
+
+.drag-ghost.card .card-content {
+
+    justify-content: center !important;
+
+    align-items: center !important;
+
+    height: 100%;
+
+}
+
+
+
+.shop-drag-lift.card .card-type-indicator,
+
+.drag-ghost.card .card-type-indicator,
+
+.card-drag-appearance.card .card-type-indicator {
+
+    display: flex !important;
+
+    visibility: visible !important;
+
+    align-items: center;
+
+    justify-content: center;
+
+    text-align: center !important;
+
+    width: 100%;
+
+    flex: 1;
+
+    /* Ghosts are outside .app-stage — scale rem to match on-table text */
+    padding: calc(8px * var(--drag-face-scale, 1));
+
+    font-family: 'DisneyHeroic', sans-serif !important;
+
+    font-size: calc(1.1rem * var(--drag-face-scale, 1)) !important;
+
+    font-weight: bold !important;
+
+    pointer-events: none;
+
+}
+
+
+
+.drag-ghost.card .card-dynamic-stats,
+
+.card-drag-appearance.card .card-dynamic-stats,
+
+.shop-drag-lift.card .card-dynamic-stats {
+
+    bottom: calc(8px * var(--drag-face-scale, 1));
+
+    gap: calc(6px * var(--drag-face-scale, 1));
+
+}
+
+
+
+.drag-ghost.card .dynamic-stat,
+
+.card-drag-appearance.card .dynamic-stat,
+
+.shop-drag-lift.card .dynamic-stat {
+
+    font-size: calc(0.95rem * var(--drag-face-scale, 1));
+
+    padding: calc(4px * var(--drag-face-scale, 1)) calc(10px * var(--drag-face-scale, 1));
+
+    border-radius: calc(6px * var(--drag-face-scale, 1));
+
+    letter-spacing: calc(0.5px * var(--drag-face-scale, 1));
+
+}
+
+
+
+.shop-drag-lift.card.worship-card .card-type-indicator,
+
+.shop-drag-lift.card.libation-card .card-type-indicator,
+
+.shop-drag-lift.card.libation .card-type-indicator,
+
+.drag-ghost.card.worship-card .card-type-indicator,
+
+.drag-ghost.card.libation-card .card-type-indicator,
+
+.drag-ghost.card.libation .card-type-indicator,
+
+.card-drag-appearance.card.worship-card .card-type-indicator,
+
+.card-drag-appearance.card.libation-card .card-type-indicator,
+
+.card-drag-appearance.card.libation .card-type-indicator {
+
+    color: rgba(255, 255, 255, 0.95) !important;
+
+    text-shadow: 0 1px 2px rgba(0, 0, 0, 0.4) !important;
+
+}
+
+
+
+.shop-drag-lift.card.boon-card.no-asset .card-type-indicator,
+
+.drag-ghost.card.boon-card.no-asset .card-type-indicator,
+
+.card-drag-appearance.card.boon-card.no-asset .card-type-indicator {
+
+    color: rgba(255, 255, 255, 0.95) !important;
+
+    text-shadow: 0 1px 2px rgba(0, 0, 0, 0.5);
+
+}
+
+
+
+.shop-drag-lift.card.boon-card:not(.no-asset) .card-type-indicator,
+
+.drag-ghost.card.boon-card:not(.no-asset) .card-type-indicator,
+
+.card-drag-appearance.card.boon-card:not(.no-asset) .card-type-indicator {
+
+    color: #2F1C10 !important;
+
+    text-shadow: 0 1px 1px rgba(255, 255, 255, 0.5);
+
+}
+
+
+
+/* ── Shop shelf packs: art asset + price chip only (name/effect in tooltip) ── */
+
+.pack-card .pack-title,
+
+.pack-card .pack-description,
+
+.pack-card .pack-cost,
+
+.pack-card .pack-drag-hint,
+
+.pack-card[data-pack-shelf] .card-content,
+
+.pack-card[data-pack-shelf] .card-type-indicator {
+
+    display: none !important;
+
+}
+
+
+
+#shopDefaultView .pack-card[data-pack-shelf] {
+
+    border: none !important;
+
+    box-shadow: none !important;
+
+}
+
+
+
+#shopDefaultView .pack-card[data-pack-shelf] {
+
+    position: relative;
+
+}
+
+
+
+#shopDefaultView .pack-card[data-pack-shelf] .card-shop-cost {
+
+    display: block !important;
+
+    visibility: visible !important;
+
+    position: absolute;
+
+    left: 50%;
+
+    bottom: 6px;
+
+    transform: translateX(-50%);
+
+    margin: 0;
+
+    z-index: 2;
+
+}
+
+
+
+.pack-drag-appearance,
+
+.drag-ghost.pack-card {
+
+    border: none !important;
+
+    box-shadow: 0 10px 18px rgba(0, 0, 0, 0.45) !important;
+
+    background-size: contain !important;
+
+    background-position: center center !important;
+
+    background-repeat: no-repeat !important;
+
+    background-color: transparent !important;
+
+    overflow: hidden;
+
+    pointer-events: none;
+
+}
+
+
+
+.pack-drag-appearance::before,
+
+.drag-ghost.pack-card::before {
+
+    display: none !important;
+
+    content: none !important;
+
+}
+
+
+
+/* Shop shelf slot fully hidden during drag (override rack visibility:visible on children) */
+#shopDefaultView .card.shop-drag-source-hidden,
+#shopDefaultView .pack-card.shop-drag-source-hidden,
+#shopDefaultView .card.shop-drag-source-hidden *,
+#shopDefaultView .pack-card.shop-drag-source-hidden *,
+#shopDefaultView .card.shop-drag-source-hidden[data-card-surface="rack"] .card-type-indicator,
+#shopDefaultView .card.shop-drag-source-hidden[data-card-surface="rack"] .card-shop-cost {
+    visibility: hidden !important;
+    opacity: 0 !important;
+    pointer-events: none !important;
+}
+
+
+
+/* ── Anthology (collection grid): rack surface + locked slots ── */
+
+.collection-grid .card[data-card-surface="rack"] {
+    position: relative;
+    cursor: help;
+}
+
+
+
+.collection-grid .card .collection-unlock-meta {
+    position: absolute;
+    bottom: 5px;
+    right: 5px;
+    z-index: 4;
+    padding: 2px 6px;
+    font-family: 'DisneyHeroic', sans-serif;
+    font-size: 0.7rem;
+    line-height: 1.2;
+    color: rgba(255, 255, 255, 0.9);
+    text-shadow: 0 1px 2px rgba(0, 0, 0, 0.55);
+    background: rgba(20, 30, 24, 0.45);
+    border-radius: 4px;
+    pointer-events: none;
+}
+
+
+
+.collection-grid .card.locked[data-card-surface="rack"] .card-type-indicator,
+.collection-grid .card.locked[data-card-surface="rack"] .collection-unlock-meta {
+    display: none !important;
+    visibility: hidden !important;
+}
+
+
+
+/* ── Step 6: Card motion policy (physical object — no grow on hover/drag) ── */
+/* Drop zones (gold stone, shop columns, etc.) keep their own juice in styles/greek-theme. */
+
+.boon-slots .card,
+.consumable-slots .card,
+.left-consumable-bar .consumable-slots .card,
+.inventory-panel-consumables .consumable-slots .card,
+#shopDefaultView .shop-section .card,
+#shopDefaultView .shop-section .pack-card[data-pack-shelf],
+#packOpeningView .pack-cards-grid .card,
+.collection-grid .card,
+.expulsion-card-grid .card,
+.artifact-card {
+    transition: box-shadow 0.15s ease, opacity 0.15s ease !important;
+    transform: none;
+}
+
+
+
+/* Cancel global lift/scale from styles.css + balatro-effects.css */
+.card:hover,
+.card.rustic:hover,
+.card.card-rustic:hover,
+.card.vibrant:hover,
+.card.card-vibrant:hover,
+.card.epic:hover,
+.card.card-epic:hover,
+.card.worship:hover,
+.card.card-worship:hover,
+.card.libation:hover,
+.card.card-libation:hover,
+.artifact-card:hover,
+.boon-slots .card:hover,
+.consumable-slots .card:hover,
+#shopDefaultView .card:hover,
+#shopDefaultView .pack-card:hover,
+#packOpeningView .card:hover,
+.collection-grid .card:hover,
+.shop-section .card:hover,
+.shop-section .pack-card:hover,
+.expulsion-card-grid .card:hover,
+.pack-card-wrapper.revealed:hover {
+    transform: none !important;
+}
+
+
+
+.card:hover::before {
+    display: none !important;
+    content: none !important;
+    animation: none !important;
+}
+
+
+
+/* Hover: soft shadow only (no size change) */
+.boon-slots .card:hover,
+.consumable-slots .card:hover,
+#shopDefaultView .shop-section .card:hover,
+#shopDefaultView .shop-section .pack-card[data-pack-shelf]:hover,
+#packOpeningView .pack-cards-grid .card:hover,
+.collection-grid .card[data-card-surface="rack"]:hover:not(.locked),
+.expulsion-card-grid .card:hover {
+    box-shadow: 0 4px 14px rgba(0, 0, 0, 0.38) !important;
+    z-index: 2;
+}
+
+
+
+.artifact-card:hover {
+    box-shadow: 0 4px 16px rgba(255, 215, 0, 0.35), 0 2px 10px rgba(0, 0, 0, 0.3) !important;
+}
+
+
+
+.pack-card-wrapper.revealed:hover .card {
+    transform: none !important;
+    box-shadow: 0 6px 18px rgba(0, 0, 0, 0.45), 0 0 12px rgba(255, 215, 0, 0.2) !important;
+}
+
+
+
+/* Drag / hidden source: frozen face, no hover motion */
+.drag-ghost,
+.drag-ghost.card,
+.drag-ghost.card:hover,
+.card-drag-appearance,
+.card-drag-appearance.card,
+.card-drag-appearance.card:hover,
+.pack-drag-appearance,
+.shop-drag-source-hidden,
+.shop-drag-source-hidden:hover,
+.boon-card-dragging,
+.boon-card-dragging:hover,
+.consumable-card-dragging,
+.consumable-card-dragging:hover,
+.main-game.shop-drag-active .card:hover,
+.main-game.shop-drag-active .pack-card:hover,
+.main-game.boon-drag-active .boon-slots .card:hover,
+.main-game.consumable-drag-active .consumable-slots .card:hover {
+    transform: none !important;
+}
+
+
+
+.main-game.shop-drag-active .card,
+.main-game.boon-drag-active .boon-slots .card,
+.main-game.consumable-drag-active .consumable-slots .card {
+    transition: none !important;
+}
+
+
+
+/* No legacy hover-info overlay on cards (tooltips only) */
+#shopDefaultView .card:hover .hover-info,
+#shopDefaultView .pack-card:hover .hover-info,
+#packOpeningView .card:hover .hover-info,
+#packOpeningView .pack-card:hover .hover-info,
+.boon-slots .card:hover .hover-info,
+.consumable-slots .card:hover .hover-info,
+.collection-grid .card:hover .hover-info {
+    opacity: 0 !important;
+    visibility: hidden !important;
+}
+
+

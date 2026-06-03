@@ -207,6 +207,7 @@ const DiceRenderer = {
 
         const tooltipData = this.buildDieTooltipData(die, index, gameState, currentFace, hasModifiedValue);
         dieEl.setAttribute('data-tooltip', JSON.stringify(tooltipData));
+        window.balatroEffects?.refreshHostTooltip?.(dieEl);
         this._syncBadges(dieEl, die, index, gameState, currentFace, hasModifiedValue, hasEnhancementsOnCurrentFace);
     },
 

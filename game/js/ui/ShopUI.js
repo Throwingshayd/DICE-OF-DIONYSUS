@@ -265,12 +265,9 @@ class ShopUI {
             type: 'pack'
         }));
         const eff = this.getShopPrice(packData.baseCost ?? packData.cost, gameState);
-        pack.innerHTML = `
-            <div class="pack-title">${packData.name}</div>
-            <div class="pack-description">${packData.description}</div>
-            <div class="pack-cost">${eff}g</div>
-            <div class="pack-drag-hint">Drag to Gold</div>
-        `;
+        pack.setAttribute('data-pack-shelf', 'true');
+        pack.setAttribute('aria-label', packData.name);
+        pack.innerHTML = `<div class="card-shop-cost">${eff}g</div>`;
         this._attachPackShelfDrag(pack, gameState, gameEngine);
         return pack;
     }
@@ -352,49 +349,51 @@ class ShopUI {
         document.removeEventListener('pointercancel', this._onShopDragDocUp);
     }
 
-    /** Lift dragged shop card out of #shopStage (overflow:hidden) so it tracks the pointer over side panels. */
-    _promoteShopDragToViewport(st, e) {
+    /** Lightweight drag clone — cursor-anchored so art tracks under the pointer. */
+    _startShopDragGhost(st, clientX, clientY) {
         if (st.promoted) return;
-        const el = st.el;
-        const r = el.getBoundingClientRect();
-        st.anchor = { parent: el.parentNode, next: el.nextSibling };
-        st.grabOffsetX = e.clientX - r.left;
-        st.grabOffsetY = e.clientY - r.top;
-        document.body.appendChild(el);
-        el.classList.add('shop-drag-lift');
-        el.style.position = 'fixed';
-        el.style.left = `${r.left}px`;
-        el.style.top = `${r.top}px`;
-        el.style.width = `${r.width}px`;
-        el.style.height = `${r.height}px`;
-        el.style.margin = '0';
-        el.style.zIndex = '12050';
-        el.style.transform = 'none';
-        el.style.pointerEvents = 'none';
+        if (typeof PointerDragGhost !== 'undefined') {
+            st.ghost = PointerDragGhost.attach(st.el, 'drag-ghost');
+            st.ghost.start(clientX, clientY);
+        }
+        st.el.classList.add('shop-drag-source-hidden');
         st.promoted = true;
         window.balatroEffects?.hideAllTooltips();
     }
 
     _positionShopDragAt(st, clientX, clientY) {
+        if (st.ghost?.moveAt) {
+            st.ghost.moveAt(clientX, clientY);
+            return;
+        }
         const dx = clientX - st.startX;
         const dy = clientY - st.startY;
-        st.el.style.transform = `translate3d(${dx}px, ${dy}px, 0)`;
+        if (st.ghost) st.ghost.move(dx, dy);
     }
 
-    _clearShopDragInlineStyles(el) {
-        ['position', 'left', 'top', 'width', 'height', 'margin', 'z-index', 'transform', 'pointer-events', 'will-change']
-            .forEach((prop) => el.style.removeProperty(prop));
+    _updateShopDropTargets(st, clientX, clientY) {
+        const gold = document.getElementById('goldStone');
+        const boonBar = document.getElementById('rightBoonBar');
+        const consumableBar = document.getElementById('leftConsumableBar');
+        const px = clientX;
+        const py = clientY;
+        const { ctx } = st;
+        gold?.classList.toggle('shop-drop-target-hot', ctx.mode === 'packShelf' || ctx.mode === 'artifact'
+            ? this._shopPointIn(px, py, gold)
+            : false);
+        if (ctx.mode === 'direct' || ctx.mode === 'packReveal') {
+            const isBoon = ctx.card instanceof Boon;
+            boonBar?.classList.toggle('shop-drop-target-hot', isBoon && this._shopPointIn(px, py, boonBar));
+            consumableBar?.classList.toggle('shop-drop-target-hot', !isBoon && this._shopPointIn(px, py, consumableBar));
+        }
     }
 
-    _restoreShopDragElement(st) {
+    _endShopDragGhost(st) {
         if (!st?.promoted) return;
-        const el = st.el;
-        const { parent, next } = st.anchor || {};
-        el.classList.remove('shop-drag-lift');
-        this._clearShopDragInlineStyles(el);
-        if (parent) {
-            if (next) parent.insertBefore(el, next);
-            else parent.appendChild(el);
+        st.el.classList.remove('shop-drag-source-hidden');
+        if (st.ghost) {
+            st.ghost.end();
+            st.ghost = null;
         }
         st.promoted = false;
     }
@@ -408,6 +407,7 @@ class ShopUI {
             st.rafId = 0;
             if (!this._shopDrag || this._shopDrag !== st) return;
             this._positionShopDragAt(st, st.pendingX, st.pendingY);
+            if (st.dragging) this._updateShopDropTargets(st, st.pendingX, st.pendingY);
         });
     }
 
@@ -419,7 +419,7 @@ class ShopUI {
         const TH = 14;
         if (!st.dragging && (dx * dx + dy * dy) >= TH * TH) {
             st.dragging = true;
-            this._promoteShopDragToViewport(st, e);
+            this._startShopDragGhost(st, e.clientX, e.clientY);
             document.querySelector('.main-game')?.classList.add('shop-drag-active');
             const gold = document.getElementById('goldStone');
             const boonBar = document.getElementById('rightBoonBar');
@@ -437,19 +437,6 @@ class ShopUI {
         }
         if (st.dragging) {
             this._scheduleShopDragMove(st, e.clientX, e.clientY);
-            const gold = document.getElementById('goldStone');
-            const boonBar = document.getElementById('rightBoonBar');
-            const consumableBar = document.getElementById('leftConsumableBar');
-            const px = e.clientX;
-            const py = e.clientY;
-            gold?.classList.toggle('shop-drop-target-hot', st.ctx.mode === 'packShelf' || st.ctx.mode === 'artifact'
-                ? this._shopPointIn(px, py, gold)
-                : false);
-            if (st.ctx.mode === 'direct' || st.ctx.mode === 'packReveal') {
-                const isBoon = st.ctx.card instanceof Boon;
-                boonBar?.classList.toggle('shop-drop-target-hot', isBoon && this._shopPointIn(px, py, boonBar));
-                consumableBar?.classList.toggle('shop-drop-target-hot', !isBoon && this._shopPointIn(px, py, consumableBar));
-            }
         }
     }
 
@@ -470,21 +457,17 @@ class ShopUI {
         });
 
         const { ctx, dragging } = st;
-        const promoted = st.promoted;
         this._shopDrag = null;
 
         if (!dragging) {
             if (ctx.mode === 'packReveal' && ctx.card) {
                 this.claimCard(ctx.card, ctx.gameState, ctx.gameEngine, st.el);
-                this._restoreShopDragElement(st);
+                this._endShopDragGhost(st);
                 return;
             }
-            this._restoreShopDragElement(st);
+            this._endShopDragGhost(st);
             return;
         }
-
-        st.el.classList.remove('shop-drag-lift');
-        if (promoted) this._clearShopDragInlineStyles(st.el);
 
         const commitDrop = () => {
             if (ctx.mode === 'packShelf' && ctx.packData && this._shopPointIn(px, py, gold)) {
@@ -527,8 +510,8 @@ class ShopUI {
             return false;
         };
 
-        const dropped = commitDrop();
-        if (!dropped) this._restoreShopDragElement(st);
+        commitDrop();
+        this._endShopDragGhost(st);
     }
 
     purchasePack(packData, gameState, gameEngine, packElement) {

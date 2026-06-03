@@ -46,12 +46,16 @@ class Card {
     }
 
     /**
-     * Renders the card as an HTML element
-     * @param {boolean} [isShopItem=false] - Whether card is being displayed in shop
+     * Renders the card as an HTML element.
+     * Surface: `rack` (shop/pack/anthology) vs `owned` (sidebars) — see docs/UI_CONSISTENCY_CHECKLIST.md
+     * @param {boolean} [isShopItem=false] - true → rack surface
      * @param {boolean} [isDirectSale=false] - Whether card is a direct purchase (vs pack)
      * @returns {HTMLElement} The card's DOM element
      */
     render(isShopItem = false, isDirectSale = false) {
+        const surface = isShopItem
+            ? (typeof CARD_SURFACE !== 'undefined' ? CARD_SURFACE.RACK : 'rack')
+            : (typeof CARD_SURFACE !== 'undefined' ? CARD_SURFACE.OWNED : 'owned');
         const el = document.createElement('div');
         el.className = `card ${this.type}-card ${this.rarity}`;
         el.dataset.id = this.id; // Add data-id for animations and targeting
@@ -118,14 +122,11 @@ class Card {
             typeIndicatorHtml = `<div class="card-type-indicator card-type-libation">${this.name}</div>`;
         }
 
-        // Determine if we should show text or use tooltip
-        const isInShop = isShopItem;
-        // Boons in boon slots: show full content (name, effect, god) like shop
-        const showText = isInShop || this.type === 'boon';
-        
+        // Rack = full face text (shop/pack/anthology); owned = indicator only (card-present.css)
+        const showRackFaceText = isShopItem;
+
         let cardContent = '';
-        if (showText) {
-            // Show text content for shop cards and boons in play area
+        if (showRackFaceText) {
             cardContent = `
                 <div class="card-rarity">${this.rarity}</div>
                 ${usesHtml}
@@ -135,12 +136,9 @@ class Card {
                 ${(isShopItem && isDirectSale) ? `<div class="card-shop-cost" aria-label="Price">${this.cost}g</div>` : ''}
             `;
         } else {
-            // Use tooltip for inventory cards - minimal text. Worship/libation: omit card-name (type indicator shows it)
-            const showNameInContent = !['worship', 'libation'].includes(this.type);
             cardContent = `
                 <div class="card-rarity">${this.rarity}</div>
                 ${usesHtml}
-                ${showNameInContent ? `<div class="card-name">${this.name}</div>` : ''}
             `;
         }
 
@@ -155,8 +153,8 @@ class Card {
             }
         }
 
-        // No-asset fallback: omit fallback-name only in inventory (shop CSS hides card-type-indicator, so we need it there)
-        const showFallbackName = !hasAsset && (!typeIndicatorHtml || isShopItem);
+        // No-asset fallback title on rack only (owned uses type indicator)
+        const showFallbackName = !hasAsset && isShopItem;
         el.innerHTML = `
             ${hasAsset ? `<div class="card-background" style="${backgroundStyle}"></div>` : ''}
             ${frameStyle ? `<div class="card-frame" style="${frameStyle}"></div>` : ''}
@@ -174,6 +172,7 @@ class Card {
         el.dataset.cardType = this.type;
         el.dataset.rarity = this.rarity;
         el.dataset.inShop = isShopItem.toString();
+        el.dataset.cardSurface = surface;
 
         // Add Balatro-style tooltip with full information
         const tooltipData = {

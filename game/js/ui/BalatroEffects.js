@@ -146,6 +146,20 @@ class BalatroEffects {
         });
     }
 
+    /**
+     * Card tooltips use one style/placement everywhere (shop, pack, owned sidebars).
+     * @param {HTMLElement} element
+     * @returns {{ isDie: boolean, isCard: boolean, isPackShelf: boolean, isInShopStage: boolean, cardEl: HTMLElement | null }}
+     */
+    _tooltipHostMeta(element) {
+        const isDie = element.classList.contains('die');
+        const cardEl = element.closest?.('.card') ?? null;
+        const isCard = !!cardEl;
+        const isPackShelf = element.classList.contains('pack-card');
+        const isInShopStage = !!element.closest?.('#shopStage');
+        return { isDie, isCard, isPackShelf, isInShopStage, cardEl };
+    }
+
     showTooltip(element, _event, opts = {}) {
         if (!this.isInitialized) this.initialize();
 
@@ -161,10 +175,10 @@ class BalatroEffects {
             clearTimeout(this.tooltipTimeouts.get(element));
         }
 
-        const isDie = element.classList.contains('die');
-        const isInShop = element.closest('#shopStage');
+        const { isDie, isCard, isPackShelf, isInShopStage } = this._tooltipHostMeta(element);
         const dieDelay = typeof TIMING !== 'undefined' ? TIMING.TOOLTIP_DELAY_DIE : 200;
-        const delayMs = opts.forceImmediate ? 0 : (isDie ? dieDelay : (isInShop ? 90 : 110));
+        const cardDelay = typeof TIMING !== 'undefined' ? TIMING.TOOLTIP_DELAY_CARD : 100;
+        const delayMs = opts.forceImmediate ? 0 : (isDie ? dieDelay : (isCard ? cardDelay : 110));
 
         const timeoutId = setTimeout(() => {
             this.tooltipTimeouts?.delete(element);
@@ -175,6 +189,9 @@ class BalatroEffects {
             if (stale?.parentNode) stale.parentNode.removeChild(stale);
             this.tooltips.delete(element);
 
+            const meta = this._tooltipHostMeta(element);
+            const { isDie, isCard, isPackShelf, isInShopStage, cardEl } = meta;
+
             let parsed;
             try {
                 parsed = JSON.parse(tooltipData);
@@ -182,11 +199,12 @@ class BalatroEffects {
                 parsed = null;
             }
             const isDieTooltip = parsed?.tooltipType === 'die';
-            const isCard = element.closest('.card');
+            // Shelf packs are .card products — same dark tooltip as wares (never tooltip-shop)
+            const useShopChrome = isInShopStage && !isCard && !isDieTooltip && !isPackShelf;
 
             const tooltip = document.createElement('div');
             tooltip.className = 'tooltip'
-                + (isInShop ? ' tooltip-shop' : '')
+                + (useShopChrome ? ' tooltip-shop' : '')
                 + (isDieTooltip ? ' tooltip-die-popup' : '')
                 + (isCard ? ' tooltip-card' : '');
             if (opts.pinned || this.pinnedTooltips.has(element)) tooltip.classList.add('pinned');
@@ -212,12 +230,11 @@ class BalatroEffects {
                 }
             }
 
-            const inPack = !!element.closest('#packOpeningView');
-            if (isCard && (isInShop || inPack)) {
-                const cardEl = element.closest('.card') || element;
+            if (isCard && cardEl) {
                 const cardW = Math.round(cardEl.getBoundingClientRect().width);
-                const minW = typeof TIMING !== 'undefined' ? TIMING.TOOLTIP_SHOP_MIN_W : 124;
-                const w = Math.min(Math.max(cardW, minW), 168);
+                const minW = typeof TIMING !== 'undefined' ? TIMING.TOOLTIP_CARD_MIN_W : 148;
+                const maxW = typeof TIMING !== 'undefined' ? TIMING.TOOLTIP_CARD_MAX_W : 220;
+                const w = Math.min(Math.max(cardW, minW), maxW);
                 if (w > 0) {
                     tooltip.style.width = `${w}px`;
                     tooltip.style.minWidth = `${w}px`;
@@ -225,7 +242,7 @@ class BalatroEffects {
                 }
             }
 
-            const preferBelow = isInShop || inPack;
+            const preferBelow = isCard || useShopChrome;
             tooltip.classList.add('is-measuring');
             this.positionPopover(tooltip, element, { preferBelow, gap: 10 });
             requestAnimationFrame(() => {
@@ -260,6 +277,7 @@ class BalatroEffects {
         const vw = window.innerWidth;
         const vh = window.innerHeight;
         const anchor = anchorEl.getBoundingClientRect();
+        const isPackShelf = anchorEl.classList.contains('pack-card');
 
         tooltip.classList.remove('below');
 
@@ -282,12 +300,22 @@ class BalatroEffects {
         } else {
             top = anchor.bottom + gap;
             if (top + tip.height > vh - pad) {
-                placement = 'above';
-                top = anchor.top - tip.height - gap;
+                if (isPackShelf) {
+                    // Shelf packs sit low — keep tooltip below; clip at viewport bottom instead of jumping above
+                    placement = 'below';
+                    top = anchor.bottom + gap;
+                } else {
+                    placement = 'above';
+                    top = anchor.top - tip.height - gap;
+                }
             }
         }
 
-        top = Math.max(pad, Math.min(top, vh - tip.height - pad));
+        if (placement === 'below') {
+            top = Math.max(pad, top);
+        } else {
+            top = Math.max(pad, Math.min(top, vh - tip.height - pad));
+        }
         tip = measure();
 
         tooltip.style.left = `${left}px`;
@@ -297,6 +325,48 @@ class BalatroEffects {
 
         const arrowX = anchor.left + anchor.width / 2 - left;
         tooltip.style.setProperty('--tip-arrow-x', `${Math.max(18, Math.min(arrowX, tip.width - 18))}px`);
+    }
+
+    /**
+     * Update a visible tooltip when its host data-tooltip changed (e.g. hold toggle).
+     */
+    refreshHostTooltip(element) {
+        if (!element?.isConnected) return;
+        const tooltip = this.tooltips.get(element);
+        if (!tooltip?.classList.contains('show')) return;
+
+        const tooltipData = element.getAttribute('data-tooltip');
+        if (!tooltipData) return;
+
+        const inner = tooltip.querySelector('.tooltip-inner');
+        if (inner) inner.innerHTML = this.parseTooltipData(tooltipData);
+
+        const meta = this._tooltipHostMeta(element);
+        const { isDie, isCard, isPackShelf, isInShopStage, cardEl } = meta;
+
+        if (isDie) {
+            const dieW = Math.round(element.getBoundingClientRect().width);
+            const extra = typeof TIMING !== 'undefined' ? TIMING.TOOLTIP_DIE_EXTRA_W : 14;
+            const w = dieW > 0 ? dieW + extra : 0;
+            if (w > 0) {
+                tooltip.style.width = `${w}px`;
+                tooltip.style.minWidth = `${w}px`;
+                tooltip.style.maxWidth = `${w}px`;
+            }
+        } else if (isCard && cardEl) {
+            const cardW = Math.round(cardEl.getBoundingClientRect().width);
+            const minW = typeof TIMING !== 'undefined' ? TIMING.TOOLTIP_CARD_MIN_W : 148;
+            const maxW = typeof TIMING !== 'undefined' ? TIMING.TOOLTIP_CARD_MAX_W : 220;
+            const w = Math.min(Math.max(cardW, minW), maxW);
+            if (w > 0) {
+                tooltip.style.width = `${w}px`;
+                tooltip.style.minWidth = `${w}px`;
+                tooltip.style.maxWidth = `${w}px`;
+            }
+        }
+
+        const preferBelow = isCard || isPackShelf;
+        this.positionPopover(tooltip, element, { preferBelow, gap: 10 });
     }
 
     hideTooltip(element) {
@@ -386,7 +456,8 @@ class BalatroEffects {
     updateTooltipPosition(_event) {
         this.tooltips.forEach((tooltip, host) => {
             if (!host?.isConnected) return;
-            const preferBelow = !!host.closest('#shopStage') || !!host.closest('#packOpeningView');
+            const { isCard, isPackShelf, isInShopStage } = this._tooltipHostMeta(host);
+            const preferBelow = isCard || isPackShelf || isInShopStage;
             this.positionPopover(tooltip, host, { preferBelow, gap: 10 });
         });
     }

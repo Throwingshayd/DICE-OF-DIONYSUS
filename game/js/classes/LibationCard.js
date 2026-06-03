@@ -552,6 +552,11 @@ class LibationCard extends Card {
         return map[libation.id] ?? null;
     }
 
+    /** Libations dragged onto dice (enhancement / face maintenance). */
+    static isDieFaceEnhancer(libation) {
+        return !!LibationCard.getDieFaceEnhancementType(libation);
+    }
+
     // Check if this libation can be used
     canUse() {
         // Libations can be used once (usesLeft = 1)

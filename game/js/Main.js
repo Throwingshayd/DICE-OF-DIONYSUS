@@ -285,7 +285,15 @@ class App {
     showCollection() {
         this.switchToScreen('collection');
         this.currentScreen = 'collection';
+        this.ensureAnthologyTooltipsReady();
         this.collectionManager.populateCollection();
+    }
+
+    /** Tooltips on anthology cards (BalatroEffects only fully inits on play otherwise). */
+    ensureAnthologyTooltipsReady() {
+        if (window.balatroEffects && !window.balatroEffects.isInitialized) {
+            window.balatroEffects.initialize();
+        }
     }
 
     /**
@@ -413,6 +421,14 @@ class App {
         if (gameContainer) {
             gameContainer.innerHTML = '';
             gameContainer.appendChild(template.content.cloneNode(true));
+            if (!gameContainer._noTextSelectBound) {
+                gameContainer._noTextSelectBound = true;
+                gameContainer.addEventListener('selectstart', (e) => {
+                    if (!e.target.closest('input, textarea, select, [contenteditable="true"]')) {
+                        e.preventDefault();
+                    }
+                });
+            }
         }
         
         Logger.info('Game UI loaded successfully');
@@ -621,12 +637,60 @@ class CollectionManager {
         this.pageSize = 9;
         this.pageByTab = { boons: 0, artifacts: 0, worship: 0, libations: 0 };
         this.tabCards = { boons: [], artifacts: [], worship: [], libations: [] };
+        /** Anthology = full catalog (all entries unlocked + tooltips). Set false to use save progress. */
+        this.unlockAllInAnthology = true;
         this.bindPaginationControls();
     }
 
+    _buildFullAnthologyCollection() {
+        const full = { boons: [], artifacts: [], worship: [], libations: [] };
+        if (typeof CardData === 'undefined') return full;
+        CardData.boons.forEach((b) => full.boons.push(b.id));
+        CardData.worship.forEach((w) => full.worship.push(w.id));
+        CardData.libations.forEach((l) => full.libations.push(l.id));
+        Object.values(CardData.artifacts || {}).forEach((pair) => {
+            if (pair?.base?.id) full.artifacts.push(pair.base.id);
+            if (pair?.upgraded?.id) full.artifacts.push(pair.upgraded.id);
+        });
+        return full;
+    }
+
+    _getAnthologyCollection() {
+        if (this.unlockAllInAnthology) return this._buildFullAnthologyCollection();
+        return window.dataManager.getCollection();
+    }
+
+    _isAnthologyUnlocked(collection, itemType, itemId) {
+        if (this.unlockAllInAnthology) return true;
+        const list = collection[itemType];
+        return Array.isArray(list) && list.includes(itemId);
+    }
+
+    /** Anthology uses rack surface (same face as shop/pack). */
+    _renderRackCard(cardInstance) {
+        return cardInstance.render(true, false);
+    }
+
+    _applyLockedCollectionCard(cardEl) {
+        cardEl.classList.add('locked', 'no-asset');
+        cardEl.querySelectorAll(
+            '.card-type-indicator, .card-name, .card-effect, .card-rarity, .card-god, .card-uses, .artifact-name'
+        ).forEach((node) => { node.textContent = ''; });
+        cardEl.querySelectorAll('.card-shop-cost, .card-background').forEach((node) => node.remove());
+        cardEl.style.removeProperty('background-image');
+        cardEl.removeAttribute('data-tooltip');
+    }
+
+    _appendUnlockMeta(cardEl, text) {
+        const meta = document.createElement('div');
+        meta.className = 'collection-unlock-meta';
+        meta.textContent = text;
+        cardEl.appendChild(meta);
+    }
+
     populateCollection() {
-        const collection = window.dataManager.getCollection();
-        
+        const collection = this._getAnthologyCollection();
+
         this.populateBoons(collection);
         this.populateArtifacts(collection);
         this.populateWorship(collection);
@@ -639,41 +703,16 @@ class CollectionManager {
         const cards = [];
         
         CardData.boons.forEach(boonData => {
-            const isUnlocked = collection.boons.includes(boonData.id);
+            const isUnlocked = this._isAnthologyUnlocked(collection, 'boons', boonData.id);
             const boon = new Boon(boonData);
-            // Render as shop item to show full text (isShopItem = true, forSale = false)
-            const cardEl = boon.render(true, false);
-            
+            const cardEl = this._renderRackCard(boon);
+
             if (!isUnlocked) {
-                cardEl.classList.add('locked');
-                cardEl.classList.add('no-asset'); // Force fallback white background
-                const effectEl = cardEl.querySelector('.card-effect');
-                const nameEl = cardEl.querySelector('.card-name');
-                const rarityEl = cardEl.querySelector('.card-rarity');
-                if (effectEl) effectEl.textContent = '';
-                if (nameEl) nameEl.textContent = '';
-                if (rarityEl) rarityEl.textContent = '';
-                
-                // Remove background image for locked cards
-                const bgEl = cardEl.querySelector('.card-background');
-                if (bgEl) bgEl.remove();
+                this._applyLockedCollectionCard(cardEl);
+            } else {
+                this._appendUnlockMeta(cardEl, `${boon.rarity} • ${boon.cost}g`);
             }
-            
-            // Add unlock info
-            if (isUnlocked) {
-                const unlockInfo = document.createElement('div');
-                unlockInfo.className = 'unlock-info';
-                unlockInfo.textContent = `${boon.rarity} • ${boon.cost}g`;
-                unlockInfo.style.cssText = `
-                    position: absolute;
-                    bottom: 5px;
-                    right: 5px;
-                    font-size: 0.7rem;
-                    opacity: 0.7;
-                `;
-                cardEl.appendChild(unlockInfo);
-            }
-            
+
             cards.push(cardEl);
         });
         this.tabCards.boons = cards;
@@ -683,29 +722,19 @@ class CollectionManager {
     populateArtifacts(collection) {
         const grid = document.getElementById('artifactsCollectionGrid');
         const cards = [];
-        
+
         Object.values(CardData.artifacts).forEach(artifactPair => {
-            [artifactPair.base, artifactPair.upgraded].forEach(artifact => {
-                if (!artifact) return;
-                
-                const isUnlocked = collection.artifacts.includes(artifact.id);
-                const el = document.createElement('div');
-                el.className = 'card artifact-card';
-                
+            [artifactPair.base, artifactPair.upgraded].forEach(artifactData => {
+                if (!artifactData) return;
+
+                const isUnlocked = this._isAnthologyUnlocked(collection, 'artifacts', artifactData.id);
+                const cardEl = this._renderRackCard(new Artifact(artifactData));
+
                 if (!isUnlocked) {
-                    el.classList.add('locked');
-                    el.classList.add('no-asset'); // Force fallback white background
-                    el.style.background = 'white';
-                    el.style.color = '#333';
+                    this._applyLockedCollectionCard(cardEl);
                 }
-                
-                el.innerHTML = `
-                    <div class="card-name" style="${!isUnlocked ? 'color: #999;' : ''}">${isUnlocked ? artifact.name : ''}</div>
-                    <div class="card-effect" style="${!isUnlocked ? 'color: #999;' : ''}">${isUnlocked ? artifact.effect : ''}</div>
-                    ${isUnlocked ? `<div class="card-cost">${artifact.cost}g</div>` : ''}
-                `;
-                
-                cards.push(el);
+
+                cards.push(cardEl);
             });
         });
         this.tabCards.artifacts = cards;
@@ -717,26 +746,13 @@ class CollectionManager {
         const cards = [];
         
         CardData.worship.forEach(worshipData => {
-            const isUnlocked = collection.worship ? collection.worship.includes(worshipData.id) : false;
-            const worship = new WorshipCard(worshipData);
-            // Render as shop item to show full text
-            const cardEl = worship.render(true, false);
-            
+            const isUnlocked = this._isAnthologyUnlocked(collection, 'worship', worshipData.id);
+            const cardEl = this._renderRackCard(new WorshipCard(worshipData));
+
             if (!isUnlocked) {
-                cardEl.classList.add('locked');
-                cardEl.classList.add('no-asset'); // Force fallback white background
-                const effectEl = cardEl.querySelector('.card-effect');
-                const nameEl = cardEl.querySelector('.card-name');
-                const rarityEl = cardEl.querySelector('.card-rarity');
-                if (effectEl) effectEl.textContent = '';
-                if (nameEl) nameEl.textContent = '';
-                if (rarityEl) rarityEl.textContent = '';
-                
-                // Remove background image for locked cards
-                const bgEl = cardEl.querySelector('.card-background');
-                if (bgEl) bgEl.remove();
+                this._applyLockedCollectionCard(cardEl);
             }
-            
+
             cards.push(cardEl);
         });
         this.tabCards.worship = cards;
@@ -748,26 +764,13 @@ class CollectionManager {
         const cards = [];
         
         CardData.libations.forEach(libationData => {
-            const isUnlocked = collection.libations ? collection.libations.includes(libationData.id) : false;
-            const libation = new LibationCard(libationData);
-            // Render as shop item to show full text
-            const cardEl = libation.render(true, false);
-            
+            const isUnlocked = this._isAnthologyUnlocked(collection, 'libations', libationData.id);
+            const cardEl = this._renderRackCard(new LibationCard(libationData));
+
             if (!isUnlocked) {
-                cardEl.classList.add('locked');
-                cardEl.classList.add('no-asset'); // Force fallback white background
-                const effectEl = cardEl.querySelector('.card-effect');
-                const nameEl = cardEl.querySelector('.card-name');
-                const rarityEl = cardEl.querySelector('.card-rarity');
-                if (effectEl) effectEl.textContent = '';
-                if (nameEl) nameEl.textContent = '';
-                if (rarityEl) rarityEl.textContent = '';
-                
-                // Remove background image for locked cards
-                const bgEl = cardEl.querySelector('.card-background');
-                if (bgEl) bgEl.remove();
+                this._applyLockedCollectionCard(cardEl);
             }
-            
+
             cards.push(cardEl);
         });
         this.tabCards.libations = cards;

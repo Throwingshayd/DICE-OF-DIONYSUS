@@ -73,7 +73,7 @@
     padding: 7px 9px 8px;
 }
 
-/* ── Shop / pack: white popup under card (Balatro shop hover) ── */
+/* ── Shop shelf only (pack products on rack — not .card wares/libations/boons) ── */
 #tooltip-root .tooltip.tooltip-shop {
     background: #f2f5f6 !important;
     color: #2f1c10 !important;
@@ -308,4 +308,51 @@
 
 #tooltip-root .tip-die-mod {
     color: #b5532f;
+}
+
+/* ── Die enhancement picker (modal — multi-die choice, not a hover tooltip) ──
+   Uses the same type palette as .tooltip-card; full-screen overlay is intentional. */
+.balatro-enhancement-modal {
+    background: linear-gradient(180deg, #3d4f56 0%, #2e3d42 100%);
+    border: 2px solid #5a6d74;
+    border-radius: 6px;
+    box-shadow:
+        0 6px 20px rgba(0, 0, 0, 0.45),
+        inset 0 1px 0 rgba(255, 255, 255, 0.08);
+}
+
+.balatro-enhancement-modal .enhancement-header {
+    border-bottom-color: rgba(255, 255, 255, 0.12);
+}
+
+.balatro-enhancement-modal .enhancement-title {
+    font-family: 'DisneyHeroic', 'IM Fell English SC', sans-serif;
+    font-size: 1.35rem;
+    font-weight: normal;
+    color: #ffe566;
+    text-shadow: 0 1px 2px rgba(0, 0, 0, 0.5);
+    letter-spacing: 0.04em;
+}
+
+.balatro-enhancement-modal .enhancement-name {
+    font-family: 'DisneyHeroic', 'IM Fell English SC', sans-serif;
+    font-size: 1rem;
+    color: #c5d4d8;
+    font-weight: normal;
+    text-shadow: none;
+}
+
+.balatro-enhancement-modal .enhancement-description {
+    font-family: 'DisneyHeroic', 'IM Fell English SC', sans-serif;
+    font-size: 0.95rem;
+    color: #9eb5bc;
+    font-style: normal;
+}
+
+.balatro-enhancement-modal .enhancement-instruction {
+    font-family: 'DisneyHeroic', 'IM Fell English SC', sans-serif;
+    font-size: 0.95rem;
+    color: #c5d4d8;
+    text-shadow: none;
+    opacity: 1;
 }

@@ -21,11 +21,17 @@ const TIMING = {
     MESSAGE_DISPLAY_TIME: 3000,
     LIVE_SCORE_DEBOUNCE_MS: 70,    // Debounce Gnosis preview on score row hover (smoothness)
     SAVE_INDICATOR_DURATION: 2000,
+    /** Legacy default (prefer TOOLTIP_DELAY_CARD / TOOLTIP_DELAY_DIE in BalatroEffects) */
     TOOLTIP_DELAY: 500,
-    /** Hover delay before die popover (cards/shop use shorter delays in BalatroEffects) */
+    /** All .card hovers — shop, pack, owned, anthology */
+    TOOLTIP_DELAY_CARD: 100,
+    /** Hover delay before die popover */
     TOOLTIP_DELAY_DIE: 200,
-    /** Shop/pack popover min width (card art is ~71px; text needs slightly more) */
-    TOOLTIP_SHOP_MIN_W: 124,
+    /** Card tooltip width clamp (matches tooltips.css .tooltip-card) */
+    TOOLTIP_CARD_MIN_W: 148,
+    TOOLTIP_CARD_MAX_W: 220,
+    /** @deprecated use TOOLTIP_CARD_MIN_W */
+    TOOLTIP_SHOP_MIN_W: 148,
     /** Extra px added to die width for die tooltips */
     TOOLTIP_DIE_EXTRA_W: 14,
     
@@ -38,17 +44,25 @@ const TIMING = {
 };
 
 /**
- * Card layout (71×95px base, per UIConstants / translator rules)
+ * Card layout — single 140×187px footprint (shop, pack, owned, drag)
  * @const {Object}
  */
+/** Where a card is shown — drives face layout (see docs/UI_CONSISTENCY_CHECKLIST.md) */
+const CARD_SURFACE = {
+    RACK: 'rack',   // shop, pack, anthology
+    OWNED: 'owned', // libation / boon sidebars
+};
+
 const CARD_LAYOUT = {
-    CARD_W: 71,
-    CARD_H: 95,
+    CARD_W: 140,
+    CARD_H: 187,
+    RACK_W: 140,
+    RACK_H: 187,
     BOON_SLOTS: 5,
-    BOON_AREA_W: 4.9 * 71,
-    BOON_AREA_H: 0.95 * 95,
-    CONSUMABLE_AREA_W: 2.3 * 71,
-    CONSUMABLE_AREA_H: 0.95 * 95,
+    BOON_AREA_W: 4.9 * 140,
+    BOON_AREA_H: 0.95 * 187,
+    CONSUMABLE_AREA_W: 2.3 * 140,
+    CONSUMABLE_AREA_H: 0.95 * 187,
     CONSUMABLE_SLOTS_MIN: 2,
     CONSUMABLE_SLOTS_MAX: 5,
     CONSUMABLE_SCALE: 0.7,
@@ -111,6 +125,7 @@ if (typeof module !== 'undefined' && module.exports) {
         VISUAL,
         Z_INDEX,
         BREAKPOINTS,
+        CARD_SURFACE,
         CARD_LAYOUT
     };
 }

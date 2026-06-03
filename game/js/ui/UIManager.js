@@ -252,7 +252,11 @@ class UIManager {
             const r = el.getBoundingClientRect();
             return px >= r.left && px <= r.right && py >= r.top && py <= r.bottom;
         };
+        const pointInRect = (px, py, r) => (
+            r && px >= r.left && px <= r.right && py >= r.top && py <= r.bottom
+        );
         const findBoon = (id) => (gameState.boons || []).find((b) => b.id === id);
+        const goldStone = () => document.getElementById('goldStone');
 
         container.addEventListener('pointerdown', (e) => {
             if (e.button !== 0) return;
@@ -277,7 +281,11 @@ class UIManager {
             if (!st || e.pointerId !== st.pointerId) return;
             container._boonDrag = null;
             try { st.cardEl.releasePointerCapture(e.pointerId); } catch (_) { /* ignore */ }
-            const gold = document.getElementById('goldStone');
+            if (st.rafId) {
+                cancelAnimationFrame(st.rafId);
+                st.rafId = 0;
+            }
+            const gold = goldStone();
             const px = e.clientX;
             const py = e.clientY;
             gold?.classList.remove('drop-target-sell');
@@ -329,14 +337,29 @@ class UIManager {
                 document.querySelector('.main-game')?.classList.add('boon-drag-active');
                 if (typeof PointerDragGhost !== 'undefined') {
                     st.ghost = PointerDragGhost.attach(st.cardEl, 'drag-ghost');
-                    st.ghost.start();
+                    st.ghost.start(e.clientX, e.clientY);
                 }
+                const gold = goldStone();
+                st.sellRect = gold ? gold.getBoundingClientRect() : null;
             }
             if (st.dragging) {
-                if (st.ghost) st.ghost.move(dx, dy);
-                else st.cardEl.style.transform = `translate3d(${dx}px, ${dy}px, 0)`;
-                const gold = document.getElementById('goldStone');
-                gold?.classList.toggle('drop-target-sell', pointIn(e.clientX, e.clientY, gold));
+                st.pendingX = e.clientX;
+                st.pendingY = e.clientY;
+                if (st.rafId) return;
+                st.rafId = requestAnimationFrame(() => {
+                    st.rafId = 0;
+                    const live = container._boonDrag;
+                    if (!live || !live.dragging) return;
+                    const pdx = live.pendingX - live.startX;
+                    const pdy = live.pendingY - live.startY;
+                    if (live.ghost?.moveAt) live.ghost.moveAt(live.pendingX, live.pendingY);
+                    else if (live.ghost) live.ghost.move(pdx, pdy);
+                    else live.cardEl.style.transform = `translate3d(${pdx}px, ${pdy}px, 0)`;
+                    goldStone()?.classList.toggle(
+                        'drop-target-sell',
+                        pointInRect(live.pendingX, live.pendingY, live.sellRect)
+                    );
+                });
             }
         });
         container.addEventListener('pointerup', finish);
@@ -363,6 +386,9 @@ class UIManager {
             const r = el.getBoundingClientRect();
             return px >= r.left && px <= r.right && py >= r.top && py <= r.bottom;
         };
+        const pointInRect = (px, py, r) => (
+            r && px >= r.left && px <= r.right && py >= r.top && py <= r.bottom
+        );
         const findCardModel = (id, gameState) => (gameState.consumables || []).find(c => c.id === id);
         const shopOpen = () => {
             const shopStage = document.getElementById('shopStage');
@@ -374,6 +400,7 @@ class UIManager {
             const stack = document.elementsFromPoint(px, py);
             for (const el of stack) {
                 if (ignoreEl && (el === ignoreEl || ignoreEl.contains(el))) continue;
+                if (el.closest?.('.drag-ghost, .consumable-zone')) continue;
                 if (!diceContainer.contains(el)) continue;
                 const die = el.closest?.('.die');
                 if (die && diceContainer.contains(die)) return die;
@@ -405,7 +432,9 @@ class UIManager {
                 main.classList.remove(
                     'consumable-drag-active',
                     'drag-type-worship',
-                    'drag-type-libation'
+                    'drag-type-libation',
+                    'drag-type-libation-enhancer',
+                    'drag-type-libation-drink'
                 );
             }
             const z = getZones();
@@ -436,15 +465,19 @@ class UIManager {
 
         const runCloneFx = (cardEl, className, onDone) => {
             const clone = cardEl.cloneNode(true);
-            clone.querySelectorAll('.buy-sell-label').forEach((n) => n.remove());
             clone.classList.remove('sell-label-visible', 'consumable-card-dragging');
             clone.classList.add(className);
             const r = cardEl.getBoundingClientRect();
-            clone.style.position = 'fixed';
-            clone.style.left = `${r.left}px`;
-            clone.style.top = `${r.top}px`;
-            clone.style.width = `${r.width}px`;
-            clone.style.height = `${r.height}px`;
+            if (typeof CardDragSurface !== 'undefined' && clone.classList.contains('card')) {
+                CardDragSurface.pinToScreenRect(clone, r);
+            } else {
+                clone.querySelectorAll('.buy-sell-label').forEach((n) => n.remove());
+                clone.style.position = 'fixed';
+                clone.style.left = `${r.left}px`;
+                clone.style.top = `${r.top}px`;
+                clone.style.width = `${r.width}px`;
+                clone.style.height = `${r.height}px`;
+            }
             clone.style.zIndex = '10050';
             clone.style.pointerEvents = 'none';
             document.body.appendChild(clone);
@@ -496,33 +529,74 @@ class UIManager {
                 const isWorship = typeof WorshipCard !== 'undefined' && card instanceof WorshipCard;
                 const isLibation = typeof LibationCard !== 'undefined' && card instanceof LibationCard;
                 if (isWorship) st.main?.classList.add('drag-type-worship');
-                else if (isLibation) st.main?.classList.add('drag-type-libation');
+                else if (isLibation) {
+                    st.main?.classList.add('drag-type-libation');
+                    const dieEnhancer = typeof LibationCard !== 'undefined'
+                        && LibationCard.isDieFaceEnhancer(card);
+                    st.isDieEnhancerLibation = dieEnhancer;
+                    st.main?.classList.add(
+                        dieEnhancer ? 'drag-type-libation-enhancer' : 'drag-type-libation-drink'
+                    );
+                }
                 st.cardEl.classList.add('consumable-card-dragging');
                 if (typeof PointerDragGhost !== 'undefined') {
                     st.ghost = PointerDragGhost.attach(st.cardEl, 'drag-ghost');
-                    st.ghost.start();
+                    st.ghost.start(e.clientX, e.clientY);
                 }
-                st.cardEl.style.willChange = 'transform';
+                const zones = getZones();
+                st.zoneRects = {
+                    sell: zones.sellStone?.getBoundingClientRect() || null,
+                    worship: zones.worship?.getBoundingClientRect() || null,
+                    libation: zones.libation?.getBoundingClientRect() || null,
+                };
+                st.dropEls = zones;
             }
             if (st.dragging) {
-                if (st.ghost) st.ghost.move(dx, dy);
-                else st.cardEl.style.transform = `translate3d(${dx}px, ${dy}px, 0)`;
-                const zones = getZones();
-                if (zones.sellStone) {
-                    zones.sellStone.classList.toggle('drop-target-sell', pointIn(e.clientX, e.clientY, zones.sellStone));
-                }
-                if (zones.worship) {
-                    zones.worship.classList.toggle('zone-hot', pointIn(e.clientX, e.clientY, zones.worship));
-                }
-                if (zones.libation) {
-                    zones.libation.classList.toggle('zone-hot', pointIn(e.clientX, e.clientY, zones.libation));
-                }
+                st.pendingX = e.clientX;
+                st.pendingY = e.clientY;
+                if (st.rafId) return;
+                st.rafId = requestAnimationFrame(() => {
+                    st.rafId = 0;
+                    const live = container._consumableDrag;
+                    if (!live || !live.dragging) return;
+                    const pdx = live.pendingX - live.startX;
+                    const pdy = live.pendingY - live.startY;
+                    if (live.ghost?.moveAt) live.ghost.moveAt(live.pendingX, live.pendingY);
+                    else if (live.ghost) live.ghost.move(pdx, pdy);
+                    else live.cardEl.style.transform = `translate3d(${pdx}px, ${pdy}px, 0)`;
+                    const rects = live.zoneRects;
+                    const els = live.dropEls;
+                    if (els?.sellStone) {
+                        els.sellStone.classList.toggle(
+                            'drop-target-sell',
+                            pointInRect(live.pendingX, live.pendingY, rects?.sell)
+                        );
+                    }
+                    if (els?.worship) {
+                        els.worship.classList.toggle(
+                            'zone-hot',
+                            pointInRect(live.pendingX, live.pendingY, rects?.worship)
+                        );
+                    }
+                    if (els?.libation && live.isDieEnhancerLibation === false) {
+                        els.libation.classList.toggle(
+                            'zone-hot',
+                            pointInRect(live.pendingX, live.pendingY, rects?.libation)
+                        );
+                    } else if (els?.libation) {
+                        els.libation.classList.remove('zone-hot');
+                    }
+                });
             }
         });
 
         const finish = (e) => {
             const st = container._consumableDrag;
             if (!st || e.pointerId !== st.pointerId) return;
+            if (st.rafId) {
+                cancelAnimationFrame(st.rafId);
+                st.rafId = 0;
+            }
             container._consumableDrag = null;
             const game = window.game;
             const gameState = game?.state;
@@ -579,18 +653,24 @@ class UIManager {
                     doUse('consumable-fx-worship-pantheon');
                 } else if (isLibation) {
                     endDrag(st, false);
-                    gameEngine?.showMessage?.('Libations flow onto the altar — drag onto the dice.');
+                    gameEngine?.showMessage?.('Drink the libation — drag to the chalice above Cast the Bones.');
                 } else {
                     endDrag(st, false);
                 }
             };
+            const isDieEnhancerLibation = isLibation && typeof LibationCard !== 'undefined'
+                && LibationCard.isDieFaceEnhancer(card);
+
             const handleLibationZoneDrop = () => {
-                if (isLibation) {
+                if (isLibation && !isDieEnhancerLibation) {
                     if (isAwaitingPickSameCard()) {
                         endDrag(st, true);
                         return;
                     }
-                    doUse('consumable-fx-libation-artifacts');
+                    doUse('consumable-fx-libation-drink');
+                } else if (isDieEnhancerLibation) {
+                    endDrag(st, false);
+                    gameEngine?.showMessage?.('Apply this libation to a die on the table.');
                 } else if (isWorship) {
                     endDrag(st, false);
                     gameEngine?.showMessage?.('Worship ascends to the Pantheon — drag up.');
@@ -655,7 +735,16 @@ class UIManager {
             }
 
             const dieElTargeting = findDieUnderPointer(px, py, st.cardEl);
-            if (pendingLib?.libation === card && isLibation && applyLibationToDie(dieElTargeting, pendingLib.enhancementType)) {
+            const enhType = isDieEnhancerLibation && typeof LibationCard !== 'undefined'
+                ? LibationCard.getDieFaceEnhancementType(card)
+                : null;
+
+            /* Die enhancers: resolve die before zone geometry (drink oval overlaps dice tray). */
+            if (pendingLib?.libation === card && isLibation
+                && applyLibationToDie(dieElTargeting, pendingLib.enhancementType)) {
+                return;
+            }
+            if (isDieEnhancerLibation && enhType && applyLibationToDie(dieElTargeting, enhType)) {
                 return;
             }
 
@@ -664,19 +753,12 @@ class UIManager {
                 return;
             }
 
-            if (pointIn(px, py, z.libation)) {
+            if (!isDieEnhancerLibation && pointIn(px, py, z.libation)) {
                 handleLibationZoneDrop();
                 return;
             }
 
-            const enhType = isLibation && typeof LibationCard !== 'undefined'
-                ? LibationCard.getDieFaceEnhancementType(card)
-                : null;
-            if (isLibation && enhType && applyLibationToDie(dieElTargeting, enhType)) {
-                return;
-            }
-
-            if (isLibation && pointInDicePlayArea(px, py)) {
+            if (isDieEnhancerLibation && pointInDicePlayArea(px, py)) {
                 if (isAwaitingPickSameCard()) {
                     endDrag(st, true);
                     return;

@@ -145,10 +145,25 @@ body::after {
     z-index: 5;
     overflow: visible;
     pointer-events: none;
+    user-select: none;
+    -webkit-user-select: none;
+    -moz-user-select: none;
+    -ms-user-select: none;
+    -webkit-touch-callout: none;
 }
 
 #gameViewport.game-screen .game-container {
     pointer-events: auto;
+    user-select: none;
+    -webkit-user-select: none;
+}
+
+#gameViewport.game-screen img,
+#gameViewport.game-screen .card,
+#gameViewport.game-screen .die,
+#gameViewport.game-screen .pack-card {
+    -webkit-user-drag: none;
+    user-drag: none;
 }
 
 /* Background overlay for readability */
@@ -345,7 +360,7 @@ body::after {
     min-width: 0;
     width: 100%;
     flex: 1;
-    min-height: 187px;  /* Match shop card height (140×187) */
+    min-height: var(--card-h, 187px);
     overflow: visible;
     flex-wrap: nowrap;
 }
@@ -406,42 +421,21 @@ body::after {
 .consumable-slots.card-area-squish .card:nth-child(9) { z-index: 9; }
 .consumable-slots.card-area-squish .card:nth-child(10) { z-index: 10; }
 
-/* Balatro consumable slots: 71×95px base card size (same as boons) */
-.consumable-slots.card-area-squish .card {
-    width: 71px !important;
-    height: 95px !important;
-    min-width: 71px !important;
-    min-height: 95px !important;
-    max-width: 71px !important;
-    max-height: 95px !important;
+/* Card footprint: card-sizes.css (--card-w 140px × --card-h 187px) */
+.consumable-slots.card-area-squish .card,
+.boon-slots.card-area-squish .card {
     background-size: contain !important;
     background-position: center !important;
     background-repeat: no-repeat !important;
-    padding: 0 !important;
-    border: none !important;
 }
 
-.consumable-slots.card-area-squish .card .card-background {
+.consumable-slots.card-area-squish .card .card-background,
+.boon-slots.card-area-squish .card .card-background {
     background-size: contain !important;
     background-position: center !important;
     background-repeat: no-repeat !important;
     width: 100% !important;
     height: 100% !important;
-}
-
-/* Boon slots: 71×95px base, 2× scale in inventory panel (same ratio both sections) */
-.boon-slots.card-area-squish .card {
-    width: 71px !important;
-    height: 95px !important;
-    min-width: 71px !important;
-    min-height: 95px !important;
-    max-width: 71px !important;
-    max-height: 95px !important;
-    background-size: contain !important;
-    background-position: center !important;
-    background-repeat: no-repeat !important;
-    padding: 0 !important;
-    border: none !important;
 }
 
 .boon-slots.card-area-squish .card .card-background {
@@ -452,30 +446,7 @@ body::after {
     height: 100% !important;
 }
 
-/* Inventory panel: boons 2× scale, consumables base scale so both libations fit visible */
-.inventory-panel-boons .boon-slots.card-area-squish .card {
-    width: 142px !important;
-    height: 190px !important;
-    min-width: 142px !important;
-    min-height: 190px !important;
-    max-width: 142px !important;
-    max-height: 190px !important;
-    margin-left: -16px !important;
-}
-
-.boon-prayer-rail.inventory-panel-boons .boon-slots.card-area-squish .card {
-    width: 116px !important;
-    height: 156px !important;
-    min-width: 116px !important;
-    min-height: 156px !important;
-    max-width: 116px !important;
-    max-height: 156px !important;
-    margin-left: -26px !important;
-}
-
-.inventory-panel-boons .boon-slots.card-area-squish .card:first-child {
-    margin-left: 0 !important;
-}
+/* Boon/inventory card dimensions: see card-sizes.css (owned / prayer tiers) */
 
 /* Boon drag-to-reorder (Balatro-style) */
 .boon-reorder-hint {
@@ -510,30 +481,7 @@ body::after {
     outline-offset: 2px;
 }
 
-/* Consumables: match shop size (140×187) so cards stay same size when bought */
-.inventory-panel-consumables .consumable-slots.card-area-squish .card {
-    width: 140px !important;
-    height: 187px !important;
-    min-width: 140px !important;
-    min-height: 187px !important;
-    max-width: 140px !important;
-    max-height: 187px !important;
-    margin-left: -16px !important;
-}
-
-.inventory-panel-consumables .consumable-slots.card-area-squish .card:first-child {
-    margin-left: 0 !important;
-}
-
-/* Force hide text in consumable cards (tooltip shows on hover); boons show full content like shop */
-.consumable-slots .card .card-content .card-name,
-.consumable-slots .card .card-content .card-effect,
-.consumable-slots .card .card-content .card-rarity,
-.consumable-slots .card .card-content .card-god {
-    display: none !important;
-    visibility: hidden !important;
-    opacity: 0 !important;
-}
+/* Owned consumable face text: card-present.css [data-card-surface="owned"] */
 
 .boon-slot:hover {
     transform: translateY(-2px);
@@ -1859,41 +1807,7 @@ body::after {
     margin: 1px 0;
 }
 
-/* Hide text content for cards outside shop context */
-.card:not([data-in-shop="true"]) .card-content .card-name,
-.card:not([data-in-shop="true"]) .card-content .card-effect,
-.card:not([data-in-shop="true"]) .card-content .card-rarity,
-.card:not([data-in-shop="true"]) .card-content .card-god {
-    display: none !important;
-}
-
-/* Additional specificity for inventory cards — consumables: hide text; boons: show like shop */
-.consumable-slots .card .card-content .card-name,
-.consumable-slots .card .card-content .card-effect,
-.consumable-slots .card .card-content .card-rarity,
-.consumable-slots .card .card-content .card-god {
-    display: none !important;
-}
-
-/* Boons in boon slots: name via card-type-indicator only; hide effect, god, rarity */
-.boon-slots .card .card-content .card-effect,
-.boon-slots .card .card-content .card-rarity,
-.boon-slots .card .card-content .card-god {
-    display: none !important;
-}
-
-/* Hide card-name — use card-type-indicator for name (matches shop) */
-.boon-slots .card.boon-card .card-content .card-name {
-    display: none !important;
-}
-
-/* Show card-type-indicator (name) as in shop — prominent, centered */
-.boon-slots .card.boon-card .card-type-indicator {
-    display: flex !important;
-    visibility: visible !important;
-    align-items: center;
-    justify-content: center;
-}
+/* Owned face layout: card-present.css ([data-card-surface="owned"]) */
 
 /* CSS-based frame for boons (white fallback design) */
 .card.boon-card .card-frame {
@@ -2394,14 +2308,13 @@ body::after {
 }
 
 .pack-card {
-    background: transparent;
-    border: 1px solid rgba(255,255,255,0.75);
+    background-color: transparent;
+    border: none;
     border-radius: 8px;
     padding: 0;
     cursor: pointer;
     margin: 8px;
-    width: 180px;
-    height: 240px;
+    /* footprint: card-sizes.css (--card-rack-w/h) */
     background-size: contain;
     background-position: center;
     background-repeat: no-repeat;
@@ -2411,10 +2324,8 @@ body::after {
 .pack-cost { opacity: 0.9; }
 .pack-description { opacity: 0.8; font-size: 0.9rem; }
 
-/* Ensure shop cards align - scaled to fit center area */
+/* Shop/pack card footprint: card-sizes.css (--card-rack-w/h) */
 #shopDefaultView .shop-section .card {
-    width: 140px;
-    height: 187px;
     margin: 4px;
     background-size: contain;
     background-position: center;
@@ -2424,10 +2335,7 @@ body::after {
     opacity: 1 !important;
 }
 
-/* Ensure pack contents cards align horizontally and are fully interactive */
 #packOpeningView .shop-section .card {
-    width: 180px;
-    height: 240px;
     margin: 8px;
     background-size: contain;
     background-position: center;
@@ -2437,47 +2345,7 @@ body::after {
     cursor: pointer;
 }
 
-/* Hide text on assets in pack opening view; use tooltip instead */
-#packOpeningView .card .card-rarity,
-#packOpeningView .card .card-uses,
-#packOpeningView .card .card-name,
-#packOpeningView .card .card-effect,
-#packOpeningView .card .card-god,
-#packOpeningView .card .card-type-indicator,
-#packOpeningView .card .card-button {
-    display: none !important;
-}
-/* EXCEPTION: Worship & libation in pack — show title only */
-#packOpeningView .card.worship-card .card-name,
-#packOpeningView .card.libation-card .card-name,
-#packOpeningView .card.libation .card-name,
-.pack-cards-grid .card.worship-card .card-name,
-.pack-cards-grid .card.libation-card .card-name,
-.pack-cards-grid .card.libation .card-name {
-    display: block !important;
-    visibility: visible !important;
-    color: #2F1C10 !important;
-    text-shadow: none !important;
-    background: transparent !important;
-}
-/* EXCEPTION: Boons in shop & pack — show card-type-indicator (name) with same font/size as consumables */
-#shopDefaultView .card.boon-card .card-type-indicator,
-#packOpeningView .card.boon-card .card-type-indicator,
-.pack-cards-grid .card.boon-card .card-type-indicator {
-    display: flex !important;
-    visibility: visible !important;
-    align-items: center;
-    justify-content: center;
-    text-align: center !important;
-    color: rgba(255,255,255,0.95) !important;
-    text-shadow: 0 1px 2px rgba(0,0,0,0.4);
-    background: transparent !important;
-    flex: 1;
-    padding: 12px;
-    font-family: 'DisneyHeroic', sans-serif !important;
-    font-size: 1.1rem !important;
-    font-weight: bold !important;
-}
+/* Pack card faces: card-present.css ([data-card-surface="rack"]) */
 
 /* Selected card styling for pack opening view */
 #packOpeningView .card.selected {
@@ -2583,25 +2451,6 @@ body::after {
     border: none !important;
     box-shadow: none !important;
     padding: 0 !important;
-}
-
-/* Artifact cards - specifically target artifacts in shop */
-#shopDefaultView #shopArtifactsArea .pack-card {
-    background-image: url('/ART/artifact undecided.png') !important;
-    background-size: contain !important;
-    background-position: center !important;
-    background-repeat: no-repeat !important;
-    background-color: transparent !important;
-    border: none !important;
-    box-shadow: none !important;
-    padding: 0 !important;
-    width: 120px !important;
-    height: 120px !important;
-    display: block !important;
-    visibility: visible !important;
-    opacity: 1 !important;
-    z-index: 1 !important;
-    margin: 4px !important;
 }
 
 /* Universal asset rules for all contexts - all boons use white fallback */
@@ -2718,22 +2567,6 @@ body::after {
 #packOpeningView .card.boon-card .fallback-name,
 .pack-cards-grid .card.boon-card .fallback-name,
 .boon-slots .card.boon-card .fallback-name {
-    color: rgba(255,255,255,0.95) !important;
-    text-shadow: 0 1px 2px rgba(0,0,0,0.5);
-}
-
-/* Boon slots no-asset: white text on colored card-content (match shop) */
-.boon-slots .card.boon-card.no-asset .card-content .card-name,
-.boon-slots .card.boon-card.no-asset .card-content .card-effect,
-.boon-slots .card.boon-card.no-asset .card-content .card-rarity,
-.boon-slots .card.boon-card.no-asset .card-content .card-god {
-    color: rgba(255,255,255,0.95) !important;
-    text-shadow: 0 1px 2px rgba(0,0,0,0.5);
-    background: rgba(0,0,0,0.2) !important;
-}
-
-/* Boon slots no-asset: name (card-type-indicator) white on colored background */
-.boon-slots .card.boon-card.no-asset .card-type-indicator {
     color: rgba(255,255,255,0.95) !important;
     text-shadow: 0 1px 2px rgba(0,0,0,0.5);
 }
@@ -3209,11 +3042,12 @@ body::after {
 
 /* Shop cards/packs: show assets only by default; reveal text on hover */
 #shopDefaultView .card,
+#shopDefaultView .pack-card[data-pack-shelf],
 #shopDefaultView .pack-card {
     position: relative;
     overflow: visible; /* allow tooltip to appear outside */
     border: none !important;
-    background: transparent !important;
+    background-color: transparent !important;
     box-shadow: none !important;
     margin: 4px !important;
     padding: 0 !important;
@@ -3223,131 +3057,28 @@ body::after {
 #shopDefaultView .card::before,
 #shopDefaultView .pack-card::before { display: none; }
 
-/* Hide textual elements printed on assets within the shop; only tooltips show text */
-#shopDefaultView .card .card-rarity,
-#shopDefaultView .card .card-uses,
-#shopDefaultView .card .card-name,
-#shopDefaultView .card .card-effect,
-#shopDefaultView .card .card-god,
-#shopDefaultView .card .card-type-indicator,
-#shopDefaultView .card .card-button,
+/* Shop shelf packs: art only (not data-card-surface cards) */
 #shopDefaultView .pack-card .pack-title,
 #shopDefaultView .pack-card .pack-cost,
 #shopDefaultView .pack-card .pack-description {
     display: none !important;
 }
 
-/* EXCEPTION: Show text for artifacts (no images, like Balatro vouchers) - effect in hover tooltip */
-#shopDefaultView .artifact-card .card-type-indicator,
-#shopDefaultView .artifact-card .artifact-name {
-    display: block !important;
-}
-#shopDefaultView .artifact-card .artifact-effect {
-    display: none !important; /* Effect shown in hover tooltip */
-}
-#shopDefaultView .artifact-card .artifact-description,
-.artifact-card .artifact-description {
-    display: none !important;
+/* Shop ware card faces: card-present.css ([data-card-surface="rack"]) */
+
+/* Artifacts: face layout in card-present.css; footprint in card-sizes.css */
+#shopDefaultView .artifact-card {
+    background-color: transparent !important;
+    border: none !important;
+    box-shadow: none !important;
+    padding: 0 !important;
 }
 
-/* Artifact card: centered like boons and consumables */
-#shopDefaultView .artifact-card .card-content {
-    justify-content: center !important;
-    align-items: center !important;
-}
-
-/* EXCEPTION: Show title ONLY for worship & libation (like boons) — centered like boon type indicator */
-#shopDefaultView .card.worship-card .card-content,
-#shopDefaultView .card.libation-card .card-content,
-#shopDefaultView .card.libation .card-content,
-#shopDefaultView .card.boon-card .card-content {
-    justify-content: center !important;
-    align-items: center !important;
-}
-#packOpeningView .card.boon-card .card-content,
-.pack-cards-grid .card.boon-card .card-content {
-    justify-content: center !important;
-    align-items: center !important;
-}
-#shopDefaultView .card.worship-card .card-name,
-#shopDefaultView .card.libation-card .card-name,
-#shopDefaultView .card.libation .card-name {
-    display: block !important;
-    visibility: visible !important;
-}
-/* Hide effect, rarity, god, type-indicator for worship/libation — title only */
-#shopDefaultView .card.worship-card .card-effect,
-#shopDefaultView .card.worship-card .card-rarity,
-#shopDefaultView .card.worship-card .card-god,
-#shopDefaultView .card.worship-card .card-type-indicator,
-#shopDefaultView .card.libation-card .card-effect,
-#shopDefaultView .card.libation-card .card-rarity,
-#shopDefaultView .card.libation-card .card-god,
-#shopDefaultView .card.libation-card .card-type-indicator,
-#shopDefaultView .card.libation .card-effect,
-#shopDefaultView .card.libation .card-rarity,
-#shopDefaultView .card.libation .card-god,
-#shopDefaultView .card.libation .card-type-indicator {
-    display: none !important;
-}
-#shopDefaultView .card.worship-card .card-uses,
-#shopDefaultView .card.libation-card .card-uses,
-#shopDefaultView .card.libation .card-uses {
-    display: block !important;
-}
-
-/* Worship/Libation on colored cards: match boon type-indicator exactly (font, size, weight, centered) */
-#shopDefaultView .card.worship-card .card-name,
-#packOpeningView .card.worship-card .card-name,
-.consumable-slots .card.worship-card .card-type-indicator,
-.boon-slots .card.worship-card .card-type-indicator {
-    font-family: 'DisneyHeroic', sans-serif !important;
-    font-size: 1.1rem !important;
-    font-weight: bold !important;
-    color: rgba(255,255,255,0.95) !important;
-    text-shadow: 0 1px 2px rgba(0,0,0,0.4) !important;
-    background: transparent !important;
-    text-align: center !important;
-}
-#shopDefaultView .card.libation-card .card-name,
-#shopDefaultView .card.libation .card-name,
-#packOpeningView .card.libation-card .card-name,
-#packOpeningView .card.libation .card-name,
-.consumable-slots .card.libation-card .card-type-indicator,
-.consumable-slots .card.libation .card-type-indicator {
-    font-family: 'DisneyHeroic', sans-serif !important;
-    font-size: 1.1rem !important;
-    font-weight: bold !important;
-    color: rgba(255,255,255,0.95) !important;
-    text-shadow: 0 1px 2px rgba(0,0,0,0.4) !important;
-    background: transparent !important;
-    text-align: center !important;
-}
-/* Worship/Libation type indicator: white on colored card (shop, pack, inventory) */
-#shopDefaultView .card.worship-card .card-type-indicator,
-#packOpeningView .card.worship-card .card-type-indicator {
-    color: rgba(255,255,255,0.95) !important;
-    text-shadow: 0 1px 2px rgba(0,0,0,0.4) !important;
-}
-#shopDefaultView .card.libation-card .card-type-indicator,
-#shopDefaultView .card.libation .card-type-indicator,
-#packOpeningView .card.libation-card .card-type-indicator,
-#packOpeningView .card.libation .card-type-indicator {
-    color: rgba(255,255,255,0.95) !important;
-    text-shadow: 0 1px 2px rgba(0,0,0,0.4) !important;
-}
-
-/* Artifact-specific: gold frame matching Divine Artifact label */
 .artifact-card {
     position: relative;
-    background: linear-gradient(135deg, #FFD700, #DAA520) !important;
-    border: 2px solid rgba(184, 134, 11, 0.6) !important;
-    border-radius: 8px !important;
-    box-shadow: 0 2px 8px rgba(255, 215, 0, 0.3) !important;
-    padding: 12px !important;
     display: flex;
     flex-direction: column;
-    justify-content: space-between;
+    box-sizing: border-box;
 }
 
 .artifact-card .card-content {
@@ -3360,52 +3091,8 @@ body::after {
     height: 100%;
 }
 
-.artifact-card .card-frame {
-    background: linear-gradient(135deg, #FFD700, #DAA520) !important;
-    border: 2px solid rgba(184, 134, 11, 0.6) !important;
-    border-radius: 8px !important;
-    box-shadow: 0 0 8px rgba(255, 215, 0, 0.3) !important;
-}
-
-.artifact-card .card-type-indicator {
-    background: rgba(47, 28, 16, 0.2);
-    color: #2F1C10;
-    padding: 4px 8px;
-    border-radius: 4px;
-    font-size: 0.7rem;
-    font-weight: bold;
-    text-align: center;
-    margin-bottom: 0;
-    border: 1px solid rgba(47, 28, 16, 0.3);
-    flex-shrink: 0;
-}
-
-.artifact-name {
-    color: #2F1C10;
-    font-size: 1.1rem;
-    font-weight: bold;
-    text-align: center;
-    margin-bottom: 8px;
-    text-shadow: none;
-    font-family: 'DisneyHeroic', sans-serif;
-}
-
-.artifact-effect {
-    color: #444;
-    font-size: 0.85rem;
-    text-align: center;
-    line-height: 1.3;
-    margin-bottom: 6px;
-    font-family: 'DisneyHeroic', sans-serif;
-}
-
 .artifact-description {
-    color: #666;
-    font-size: 0.75rem;
-    font-style: italic;
-    text-align: center;
-    line-height: 1.2;
-    font-family: 'DisneyHeroic', sans-serif;
+    display: none !important;
 }
 
 .artifact-buy {
@@ -4291,35 +3978,10 @@ body::after {
 
 /* Balatro-style Visual Effects */
 
-/* Enhanced Card Hover Effects */
+/* Card hover lift / shimmer: card-present.css (inventory + shop motion policy) */
 .card {
-    transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
-    transform-origin: center;
     position: relative;
     overflow: hidden;
-}
-
-.card:hover {
-    transform: translateY(-8px) scale(1.05);
-    box-shadow: 0 12px 24px rgba(0, 0, 0, 0.3);
-    z-index: 10;
-}
-
-.card:hover::before {
-    content: '';
-    position: absolute;
-    top: 0;
-    left: 0;
-    right: 0;
-    bottom: 0;
-    background: linear-gradient(45deg, transparent, rgba(255, 255, 255, 0.1), transparent);
-    animation: shimmer 1.5s ease-in-out infinite;
-    pointer-events: none;
-}
-
-@keyframes shimmer {
-    0% { transform: translateX(-100%); }
-    100% { transform: translateX(100%); }
 }
 
 /* ===== RARITY-BASED HOVER GLOWS (Balatro-style) ===== */
@@ -4600,11 +4262,7 @@ body::after {
 .consumable-slots .card {
     overflow: visible;
 }
-/* Inventory cards: no hover lift/scale — keeps labels stable and clickable */
-.boon-slots .card:hover,
-.consumable-slots .card:hover {
-    transform: none;
-}
+/* Inventory card hover: card-present.css */
 .boon-slots .card .card-content,
 .consumable-slots .card .card-content {
     position: relative;
@@ -4619,25 +4277,7 @@ body::after {
     pointer-events: none;
 }
 
-/* Type indicator: match boon "Boon" text exactly (font, size, weight, centering) — non-interactive so labels stay clickable */
-.boon-slots .card .card-type-indicator,
-.consumable-slots .card .card-type-indicator {
-    font-family: 'DisneyHeroic', sans-serif !important;
-    font-size: 1.1rem !important;
-    font-weight: bold !important;
-    text-align: center !important;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    width: 100%;
-    pointer-events: none;
-}
-
-/* Boon: dark text on white card */
-.boon-slots .card.boon-card .card-type-indicator {
-    color: #2F1C10 !important;
-    text-shadow: 0 1px 1px rgba(255,255,255,0.5);
-}
+/* Owned type indicator typography: card-present.css */
 /* Action labels row: symmetric Use | Sell at bottom center */
 .boon-slots .card .action-labels-row,
 .consumable-slots .card .action-labels-row {
@@ -5014,29 +4654,7 @@ body::after {
     background: rgba(255, 255, 255, 0.02);
 }
 
-.collection-grid .card:hover {
-    transform: translateY(-4px);
-    box-shadow: 0 10px 20px rgba(0, 0, 0, 0.34);
-    z-index: 2;
-}
-
-.collection-grid .card::before {
-    display: none !important;
-}
-
-/* Anthology normalization: keep all card families on the same footprint. */
-.collection-grid .artifact-card,
-.collection-grid .boon-card,
-.collection-grid .worship-card,
-.collection-grid .libation-card,
-.collection-grid .libation {
-    width: 140px !important;
-    height: 187px !important;
-    min-width: 140px !important;
-    max-width: 140px !important;
-    min-height: 187px !important;
-    max-height: 187px !important;
-}
+/* Anthology card footprint + hover: card-sizes.css, card-present.css */
 
 .collection-grid .artifact-card {
     padding: 8px !important;
@@ -5178,9 +4796,9 @@ body::after {
     box-shadow: 0 2px 8px rgba(230, 230, 250, 0.4);
 }
 
-/* Visual elements for shop items without text */
-.pack-card:empty::before,
-.pack-card[data-tooltip]:not(:has(*))::before {
+/* Visual elements for shop items without text (legacy — not shelf packs / drag ghosts) */
+.pack-card:empty:not([data-pack-shelf]):not(.pack-drag-appearance):not(.drag-ghost)::before,
+.pack-card[data-tooltip]:not(:has(*)):not([data-pack-shelf]):not(.pack-drag-appearance):not(.drag-ghost)::before {
     content: '';
     display: block;
     width: 100%;
@@ -5192,8 +4810,8 @@ body::after {
     box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
 }
 
-.pack-card:empty,
-.pack-card[data-tooltip]:not(:has(*)) {
+.pack-card:empty:not([data-pack-shelf]):not(.pack-drag-appearance):not(.drag-ghost),
+.pack-card[data-tooltip]:not(:has(*)):not([data-pack-shelf]):not(.pack-drag-appearance):not(.drag-ghost) {
     min-width: 120px;
     min-height: 80px;
     display: flex;
@@ -5217,12 +4835,20 @@ body::after {
     border-radius: 50%;
 }
 
-/* Pack visual styling */
-.pack-card:empty[data-tooltip*="Pack"]::before,
-.pack-card[data-tooltip*="Pack"]:not(:has(*))::before {
+/* Pack visual styling (legacy empty placeholder — not shelf packs or drag ghosts) */
+.pack-card:empty[data-tooltip*="Pack"]:not([data-pack-shelf])::before,
+.pack-card[data-tooltip*="Pack"]:not(:has(*)):not([data-pack-shelf]):not(.pack-drag-appearance):not(.drag-ghost)::before {
     background: linear-gradient(135deg, #4A90E2, #357ABD);
     border: 2px solid #2E5A8A;
     border-radius: 8px;
+}
+
+/* Shelf packs + drag: real art only (no blue placeholder pseudo) */
+.pack-card[data-pack-shelf]::before,
+.pack-card.pack-drag-appearance::before,
+.drag-ghost.pack-card::before {
+    display: none !important;
+    content: none !important;
 }
 
 /* Player artifact styling */
@@ -6695,12 +6321,7 @@ body::after {
     }
 }
 
-/* Enhanced hover effect for shop items */
-.shop-section .card:hover,
-.shop-section .pack-card:hover {
-    transform: translateY(-8px) scale(1.05);
-    transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
-}
+/* Shop card hover: card-present.css */
 
 /* ===== ENHANCED DICE ROLLING ANIMATIONS ===== */
 /* Pre-roll jiggle, landing bounce, and visual juice */
@@ -7484,105 +7105,13 @@ body::after {
     border: 1px solid #a855f7;
 }
 
-/* ===== CONSUMABLE HORIZON + DRAG ZONES (sell wide left / worship right / libation → table) ===== */
-.consumable-shell {
-    position: absolute;
-    inset: 0;
-    z-index: 12;
-    pointer-events: none;
-}
-
+/* ===== CONSUMABLE DRAG ZONES (in-run layout §10 below; visibility: greek-theme.css) ===== */
 .consumable-zone {
     position: absolute;
     pointer-events: none;
     opacity: 0;
     transition: opacity 0.2s ease;
     border-radius: 8px;
-}
-
-.main-game.consumable-drag-active .consumable-zone {
-    opacity: 1;
-}
-
-/* Sell: wide left band (former libation drop zone) */
-.consumable-zone-sell-wide {
-    top: 188px;
-    left: 56px;
-    width: 400px;
-    bottom: 216px;
-    background: linear-gradient(90deg, rgba(255, 107, 107, 0.24) 0%, rgba(255, 107, 107, 0) 100%);
-    border: 1px dashed rgba(255, 107, 107, 0.4);
-}
-
-/* Worship: drag toward Pantheon (right) */
-.consumable-zone-worship {
-    top: 188px;
-    right: 56px;
-    width: 400px;
-    bottom: 216px;
-    background: linear-gradient(270deg, rgba(147, 197, 255, 0.28) 0%, rgba(147, 197, 255, 0) 100%);
-    border: 1px dashed rgba(147, 197, 255, 0.45);
-}
-
-.consumable-horizon {
-    position: absolute;
-    left: 0;
-    right: 0;
-    bottom: 0;
-    height: 212px;
-    pointer-events: auto;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: flex-end;
-    padding: 8px 12px 10px;
-    background: linear-gradient(0deg, rgba(15, 33, 28, 0.55) 0%, rgba(15, 33, 28, 0) 100%);
-}
-
-.consumable-horizon .consumable-slots.card-area-squish {
-    display: flex;
-    flex-direction: row;
-    align-items: center;
-    justify-content: center;
-    gap: 0;
-    padding: 0;
-    min-height: 187px;
-    width: 100%;
-    max-width: min(100%, 900px);
-    overflow: visible;
-    flex-wrap: nowrap;
-    touch-action: none;
-}
-
-/* Bottom dock: same card footprint as shop / inventory (overrides 71×95 Balatro base) */
-.consumable-horizon .consumable-slots.card-area-squish .card {
-    width: 140px !important;
-    height: 187px !important;
-    min-width: 140px !important;
-    min-height: 187px !important;
-    max-width: 140px !important;
-    max-height: 187px !important;
-    margin-left: -16px !important;
-}
-
-.consumable-horizon .consumable-slots.card-area-squish .card:first-child {
-    margin-left: 0 !important;
-}
-
-.consumable-horizon-counter {
-    position: static;
-    margin-top: 4px;
-    align-self: center;
-    font-size: 16px;
-}
-
-.consumable-horizon .consumable-slots .card {
-    touch-action: none;
-    cursor: grab;
-}
-
-.consumable-horizon .consumable-slots .card:active {
-    cursor: grabbing;
 }
 
 .consumable-card-dragging {
@@ -7636,6 +7165,24 @@ body::after {
 
 .consumable-fx-libation-artifacts {
     animation: consumableLibationArtifacts 0.55s cubic-bezier(0.33, 1, 0.68, 1) forwards;
+}
+
+/* Drink libation: diagonal down toward bottom zone (mirror of worship → pantheon). */
+@keyframes consumableLibationDrink {
+    0% {
+        transform: translate(0, 0) scale(1);
+        opacity: 1;
+        filter: blur(0);
+    }
+    100% {
+        transform: translate(320px, -130px) scale(0.68);
+        opacity: 0;
+        filter: blur(2px);
+    }
+}
+
+.consumable-fx-libation-drink {
+    animation: consumableLibationDrink 0.52s cubic-bezier(0.25, 0.9, 0.35, 1) forwards;
 }
 
 @keyframes consumableLibationDice {
@@ -8506,17 +8053,17 @@ body::after {
     border-radius: 10px;
 }
 
-/* libation → dice felt (oval-ish band centred on the tray) */
+/* Drink libation → oval above Cast the Bones (.rolling-controls top: 580px) */
 .center-game-area .consumable-zone-libation {
-    top: 60px;
+    top: 385px;
     left: 50%;
     transform: translateX(-50%);
     right: auto;
     bottom: auto;
-    width: 900px;
-    height: 260px;
-    background: radial-gradient(ellipse at center, rgba(190, 140, 255, 0.3) 0%, rgba(190, 140, 255, 0) 72%);
-    border: 2px dashed rgba(190, 140, 255, 0.5);
+    width: 540px;
+    height: 175px;
+    background: radial-gradient(ellipse at center, rgba(190, 140, 255, 0.32) 0%, rgba(190, 140, 255, 0) 72%);
+    border: 2px dashed rgba(190, 140, 255, 0.55);
     border-radius: 9999px;
 }
 
@@ -8607,13 +8154,7 @@ body::after {
 }
 
 .pack-drag-hint {
-    margin-top: 8px;
-    font-size: 0.72rem;
-    letter-spacing: 0.06em;
-    text-transform: uppercase;
-    text-align: center;
-    color: rgba(232, 244, 239, 0.82);
-    font-family: 'DisneyHeroic', sans-serif;
+    display: none !important;
 }
 
 .pack-open-drag-hint {
@@ -8654,14 +8195,12 @@ body::after {
     cursor: grabbing;
 }
 
+/* Shop drag hide + drag ghost face: card-present.css */
+
 .shop-drag-lift,
 .boon-card-dragging {
     z-index: 12040;
     position: relative;
-}
-
-.drag-ghost {
-    box-shadow: 0 10px 18px rgba(0, 0, 0, 0.45);
 }
 
 .consumable-card-dragging {

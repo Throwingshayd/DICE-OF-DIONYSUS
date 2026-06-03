@@ -1,0 +1,69 @@
+/**
+ * Card size system — one footprint everywhere (shop, pack, owned, drag, anthology).
+ * 140×187px — matches shop wares.
+ *
+ * JS: CARD_LAYOUT.CARD_W / CARD_H in UIConstants.js
+ * Drag clones: inline screen px from getBoundingClientRect (see CardDragSurface.js)
+ */
+
+:root {
+    --card-w: 140px;
+    --card-h: 187px;
+    /* Legacy aliases (same values) */
+    --card-owned-w: var(--card-w);
+    --card-owned-h: var(--card-h);
+    --card-rack-w: var(--card-w);
+    --card-rack-h: var(--card-h);
+}
+
+/* ── All playable card surfaces ── */
+.consumable-slots.card-area-squish .card,
+.boon-slots.card-area-squish .card,
+.boon-prayer-rail.inventory-panel-boons .boon-slots.card-area-squish .card,
+#shopDefaultView .shop-section .card,
+#shopDefaultView .shop-section .artifact-card,
+#packOpeningView .shop-section .card,
+#packOpeningView .pack-cards-grid .card,
+.pack-cards-grid .card {
+    width: var(--card-w) !important;
+    height: var(--card-h) !important;
+    min-width: var(--card-w) !important;
+    min-height: var(--card-h) !important;
+    max-width: var(--card-w) !important;
+    max-height: var(--card-h) !important;
+    padding: 0 !important;
+    border: none !important;
+    box-sizing: border-box;
+}
+
+.pack-card {
+    width: var(--card-w);
+    height: var(--card-h);
+}
+
+.inventory-panel-consumables .consumable-slots.card-area-squish,
+.inventory-panel-boons .boon-slots.card-area-squish,
+.inventory-panel-consumables .consumable-slots.card-area-squish,
+.left-consumable-bar .consumable-slots.card-area-squish {
+    min-height: var(--card-h);
+}
+
+.collection-grid {
+    grid-template-columns: repeat(3, var(--card-w));
+    grid-template-rows: repeat(3, var(--card-h));
+}
+
+.collection-grid .card,
+.collection-slot-placeholder,
+.collection-grid .artifact-card,
+.collection-grid .boon-card,
+.collection-grid .worship-card,
+.collection-grid .libation-card,
+.collection-grid .libation {
+    width: var(--card-w) !important;
+    height: var(--card-h) !important;
+    min-width: var(--card-w) !important;
+    max-width: var(--card-w) !important;
+    min-height: var(--card-h) !important;
+    max-height: var(--card-h) !important;
+}
