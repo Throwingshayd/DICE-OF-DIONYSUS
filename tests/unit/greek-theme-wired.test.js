@@ -22,8 +22,10 @@ describe('Greek theme wiring', () => {
         const css = readFileSync('game/css/greek-theme.css', 'utf8');
         expect(css).toContain('.main-game .pantheon-frieze');
         expect(css).toContain('var(--gk-marble-1)');
-        expect(css).toContain('LIBATIONS');
+        expect(css).toContain('CONSUMABLES');
         expect(css).toContain('BOONS');
         expect(css).toContain('Greater Pantheon');
+        expect(css).toContain('--gk-meander-v');
+        expect(css).toContain('--gk-meander-h');
     });
 });

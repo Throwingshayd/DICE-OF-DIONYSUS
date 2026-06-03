@@ -82,11 +82,15 @@
 
     padding: 8px;
 
-    font-family: 'DisneyHeroic', sans-serif !important;
+    font-family: var(--font-manuscript) !important;
 
-    font-size: 1.1rem !important;
+    font-size: 1.05rem !important;
 
-    font-weight: bold !important;
+    font-weight: normal !important;
+
+    line-height: 1.25 !important;
+
+    letter-spacing: 0.01em !important;
 
     pointer-events: none;
 
@@ -140,7 +144,7 @@
 
 
 
-/* Rack-only: price chip on shop wares (direct sales) */
+/* Rack-only: price chip on shop wares (positioned under card art — see shop shelf block below) */
 
 .card[data-card-surface="rack"] .card-shop-cost {
 
@@ -194,11 +198,15 @@
 
     padding: 8px;
 
-    font-family: 'DisneyHeroic', sans-serif !important;
+    font-family: var(--font-manuscript) !important;
 
     font-size: 1rem !important;
 
-    font-weight: bold !important;
+    font-weight: normal !important;
+
+    line-height: 1.25 !important;
+
+    letter-spacing: 0.01em !important;
 
     color: #2F1C10 !important;
 
@@ -405,11 +413,15 @@
     /* Ghosts are outside .app-stage — scale rem to match on-table text */
     padding: calc(8px * var(--drag-face-scale, 1));
 
-    font-family: 'DisneyHeroic', sans-serif !important;
+    font-family: var(--font-manuscript) !important;
 
-    font-size: calc(1.1rem * var(--drag-face-scale, 1)) !important;
+    font-size: calc(1.05rem * var(--drag-face-scale, 1)) !important;
 
-    font-weight: bold !important;
+    font-weight: normal !important;
+
+    line-height: 1.25 !important;
+
+    letter-spacing: 0.01em !important;
 
     pointer-events: none;
 
@@ -541,6 +553,28 @@
 
 
 
+/* Shop shelf: gold price chip anchored below card art (wares, artifacts, packs) */
+
+#shopDefaultView .shop-section .card[data-card-surface="rack"],
+
+#shopDefaultView .shop-section .artifact-card,
+
+#shopDefaultView .pack-card[data-pack-shelf] {
+
+    position: relative;
+
+    overflow: visible;
+
+    margin-bottom: 28px !important;
+
+}
+
+
+
+#shopDefaultView .shop-section .card[data-card-surface="rack"] .card-shop-cost,
+
+#shopDefaultView .shop-section .artifact-card .card-shop-cost,
+
 #shopDefaultView .pack-card[data-pack-shelf] .card-shop-cost {
 
     display: block !important;
@@ -551,13 +585,19 @@
 
     left: 50%;
 
-    bottom: 6px;
+    top: calc(100% + 4px);
+
+    bottom: auto;
 
     transform: translateX(-50%);
 
     margin: 0;
 
-    z-index: 2;
+    z-index: 4;
+
+    pointer-events: none;
+
+    white-space: nowrap;
 
 }
 
@@ -628,7 +668,7 @@
     right: 5px;
     z-index: 4;
     padding: 2px 6px;
-    font-family: 'DisneyHeroic', sans-serif;
+    font-family: var(--font-ui), sans-serif;
     font-size: 0.7rem;
     line-height: 1.2;
     color: rgba(255, 255, 255, 0.9);

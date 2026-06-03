@@ -1,11 +1,3 @@
-/* ===== CUSTOM FONT DECLARATION ===== */
-@font-face {
-    font-family: 'DisneyHeroic';
-    src: url('/ART/DisneyHeroic.ttf') format('truetype');
-    font-weight: normal;
-    font-style: normal;
-}
-
 :root {
     /* Logical design resolution (app scaler + fixed layout) */
     --design-w: 1920;
@@ -36,13 +28,13 @@ html {
 }
 
 body {
-    font-family: 'DisneyHeroic', 'VT323', monospace;
+    font-family: var(--font-ui), var(--font-numeric);
     background: #1a1a1a;
     color: var(--text-light);
     min-height: 100vh;
     width: 100%;
     overflow: auto;
-    font-size: 16px;
+    font-size: var(--font-size-base);
     display: flex;
     align-items: center;
     justify-content: center;
@@ -123,7 +115,7 @@ body::after {
     background-position: center;
     background-repeat: no-repeat;
     color: var(--text-light);
-    font-family: 'VT323', monospace;
+    font-family: var(--font-numeric);
     overflow: visible;
     position: relative;
     border: 3px solid #8B4513;
@@ -282,7 +274,7 @@ body::after {
     position: absolute;
     right: 8px;
     bottom: 0;
-    font-size: 14px;
+    font-size: 16px;
 }
 
 /* Shared box styling - no border */
@@ -316,10 +308,10 @@ body::after {
 .inventory-counter {
     position: absolute;
     bottom: 6px;
-    font-size: 18px;
+    font-size: 20px;
     font-weight: bold;
     color: #2f1c10;
-    font-family: 'DisneyHeroic', sans-serif;
+    font-family: var(--font-ui), sans-serif;
 }
 
 .inventory-panel-boons .inventory-counter,
@@ -456,7 +448,7 @@ body::after {
     transform: translateX(-50%) rotate(var(--chip-rot, 0deg));
     font-size: 0.7rem;
     color: rgba(255, 255, 255, 0.5);
-    font-family: 'DisneyHeroic', 'VT323', sans-serif;
+    font-family: var(--font-ui), var(--font-numeric);
     pointer-events: none;
 }
 
@@ -555,7 +547,7 @@ body::after {
     gap: 20px;
     font-family: 'Cormorant Garamond', Georgia, 'Times New Roman', serif;
     font-weight: 600;
-    font-size: 18px;
+    font-size: 20px;
     line-height: 1.28;
     -webkit-font-smoothing: antialiased;
 }
@@ -576,7 +568,7 @@ body::after {
     color: #2f1c10;
     font-size: 1.65rem;
     font-weight: bold;
-    font-family: 'DisneyHeroic', 'IM Fell English SC', 'Times New Roman', serif;
+    font-family: var(--font-ui), 'Times New Roman', serif;
     text-transform: none;
     letter-spacing: 0.04em;
     text-shadow:
@@ -649,6 +641,8 @@ body::after {
     display: flex;
     flex-direction: column;
     overflow: hidden;
+    /* ~¾ die below shop top (95px die − ¼ die) */
+    padding-top: 71px;
 }
 
 #shopStage .shop-actions {
@@ -758,7 +752,7 @@ body::after {
     transform: translateX(-50%) rotate(var(--chip-rot, 0deg));
     margin-top: 8px;
     padding: 6px 14px;
-    font-size: 12px;
+    font-size: 14px;
     border-radius: 8px;
     cursor: pointer;
     background: var(--stone-terracotta-dark, #5c4033);
@@ -787,7 +781,7 @@ body::after {
 .eucharist-targeting-cancel {
     margin-top: 12px;
     padding: 6px 14px;
-    font-size: 12px;
+    font-size: 14px;
     border-radius: 8px;
     cursor: pointer;
     background: var(--stone-terracotta-dark, #5c4033);
@@ -878,11 +872,11 @@ body::after {
     padding: 0;
     width: 354px;
     height: 212px;
-    font-size: 40px;
+    font-size: 45px;
     font-weight: bold;
     cursor: pointer;
     transition: all 0.3s ease;
-    font-family: 'VT323', monospace;
+    font-family: var(--font-numeric);
     position: relative;
     display: flex;
     align-items: center;
@@ -921,9 +915,9 @@ body::after {
     border: none;
     border-radius: 0;
     padding: 4px 12px;
-    font-size: 18px;
+    font-size: 20px;
     font-weight: bold;
-    font-family: 'DisneyHeroic', sans-serif;
+    font-family: var(--font-ui), sans-serif;
     box-shadow: none;
     width: fit-content;
     min-width: unset;
@@ -969,11 +963,11 @@ body::after {
 
 .gnosis-gold-suffix,
 .gnosis-gold-value {
-    font-size: 32px;
+    font-size: 36px;
     font-weight: 900;
     color: #2F1C10;
     text-shadow: 0 1px 2px rgba(255,255,255,0.5);
-    font-family: 'DisneyHeroic', sans-serif;
+    font-family: var(--font-ui), sans-serif;
 }
 
 /* Ante & Round – compact, larger text, brown, close together */
@@ -998,20 +992,20 @@ body::after {
 }
 
 .gnosis-stat-label {
-    font-size: 16px;
+    font-size: 18px;
     font-weight: bold;
     color: #2F1C10;
     text-transform: uppercase;
     letter-spacing: 1px;
-    font-family: 'DisneyHeroic', sans-serif;
+    font-family: var(--font-ui), sans-serif;
 }
 
 .gnosis-stat-value {
-    font-size: 28px;
+    font-size: 32px;
     font-weight: 900;
     color: #2F1C10;
     text-shadow: 0 1px 2px rgba(255,255,255,0.5);
-    font-family: 'DisneyHeroic', sans-serif;
+    font-family: var(--font-ui), sans-serif;
 }
 
 .packsSection {
@@ -1070,10 +1064,10 @@ body::after {
 /* Panel heading - name of the section */
 .live-score-title {
     color: #2F1C10;
-    font-size: 32px;
+    font-size: 36px;
     font-weight: bold;
     text-shadow: 0 1px 2px rgba(0,0,0,0.3);
-    font-family: 'DisneyHeroic', sans-serif;
+    font-family: var(--font-ui), sans-serif;
     text-transform: uppercase;
     letter-spacing: 8px;
     margin-bottom: 16px;
@@ -1088,7 +1082,7 @@ body::after {
     align-items: center;
     justify-content: center;
     gap: 6px;
-    font-family: 'DisneyHeroic', sans-serif;
+    font-family: var(--font-ui), sans-serif;
     height: 108px;
     min-height: 108px;
     max-height: 108px;
@@ -1101,7 +1095,7 @@ body::after {
 }
 
 .live-score-display .gnosis-category-name {
-    font-size: 16px;
+    font-size: 18px;
     font-weight: bold;
     color: #2F1C10;
     letter-spacing: 1px;
@@ -1150,8 +1144,8 @@ body::after {
     50% { color: #2ecc71; text-shadow: 0 0 16px rgba(46, 204, 113, 0.9); }
 }
 .live-score-display .gnosis-cashout-line {
-    font-family: 'DisneyHeroic', sans-serif;
-    font-size: 24px;
+    font-family: var(--font-ui), sans-serif;
+    font-size: 27px;
     font-weight: bold;
     letter-spacing: 0.04em;
     text-transform: none;
@@ -1163,8 +1157,8 @@ body::after {
     animation: cashout-flash-blue 1.2s ease-in-out infinite;
 }
 .live-score-display .gnosis-cashout-line.gnosis-pantheon-value {
-    font-size: 48px;
-    font-family: 'VT323', monospace;
+    font-size: 54px;
+    font-family: var(--font-numeric);
     color: #9b59b6;
     text-shadow: 0 2px 8px rgba(0,0,0,0.4);
     animation: pantheon-flash-purple 1.2s ease-in-out infinite;
@@ -1227,14 +1221,14 @@ body::after {
 }
 
 .live-score-display .gnosis-pips-bonus {
-    font-size: 12px;
+    font-size: 14px;
     color: #5a3d8a;
     font-weight: 900;
     text-shadow: 0 1px 2px rgba(0,0,0,0.2);
 }
 
 .live-score-display .gnosis-mult-bonus {
-    font-size: 12px;
+    font-size: 14px;
     color: #8b2a2a;
     font-weight: 900;
     text-shadow: 0 1px 2px rgba(0,0,0,0.2);
@@ -1268,44 +1262,44 @@ body::after {
 }
 
 .gnosis-objective-label {
-    font-size: 16px;
+    font-size: 18px;
     font-weight: bold;
     color: #2F1C10;
     letter-spacing: 1px;
     text-transform: uppercase;
-    font-family: 'DisneyHeroic', sans-serif;
+    font-family: var(--font-ui), sans-serif;
 }
 
 .gnosis-score-label {
-    font-size: 16px;
+    font-size: 18px;
     font-weight: bold;
     color: #2F1C10;
     letter-spacing: 1px;
     text-transform: uppercase;
-    font-family: 'DisneyHeroic', sans-serif;
+    font-family: var(--font-ui), sans-serif;
 }
 
 .gnosis-objective-value,
 .gnosis-score-value {
-    font-size: 36px;
+    font-size: 41px;
     font-weight: 900;
     color: #8b2a2a;
     text-shadow: 0 1px 2px rgba(0,0,0,0.2);
-    font-family: 'DisneyHeroic', sans-serif;
+    font-family: var(--font-ui), sans-serif;
 }
 
 .gnosis-label {
     font-weight: bold;
     color: #2F1C10;
-    font-size: 18px;
-    font-family: 'DisneyHeroic', sans-serif;
+    font-size: 20px;
+    font-family: var(--font-ui), sans-serif;
 }
 
 .gnosis-value {
-    font-size: 20px;
+    font-size: 23px;
     color: #2F1C10;
     font-weight: 700;
-    font-family: 'DisneyHeroic', sans-serif;
+    font-family: var(--font-ui), sans-serif;
     overflow: visible;
 }
 
@@ -1314,7 +1308,7 @@ body::after {
     margin-top: 20px;
     padding-top: 16px;
     border-top: 1px solid rgba(47, 28, 16, 0.35);
-    font-size: 18px;
+    font-size: 20px;
     color: #2F1C10;
     text-align: center;
     max-width: 100%;
@@ -1330,10 +1324,10 @@ body::after {
 
 /* God label - always shown above pips × favour */
 .live-score-display .gnosis-god {
-    font-size: 18px;
+    font-size: 20px;
     font-weight: bold;
     color: #2F1C10;
-    font-family: 'DisneyHeroic', sans-serif;
+    font-family: var(--font-ui), sans-serif;
     margin-bottom: 4px;
     text-align: center;
 }
@@ -1365,20 +1359,20 @@ body::after {
 .live-score-display .pips {
     color: #5a3d8a;
     font-weight: 900;
-    font-size: 36px;
+    font-size: 41px;
     text-shadow: 0 1px 2px rgba(0,0,0,0.2);
 }
 
 .live-score-display .favour {
     color: #8b2a2a;
     font-weight: 900;
-    font-size: 36px;
+    font-size: 41px;
     text-shadow: 0 1px 2px rgba(0,0,0,0.2);
 }
 
 .live-score-display .n-letter, .live-score-display .a-letter {
     font-weight: 900;
-    font-size: 40px;
+    font-size: 45px;
     color: #2F1C10;
 }
 
@@ -1386,19 +1380,19 @@ body::after {
 .live-score-display .equals-symbol,
 .live-score-display .slash-symbol {
     color: #2F1C10;
-    font-size: 30px;
+    font-size: 34px;
     font-weight: bold;
 }
 
 .live-score-display .score-preview {
     color: #8b6914;
     font-weight: 900;
-    font-size: 40px;
+    font-size: 45px;
     text-shadow: 0 2px 4px rgba(0,0,0,0.2);
 }
 
 .live-score-display .total { color: var(--score-green); font-weight: 900; text-shadow: 0 1px 1px rgba(0, 0, 0, 0.3); }
-.live-score-display .plus-symbol { color: #2F1C10; font-size: 30px; }
+.live-score-display .plus-symbol { color: #2F1C10; font-size: 34px; }
 
 /* ===== GNOSIS ANIMATION EFFECTS (Enhanced & Dramatic) ===== */
 
@@ -1536,28 +1530,28 @@ body::after {
 .info-label {
     font-weight: bold;
     color: #2F1C10;
-    font-size: 22px;
+    font-size: 25px;
     opacity: 1;
     text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.9);
-    font-family: 'DisneyHeroic', sans-serif;
+    font-family: var(--font-ui), sans-serif;
 }
 
 .info-value {
-    font-size: 24px;
+    font-size: 27px;
     color: #2F1C10;
     font-weight: 700;
     text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.9);
-    font-family: 'DisneyHeroic', sans-serif;
+    font-family: var(--font-ui), sans-serif;
 }
 
 
 
 #bossBlindName {
-    font-size: 22px;
+    font-size: 25px;
     color: #2F1C10;
     font-weight: bold;
     text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.9);
-    font-family: 'DisneyHeroic', sans-serif;
+    font-family: var(--font-ui), sans-serif;
     text-align: center;
 }
 
@@ -1565,9 +1559,9 @@ body::after {
 .knowledge-header {
     font-weight: bold;
     color: #2F1C10;
-    font-size: 24px;
+    font-size: 27px;
     text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.9);
-    font-family: 'DisneyHeroic', sans-serif;
+    font-family: var(--font-ui), sans-serif;
     text-align: center;
     margin-bottom: 10px;
     position: relative;
@@ -1578,26 +1572,26 @@ body::after {
 .blind-info {
     font-weight: bold;
     color: #2F1C10;
-    font-size: 18px;
+    font-size: 20px;
     text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.9);
-    font-family: 'DisneyHeroic', sans-serif;
+    font-family: var(--font-ui), sans-serif;
     margin-top: 8px;
 }
 
 .blind-name {
     font-weight: bold;
     color: #2F1C10;
-    font-size: 18px;
+    font-size: 20px;
     text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.9);
-    font-family: 'DisneyHeroic', sans-serif;
+    font-family: var(--font-ui), sans-serif;
 }
 
 .blind-effect {
     font-weight: bold;
     color: #2F1C10;
-    font-size: 18px;
+    font-size: 20px;
     text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.9);
-    font-family: 'DisneyHeroic', sans-serif;
+    font-family: var(--font-ui), sans-serif;
 }
 
 /* Score sections */
@@ -1609,11 +1603,11 @@ body::after {
 
 .score-section h4 {
     margin: 0 0 8px 0;
-    font-size: 24px;
+    font-size: 27px;
     color: #2F1C10;
     text-align: center;
     text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.9);
-    font-family: 'DisneyHeroic', sans-serif;
+    font-family: var(--font-ui), sans-serif;
     border-bottom: 1px solid var(--accent-green);
     padding-bottom: 5px;
     font-weight: bold;
@@ -1629,12 +1623,12 @@ body::after {
     border-radius: 4px;
     border: 1px solid transparent;
     transition: all 0.3s ease;
-    font-size: 16px;
+    font-size: 18px;
     position: relative;
     z-index: 2;
     font-weight: 600;
     text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.9);
-    font-family: 'DisneyHeroic', sans-serif;
+    font-family: var(--font-ui), sans-serif;
     gap: 2px;
 }
 
@@ -1653,10 +1647,10 @@ body::after {
 .score-row span:first-child {
     flex: 1;
     font-weight: bold;
-    font-size: 16px;
+    font-size: 18px;
     color: #2F1C10;
     text-shadow: 0 1px 1px rgba(0, 0, 0, 0.3);
-    font-family: 'DisneyHeroic', sans-serif;
+    font-family: var(--font-ui), sans-serif;
 }
 
 .score-details {
@@ -1682,9 +1676,9 @@ body::after {
 .potential-score {
     font-weight: bold;
     color: #2F1C10;
-    font-size: 16px;
+    font-size: 18px;
     text-shadow: 0 1px 1px rgba(0, 0, 0, 0.3);
-    font-family: 'DisneyHeroic', sans-serif;
+    font-family: var(--font-ui), sans-serif;
 }
 
 /* Card styling - global placeholder look (no pink boxes) */
@@ -1699,7 +1693,7 @@ body::after {
     cursor: pointer;
     transition: all 0.3s ease;
     box-shadow: none;
-    font-size: 12px;
+    font-size: 14px;
 }
 
 /* Remove borders for inventory cards */
@@ -1723,12 +1717,12 @@ body::after {
     font-weight: bold; 
     color: var(--statue-cream); 
     margin-bottom: 5px;
-    font-size: 13px;
+    font-size: 15px;
 }
 
 .card-effect { 
     color: var(--text-light); 
-    font-size: 11px;
+    font-size: 12px;
     line-height: 1.3;
 }
 
@@ -2015,31 +2009,31 @@ body::after {
     gap: 0;
 }
 .pantheon-total-title {
-    font-family: 'DisneyHeroic', sans-serif;
+    font-family: var(--font-ui), sans-serif;
     color: #f8e4b1;
-    font-size: 20px;
+    font-size: 23px;
     letter-spacing: 6px;
     text-transform: uppercase;
     margin-bottom: 12px;
 }
 .pantheon-total-value {
-    font-family: 'VT323', monospace;
-    font-size: 72px;
+    font-family: var(--font-numeric);
+    font-size: 81px;
     color: var(--score-green, #2ECC71);
     font-weight: bold;
     text-shadow: 0 2px 8px rgba(0,0,0,0.5);
 }
 .pantheon-total-sub {
-    font-family: 'IM Fell English SC', serif;
+    font-family: var(--font-ui);
     color: rgba(248, 228, 177, 0.7);
-    font-size: 14px;
+    font-size: 16px;
     margin-top: 16px;
 }
 
 .pantheon-cashout-lines {
     margin-top: 12px;
-    font-family: 'VT323', monospace;
-    font-size: 22px;
+    font-family: var(--font-numeric);
+    font-size: 25px;
     color: #f8e4b1;
     text-align: center;
 }
@@ -2063,9 +2057,9 @@ body::after {
     margin-bottom: 8px;
 }
 .expulsion-modal #expulsionSubtitle {
-    font-family: 'IM Fell English SC', serif;
+    font-family: var(--font-ui);
     color: rgba(248, 228, 177, 0.9);
-    font-size: 16px;
+    font-size: 18px;
     margin-bottom: 20px;
 }
 .expulsion-card-grid {
@@ -2114,9 +2108,9 @@ body::after {
 }
 
 .shop-title {
-    font-family: 'DisneyHeroic', sans-serif;
+    font-family: var(--font-ui), sans-serif;
     color: white;
-    font-size: 24px;
+    font-size: 27px;
     font-weight: bold;
     text-shadow: 2px 2px 4px rgba(0,0,0,0.5);
     margin-bottom: 8px;
@@ -2128,9 +2122,9 @@ body::after {
     display: flex !important;
     justify-content: center;
     margin-bottom: 0;
-    font-family: 'DisneyHeroic', sans-serif;
+    font-family: var(--font-ui), sans-serif;
     color: white;
-    font-size: 24px;
+    font-size: 27px;
     font-weight: bold;
     text-shadow: 2px 2px 4px rgba(0,0,0,0.8);
     visibility: visible !important;
@@ -2202,7 +2196,7 @@ body::after {
     padding: 10px 18px;
     border-radius: 8px;
     color: var(--statue-cream);
-    font-family: 'DisneyHeroic', sans-serif;
+    font-family: var(--font-ui), sans-serif;
     cursor: pointer;
     transition: all 0.25s cubic-bezier(0.34, 1.56, 0.64, 1);
     box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
@@ -2258,6 +2252,8 @@ body::after {
     gap: 4px;
     align-items: flex-start;
     justify-content: center;
+    overflow: visible;
+    padding-bottom: 8px;
     visibility: visible !important;
     opacity: 1 !important;
     margin-bottom: 4px;
@@ -2647,7 +2643,7 @@ body::after {
     text-align: center;
     color: var(--statue-cream);
     max-width: 800px;
-    font-family: 'DisneyHeroic', sans-serif;
+    font-family: var(--font-ui), sans-serif;
     box-shadow: 0 20px 40px rgba(0,0,0,0.6);
     position: relative;
     overflow: hidden;
@@ -2673,7 +2669,7 @@ body::after {
 }
 
 .enhancement-modal h3 {
-    font-size: 28px;
+    font-size: 32px;
     margin-bottom: 15px;
     color: var(--accent-green);
     text-shadow: 2px 2px 4px rgba(0,0,0,0.8);
@@ -2681,7 +2677,7 @@ body::after {
 }
 
 .enhancement-modal p {
-    font-size: 18px;
+    font-size: 20px;
     margin-bottom: 30px;
     opacity: 0.95;
     line-height: 1.4;
@@ -2710,7 +2706,7 @@ body::after {
     color: var(--statue-cream);
     text-shadow: 1px 1px 2px var(--shadow-dark);
     position: relative;
-    font-family: 'DisneyHeroic', sans-serif;
+    font-family: var(--font-ui), sans-serif;
     box-shadow: 0 5px 15px rgba(0,0,0,0.3);
 }
 
@@ -2738,7 +2734,7 @@ body::after {
 }
 
 .die-option .die-label {
-    font-size: 14px;
+    font-size: 16px;
     margin-bottom: 8px;
     opacity: 0.9;
     font-weight: bold;
@@ -2767,7 +2763,7 @@ body::after {
 }
 
 .die-option .die-instruction {
-    font-size: 11px;
+    font-size: 12px;
     opacity: 0.8;
     margin-top: 8px;
     z-index: 2;
@@ -2867,7 +2863,7 @@ body::after {
     display: flex;
     align-items: center;
     justify-content: center;
-    font-size: 12px;
+    font-size: 14px;
     font-weight: bold;
     color: white;
     text-shadow: 1px 1px 2px rgba(0,0,0,0.8);
@@ -3278,7 +3274,7 @@ body::after {
 .collection-page-indicator {
     min-width: 132px;
     text-align: center;
-    font-family: 'DisneyHeroic', sans-serif;
+    font-family: var(--font-ui), sans-serif;
     font-size: 0.95rem;
     letter-spacing: 0.04em;
     color: rgba(246, 230, 202, 0.95);
@@ -3314,8 +3310,8 @@ body::after {
 
 .start-hero-title {
     margin: 0;
-    font-family: 'Cinzel', 'DisneyHeroic', serif;
-    font-size: 52px;
+    font-family: var(--font-display), var(--font-ui), serif;
+    font-size: 59px;
     font-weight: 700;
     letter-spacing: 0.05em;
     color: #f5e7ce;
@@ -3327,7 +3323,7 @@ body::after {
 .start-hero-sub {
     margin: 0;
     font-family: 'Cormorant Garamond', Georgia, serif;
-    font-size: 25px;
+    font-size: 28px;
     font-style: italic;
     letter-spacing: 0.01em;
     color: rgba(249, 235, 209, 0.96);
@@ -3344,8 +3340,8 @@ body::after {
     border: 1px solid rgba(209, 168, 104, 0.7);
     background: rgba(20, 14, 10, 0.58);
     color: rgba(247, 226, 188, 0.95);
-    font-family: 'DisneyHeroic', sans-serif;
-    font-size: 14px;
+    font-family: var(--font-ui), sans-serif;
+    font-size: 16px;
     letter-spacing: 0.04em;
 }
 
@@ -3495,7 +3491,7 @@ body::after {
     border: 2px solid var(--stone-terracotta);
     background: rgba(0, 0, 0, 0.3);
     color: var(--text-light);
-    font-family: 'DisneyHeroic', sans-serif;
+    font-family: var(--font-ui), sans-serif;
     font-size: 1rem;
     min-width: 200px;
     box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.14), 0 4px 10px rgba(0, 0, 0, 0.28);
@@ -3517,7 +3513,7 @@ body::after {
     border: 1px solid var(--stone-terracotta-dark);
     padding: 12px 25px;
     border-radius: 8px;
-    font-family: 'DisneyHeroic', sans-serif;
+    font-family: var(--font-ui), sans-serif;
     font-size: 1.3rem;
     color: var(--statue-cream);
     cursor: pointer;
@@ -3618,7 +3614,7 @@ body::after {
 }
 
 .settings-row label {
-    font-family: 'DisneyHeroic', sans-serif;
+    font-family: var(--font-ui), sans-serif;
     color: var(--text-light);
     font-size: 1rem;
 }
@@ -3636,7 +3632,7 @@ body::after {
     border-radius: 6px;
     background: rgba(0, 0, 0, 0.4);
     color: var(--text-light);
-    font-family: 'DisneyHeroic', sans-serif;
+    font-family: var(--font-ui), sans-serif;
     font-size: 1rem;
     cursor: pointer;
     min-width: 90px;
@@ -3687,7 +3683,7 @@ body::after {
 }
 
 .settings-row .slider-value {
-    font-family: 'DisneyHeroic', sans-serif;
+    font-family: var(--font-ui), sans-serif;
     color: var(--text-light);
     font-size: 0.95rem;
     min-width: 42px;
@@ -3864,8 +3860,8 @@ body::after {
     border: 2px solid #B8860B;
     border-radius: 6px;
     padding: 8px 12px;
-    font-family: 'VT323', monospace;
-    font-size: 16px;
+    font-family: var(--font-numeric);
+    font-size: 18px;
     color: #2f1c10;
     width: 200px;
     text-align: center;
@@ -3884,20 +3880,20 @@ body::after {
     padding: 6px;
     text-align: center;
     margin-bottom: 10px;
-    font-size: 14px;
-    font-family: 'DisneyHeroic', sans-serif;
+    font-size: 16px;
+    font-family: var(--font-ui), sans-serif;
 }
 
 .bonus-text {
     font-weight: bold;
     text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.8);
-    font-family: 'DisneyHeroic', sans-serif;
+    font-family: var(--font-ui), sans-serif;
 }
 
 .bonus-count {
     margin-left: 5px;
     text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.8);
-    font-family: 'DisneyHeroic', sans-serif;
+    font-family: var(--font-ui), sans-serif;
 }
 
 /* ===== BALATRO-STYLE BUY/SELL/TAKE BUTTONS ===== 
@@ -4014,7 +4010,7 @@ body::after {
     color: white;
     padding: 14px 18px;
     border-radius: 10px;
-    font-size: 14px;
+    font-size: 16px;
     max-width: 320px;
     z-index: 10000;
     opacity: 0;
@@ -4026,7 +4022,7 @@ body::after {
         0 0 0 2px rgba(218, 165, 32, 0.3),
         inset 0 1px 0 rgba(255, 255, 255, 0.1);
     border: 2px solid #DAA520;
-    font-family: 'DisneyHeroic', sans-serif;
+    font-family: var(--font-ui), sans-serif;
 }
 
 .tooltip.show {
@@ -4063,7 +4059,7 @@ body::after {
     font-weight: bold;
     color: #FFD700;
     margin-bottom: 6px;
-    font-size: 17px;
+    font-size: 19px;
     text-shadow: 0 2px 4px rgba(0, 0, 0, 0.5);
     letter-spacing: 0.5px;
 }
@@ -4077,7 +4073,7 @@ body::after {
 
 .tooltip-description {
     color: #B0B0B0;
-    font-size: 12px;
+    font-size: 14px;
     font-style: italic;
     line-height: 1.4;
     margin-top: 6px;
@@ -4091,7 +4087,7 @@ body::after {
     margin-top: 8px;
     padding-top: 6px;
     border-top: 1px solid rgba(255, 255, 255, 0.1);
-    font-size: 15px;
+    font-size: 17px;
     text-shadow: 0 2px 4px rgba(0, 0, 0, 0.5);
 }
 
@@ -4470,7 +4466,7 @@ body::after {
     display: flex;
     align-items: center;
     justify-content: center;
-    font-size: 12px;
+    font-size: 14px;
     font-weight: bold;
     color: white;
     z-index: 5;
@@ -4573,35 +4569,6 @@ body::after {
     border-radius: 50%;
     border: 3px solid #8B4513;
     box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
-}
-
-/* Shop Inventory Container */
-#shopInventory {
-    max-height: 400px;
-    overflow-y: auto;
-    padding: 16px;
-    border-radius: 8px;
-    background: rgba(10, 26, 21, 0.3);
-    border: 1px solid rgba(106, 170, 158, 0.2);
-    margin: 20px 0;
-}
-
-#shopInventory::-webkit-scrollbar {
-    width: 8px;
-}
-
-#shopInventory::-webkit-scrollbar-track {
-    background: rgba(10, 26, 21, 0.5);
-    border-radius: 4px;
-}
-
-#shopInventory::-webkit-scrollbar-thumb {
-    background: var(--accent-green);
-    border-radius: 4px;
-}
-
-#shopInventory::-webkit-scrollbar-thumb:hover {
-    background: #7bbaae;
 }
 
 /* Shop Item Styling */
@@ -5396,11 +5363,11 @@ body::after {
 
 /* Pip popup on dice - Balatro chips-on-cards → pips-on-dice */
 .die-pip-popup {
-    font-size: 18px;
+    font-size: 20px;
     font-weight: 900;
     color: #6EC1E4;
     text-shadow: 0 0 8px rgba(110, 193, 228, 0.8), 0 2px 4px rgba(0,0,0,0.9);
-    font-family: 'DisneyHeroic', 'VT323', sans-serif;
+    font-family: var(--font-ui), var(--font-numeric);
     animation: diePipPop 0.9s ease-out forwards;
     white-space: nowrap;
 }
@@ -5426,11 +5393,11 @@ body::after {
 
 /* Boon contribution popup – Balatro-style: shows +pips / +favour under boon when scoring */
 .boon-contrib-popup {
-    font-size: 14px;
+    font-size: 16px;
     font-weight: 700;
     color: #c9a227;
     text-shadow: 0 0 6px rgba(201, 162, 39, 0.8), 0 1px 2px rgba(0,0,0,0.9);
-    font-family: 'DisneyHeroic', 'VT323', sans-serif;
+    font-family: var(--font-ui), var(--font-numeric);
     animation: boonContribPop 0.9s ease-out forwards;
     white-space: nowrap;
 }
@@ -6231,10 +6198,10 @@ body::after {
     cursor: pointer;
 }
 
-/* Available categories with non-zero score - worship blue for visibility */
-.score-row.category-available-highlight > span,
-.score-row.category-available-highlight .potential-score,
-.score-row.category-available-highlight .score-details {
+/* Available categories with non-zero score - worship blue (not pantheon: tablet-only rules below) */
+.score-row.category-available-highlight:not(.pantheon-chip) > span,
+.score-row.category-available-highlight:not(.pantheon-chip) .potential-score,
+.score-row.category-available-highlight:not(.pantheon-chip) .score-details {
     color: #4A90E2 !important;
     font-weight: bold;
     text-shadow: 0 1px 1px rgba(0, 0, 0, 0.3);
@@ -6296,9 +6263,9 @@ body::after {
 }
 
 .scorecard .pantheon-deity {
-    font-style: italic;
-    font-weight: 500;
-    opacity: 0.88;
+    font-style: normal;
+    font-weight: 600;
+    opacity: 1;
     font-size: 0.94em;
 }
 
@@ -6439,9 +6406,9 @@ body::after {
 .scorecard .pantheon-cat { font-weight: 800; color: #2f1c10; }
 .scorecard .pantheon-divider { color: rgba(90, 61, 33, 0.65); font-size: 0.72em; }
 .scorecard .pantheon-deity {
-    font-style: italic;
+    font-style: normal;
     font-weight: 600;
-    opacity: 0.92;
+    opacity: 1;
     font-size: 0.9em;
     color: rgba(90, 61, 33, 0.92);
 }
@@ -6456,7 +6423,7 @@ body::after {
 }
 
 .scorecard .potential-score {
-    font-family: 'VT323', monospace;
+    font-family: var(--font-numeric);
     font-variant-numeric: tabular-nums;
     font-size: 1.78rem;
     line-height: 1;
@@ -6829,6 +6796,59 @@ body::after {
     z-index: 100 !important;
 }
 
+/* Compact consumable drag chips (libation + worship drops). */
+.drag-ghost.libation-drop-drag,
+.drag-ghost.worship-drop-drag {
+    opacity: 1 !important;
+    background: none !important;
+    border: none !important;
+    box-shadow: none !important;
+    z-index: 12050 !important;
+}
+
+.drag-ghost.libation-drop-drag {
+    filter: drop-shadow(0 4px 12px rgba(70, 20, 150, 0.9));
+}
+
+.drag-ghost.worship-drop-drag {
+    filter: drop-shadow(0 4px 12px rgba(40, 180, 200, 0.85));
+}
+
+.drag-ghost.libation-drop-drag img,
+.drag-ghost.worship-drop-drag img {
+    display: block;
+    width: 100%;
+    height: 100%;
+    object-fit: contain;
+    opacity: 1 !important;
+    image-rendering: pixelated;
+    image-rendering: crisp-edges;
+    transform: scale(1);
+    transform-origin: 50% 12%;
+    transition: transform 0.14s ease-out, filter 0.14s ease-out;
+    will-change: transform, filter;
+}
+
+.drag-ghost.libation-drop-drag.consumable-drag-over-target img {
+    transform: scale(0.86) !important;
+    filter: brightness(1.1) saturate(1.45) hue-rotate(155deg) drop-shadow(0 0 10px rgba(45, 210, 220, 0.92)) !important;
+}
+
+.drag-ghost.worship-drop-drag.consumable-drag-over-target img {
+    transform: scale(0.86) !important;
+    filter: brightness(1.18) saturate(1.25) drop-shadow(0 0 14px rgba(60, 230, 245, 0.95)) !important;
+}
+
+@keyframes worshipChipAppliedFlash {
+    0% { filter: brightness(1); }
+    40% { filter: brightness(1.35); }
+    100% { filter: brightness(1); }
+}
+
+.pantheon-frieze .pantheon-chip.worship-drag-applied-flash::before {
+    animation: worshipChipAppliedFlash 0.45s ease-out;
+}
+
 @keyframes consumableWorshipPantheon {
     0% {
         transform: translate(0, 0) scale(1);
@@ -6946,6 +6966,11 @@ body::after {
     width: 1400px;
     height: 780px;
     overflow: visible;
+    /* Total column — Rolls stacks under this x, toward Cast the Bones */
+    --felt-col-total-left: calc(251px + (180px - 160px) / 2 + 1.5 * var(--felt-die-size, 95px));
+    /* Required column — Turn mirrors Rolls on the right */
+    --felt-col-required-left: calc(969px - 1.5 * var(--felt-die-size, 95px));
+    --felt-inner-row-top: calc(589px + (1 / 3) * var(--felt-die-size, 95px));
 }
 
 /* ── 1. PANTHEON — free-floating tokens on a smooth arc (no frieze panel; no per-chip spin) ── */
@@ -7020,19 +7045,20 @@ body::after {
     display: none;
 }
 
-/* Pantheon chips — absolute seats on a symmetric parabola (text stays upright) */
+/* Pantheon chips — tablet (category + score) with deity caption below */
 .pantheon-frieze .pantheon-chip {
     position: absolute;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
+    display: grid;
+    grid-template-rows: auto auto;
+    grid-template-columns: 1fr;
+    justify-items: center;
+    align-content: start;
+    row-gap: 6px;
     box-sizing: border-box;
-    padding: 8px 10px;
-    /* Uniform tablet size (match former “straight” width for every seat) */
-    width: 152px;
-    min-width: 152px;
-    max-width: 152px;
+    padding: 0 3px 3px;
+    width: 148px;
+    min-width: 148px;
+    max-width: 148px;
     flex: none;
     height: auto;
     left: var(--px, 50%);
@@ -7041,31 +7067,37 @@ body::after {
     --chip-bg: #fff8e3;
     --chip-border: #8f6a45;
     --chip-inset: inset 0 1px 0 #fffef5;
-    border-radius: 10px;
+    --tablet-h: 66px;
+    border-radius: 0;
+    background: transparent;
     cursor: pointer;
-    transition: transform 0.14s ease, box-shadow 0.14s ease, background 0.14s ease;
-    font-family: 'Cormorant Garamond', Georgia, 'Times New Roman', serif;
+    transition: transform 0.14s ease, box-shadow 0.14s ease;
+    font-family: var(--font-ui);
     font-weight: 600;
     text-align: center;
     overflow: visible;
     box-shadow: none;
     z-index: 1;
     isolation: isolate;
+    -webkit-font-smoothing: antialiased;
 }
 
-/* Rounded trapezoid tablet panel (narrower toward bottom via perspective) */
+/* Marble tablet — row 1 only (deity sits below) */
 .pantheon-frieze .pantheon-chip::before {
     content: '';
-    position: absolute;
-    inset: 0;
-    border-radius: 10px;
+    grid-row: 1;
+    grid-column: 1;
+    width: 100%;
+    min-height: var(--tablet-h);
+    height: 100%;
+    align-self: stretch;
+    border-radius: 12px;
     border: 1px solid var(--chip-border);
     background: var(--chip-bg);
     box-shadow: var(--chip-inset);
+    transform: none;
     transform-origin: top center;
-    /* Stronger wedge: bottom narrows toward center */
-    transform: perspective(360px) rotateX(-16deg);
-    z-index: -1;
+    z-index: 0;
     pointer-events: none;
 }
 
@@ -7108,66 +7140,123 @@ body::after {
 .pantheon-frieze .pantheon-chip:hover:not(.used) {
     --chip-bg: #fffaea;
     --chip-inset: inset 0 1px 0 #fff;
-    box-shadow: 0 3px 8px rgba(0, 0, 0, 0.22);
+}
+
+.pantheon-frieze .pantheon-chip:hover:not(.used)::before {
+    box-shadow: var(--chip-inset), 0 3px 8px rgba(0, 0, 0, 0.22);
 }
 
 .pantheon-frieze .pantheon-chip.available-category:hover:not(.used),
 .pantheon-frieze .pantheon-chip.category-available-highlight:hover:not(.used) {
     --chip-bg: #fffaea;
-    box-shadow: 0 3px 8px rgba(0, 0, 0, 0.2), inset 0 0 0 1px rgba(74, 144, 226, 0.55);
+}
+
+.pantheon-frieze .pantheon-chip.available-category:hover:not(.used)::before,
+.pantheon-frieze .pantheon-chip.category-available-highlight:hover:not(.used)::before {
+    box-shadow:
+        var(--chip-inset),
+        0 3px 8px rgba(0, 0, 0, 0.2),
+        0 0 0 1px rgba(74, 144, 226, 0.55);
 }
 
 .pantheon-frieze .pantheon-chip > span:first-child {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    gap: 1px;
-    width: 100%;
+    display: contents;
+}
+
+.pantheon-frieze .pantheon-chip .pantheon-cat {
+    grid-row: 1;
+    grid-column: 1;
+    z-index: 1;
+    display: block;
+    align-self: start;
+    justify-self: center;
+    width: calc(100% - 14px);
+    margin-top: 9px;
+    font-family: var(--font-manuscript);
+    font-size: 19px;
+    line-height: 1.2;
+    font-weight: normal;
+    font-style: normal;
     color: #2f1c10;
-    padding: 0;
+    text-shadow: none;
+    letter-spacing: 0.01em;
     word-break: break-word;
     overflow-wrap: break-word;
     text-align: center;
 }
 
-.pantheon-frieze .pantheon-chip .pantheon-cat {
+.pantheon-frieze .pantheon-chip .pantheon-deity {
+    grid-row: 2;
+    grid-column: 1;
+    z-index: 2;
     display: block;
-    font-size: 12.8px;
+    position: relative;
+    max-width: 100%;
+    margin: 0;
+    padding: 4px 4px 0;
+    font-family: var(--font-display), var(--font-ui), serif;
+    font-size: 12px;
     line-height: 1.2;
-    font-weight: 700;
-    color: #2f1c10;
-    text-shadow: 0 1px 0 #fffcee;
+    font-style: normal;
+    font-weight: 600;
+    letter-spacing: 0.05em;
+    text-transform: none;
+    color: #8a6530;
+    text-shadow: none;
+    text-align: center;
+    white-space: normal;
+    overflow: hidden;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    background: transparent;
+    border: none;
+    border-radius: 0;
+    box-shadow: none;
+    transition: color 0.2s ease;
 }
 
-.pantheon-frieze .pantheon-chip .pantheon-deity {
+.pantheon-frieze .pantheon-chip .pantheon-deity::before {
+    content: '';
     display: block;
-    font-size: 12.1px;
-    line-height: 1.08;
-    font-style: italic;
-    font-weight: 600;
-    color: #54371c;
+    width: 42px;
+    height: 1px;
+    margin: 0 auto 5px;
+    border-radius: 1px;
+    background: linear-gradient(90deg, transparent, rgba(201, 162, 76, 0.75), transparent);
+    opacity: 0.9;
+}
+
+.pantheon-frieze .pantheon-chip:hover:not(.used) .pantheon-deity {
+    color: #b8860b;
 }
 
 .pantheon-frieze .pantheon-chip .score-details {
+    grid-row: 1;
+    grid-column: 1;
+    z-index: 1;
     display: flex;
     min-width: 0;
-    width: 100%;
-    min-height: 1.5em;
+    width: calc(100% - 14px);
+    min-height: 1.4em;
     justify-content: center;
     align-items: center;
-    margin-top: 5px;
+    align-self: end;
+    justify-self: center;
+    margin: 0 0 8px;
 }
 
 .pantheon-frieze .pantheon-chip .potential-score {
     display: block;
-    font-family: 'Cormorant Garamond', Georgia, 'Times New Roman', serif;
-    font-size: 1.35rem;
-    font-weight: 700;
-    font-variant-numeric: tabular-nums;
-    line-height: 1;
+    font-family: var(--font-manuscript);
+    font-size: 19px;
+    font-weight: normal;
+    line-height: 1.2;
+    letter-spacing: 0.01em;
     color: #4a2f16;
-    letter-spacing: 0.03em;
     min-height: 1em;
+    text-shadow: none;
+    -webkit-font-smoothing: antialiased;
 }
 
 /* Keep score slot height stable even when score text is blank */
@@ -7176,7 +7265,8 @@ body::after {
 }
 
 .pantheon-frieze .pantheon-chip.used .potential-score {
-    font-family: 'DisneyHeroic', sans-serif;
+    font-family: var(--font-manuscript);
+    font-weight: normal;
     color: #5a3d8a;
 }
 
@@ -7187,33 +7277,56 @@ body::after {
     cursor: default;
 }
 
-.pantheon-frieze .pantheon-chip.used > span:first-child {
-    color: rgba(47, 28, 16, 0.6);
+.pantheon-frieze .pantheon-chip.used .pantheon-cat {
+    color: rgba(47, 28, 16, 0.65);
 }
 
-/* Available: legacy list-style blue emphasis (text), not green fill */
+.pantheon-frieze .pantheon-chip.used .pantheon-deity {
+    color: rgba(125, 90, 48, 0.55);
+    opacity: 0.8;
+}
+
+/* Available: blue emphasis on marble tablet only (::before), not deity caption */
 .pantheon-frieze .pantheon-chip.available-category,
 .pantheon-frieze .pantheon-chip.category-available-highlight {
     --chip-bg: #fff8e3;
     --chip-border: #4a90e2;
     --chip-inset: inset 0 1px 0 #fffef5;
-    animation: pantheon-available-pulse 1.4s ease-in-out infinite;
+    animation: none;
+    box-shadow: none;
+}
+
+.pantheon-frieze .pantheon-chip.available-category::before,
+.pantheon-frieze .pantheon-chip.category-available-highlight::before {
+    animation: pantheon-tablet-available-pulse 1.4s ease-in-out infinite;
 }
 
 .pantheon-frieze .pantheon-chip.available-category .pantheon-cat,
 .pantheon-frieze .pantheon-chip.category-available-highlight .pantheon-cat,
-.pantheon-frieze .pantheon-chip.available-category .pantheon-deity,
-.pantheon-frieze .pantheon-chip.category-available-highlight .pantheon-deity,
 .pantheon-frieze .pantheon-chip.available-category .potential-score,
 .pantheon-frieze .pantheon-chip.category-available-highlight .potential-score {
     color: #2a6aa6;
-    font-weight: 700;
-    text-shadow: 0 1px 1px rgba(0, 0, 0, 0.18);
+    font-weight: normal;
+    text-shadow: none;
 }
 
-@keyframes pantheon-available-pulse {
-    0%, 100% { box-shadow: 0 0 0 rgba(74, 144, 226, 0.25), inset 0 1px 0 #fffef5; }
-    50%      { box-shadow: 0 0 12px rgba(74, 144, 226, 0.45), inset 0 1px 0 #fff; }
+.pantheon-frieze .pantheon-chip.used.available-category::before,
+.pantheon-frieze .pantheon-chip.used.category-available-highlight::before {
+    animation: none;
+}
+
+@keyframes pantheon-tablet-available-pulse {
+    0%, 100% {
+        box-shadow:
+            inset 0 1px 0 #fffef5,
+            0 0 0 rgba(74, 144, 226, 0.2);
+    }
+    50% {
+        box-shadow:
+            inset 0 1px 0 #fff,
+            0 0 12px rgba(74, 144, 226, 0.45),
+            0 0 0 1px rgba(74, 144, 226, 0.55);
+    }
 }
 
 .pantheon-frieze .bonus-yahtzee-indicator {
@@ -7271,7 +7384,7 @@ body::after {
     top: 260px;
     left: 20px;
     right: auto;
-    width: 220px;
+    width: 228px;
     height: 780px;
     z-index: 6;
     flex: none;
@@ -7292,7 +7405,7 @@ body::after {
     bottom: 8px;
     right: 12px;
     left: auto;
-    font-size: 16px;
+    font-size: 18px;
 }
 
 /* ── 3. RIGHT BOON BAR (vertical) ── */
@@ -7301,7 +7414,7 @@ body::after {
     top: 260px;
     left: auto;
     right: 20px;
-    width: 220px;
+    width: 228px;
     height: 780px;
     z-index: 6;
     flex: none;
@@ -7322,14 +7435,14 @@ body::after {
     bottom: 8px;
     right: 12px;
     left: auto;
-    font-size: 16px;
+    font-size: 18px;
 }
 
 .right-boon-bar .boon-reorder-hint {
     position: absolute;
     bottom: 8px;
     left: 12px;
-    font-size: 11px;
+    font-size: 12px;
     color: rgba(240, 230, 210, 0.55);
 }
 
@@ -7387,7 +7500,7 @@ body::after {
     flex-direction: column;
     align-items: center;
     justify-content: center;
-    font-family: 'DisneyHeroic', 'IM Fell English SC', serif;
+    font-family: var(--font-ui);
     color: #f5e6d3;
     text-align: center;
     pointer-events: none;
@@ -7395,7 +7508,7 @@ body::after {
 }
 
 .felt-label .felt-label-name {
-    font-size: 13px;
+    font-size: 15px;
     letter-spacing: 0.16em;
     text-transform: uppercase;
     opacity: 0.82;
@@ -7404,7 +7517,7 @@ body::after {
 }
 
 .felt-label .felt-label-value {
-    font-size: 38px;
+    font-size: 43px;
     font-weight: 900;
     line-height: 1;
     color: #fffbe8;
@@ -7414,21 +7527,29 @@ body::after {
         0 0 12px rgba(255, 215, 120, 0.25);
 }
 
-/* Required + Total form a pair at the top of the felt, Total on the LEFT of Required. */
-.center-game-area .felt-total {
-    top: 40px;
-    left: 460px;
-    transform: none;
-    width: 240px;
-    padding: 4px 12px;
+/* Total + Required — 2 die below pantheon lower border; inward of Gold / Ante columns. */
+.center-game-area .felt-stone-total,
+.center-game-area .felt-stone-required {
+    top: calc(
+        var(--layout-pantheon-top, -10px)
+        + var(--layout-pantheon-frieze-height, 318px)
+        - var(--layout-center-game-top, 260px)
+        + 0.5 * var(--felt-die-size, 95px)
+    );
+    pointer-events: auto;
 }
 
-.center-game-area .felt-threshold {
-    top: 40px;
-    left: 720px;
-    transform: none;
-    width: 240px;
-    padding: 4px 12px;
+.center-game-area .felt-stone-total {
+    /* Gold column + 1.5 die inward (matches ½ die below pantheon) */
+    left: var(--felt-col-total-left);
+}
+
+.center-game-area .felt-stone-required {
+    left: var(--felt-col-required-left);
+}
+
+.felt-area-btn {
+    cursor: default;
 }
 
 /* Live preview on felt — two-column grid; pips/favour inherit global live row typography. */
@@ -7554,7 +7675,7 @@ body::after {
 .center-game-area .live-score-display.felt-live .live-add .plus-symbol,
 .center-game-area .live-score-display.felt-live .live-add .pip-contribution,
 .center-game-area .live-score-display.felt-live .live-add .favour-contribution {
-    font-size: 14px;
+    font-size: 16px;
     line-height: 1.1;
     color: #fffbe8;
     text-shadow: 0 1px 2px rgba(0, 0, 0, 0.6);
@@ -7567,7 +7688,7 @@ body::after {
     filter: brightness(1.05);
 }
 
-/* ── 6. STONES (rolls / ante / gold / turn) ── */
+/* ── 6. STONES (rolls / ante / gold / turn / total / required) ── */
 .felt-stone {
     position: absolute;
     z-index: 8;
@@ -7575,9 +7696,15 @@ body::after {
     flex-direction: column;
     align-items: center;
     justify-content: center;
-    min-width: 140px;
-    height: 64px;
+    width: var(--felt-stone-w, 160px);
+    min-width: var(--felt-stone-w, 160px);
+    max-width: var(--felt-stone-w, 160px);
+    height: var(--felt-stone-h, 64px);
+    min-height: var(--felt-stone-h, 64px);
+    max-height: var(--felt-stone-h, 64px);
     padding: 6px 14px;
+    box-sizing: border-box;
+    flex-shrink: 0;
     background: linear-gradient(180deg, rgba(228, 210, 176, 0.96) 0%, rgba(194, 170, 128, 0.96) 100%);
     border: 2px solid rgba(90, 62, 36, 0.8);
     border-radius: 4px;
@@ -7585,50 +7712,60 @@ body::after {
         inset 0 1px 0 rgba(255, 248, 220, 0.55),
         inset 0 -2px 2px rgba(0, 0, 0, 0.18),
         0 2px 4px rgba(0, 0, 0, 0.32);
-    font-family: 'DisneyHeroic', 'IM Fell English SC', serif;
+    font-family: var(--font-ui);
     color: #2f1c10;
     transition: opacity 0.18s ease, visibility 0.18s ease, transform 0.18s ease, box-shadow 0.18s ease;
 }
 
 .felt-stone .felt-stone-label {
-    font-size: 11px;
+    font-size: 12px;
     letter-spacing: 0.14em;
     text-transform: uppercase;
     opacity: 0.75;
 }
 
 .felt-stone .felt-stone-value {
-    font-size: 22px;
+    font-size: 25px;
     font-weight: 800;
     line-height: 1.05;
 }
 
 .felt-stone .felt-stone-suffix {
-    font-size: 14px;
+    font-size: 16px;
     font-weight: 700;
     opacity: 0.85;
     margin-left: 2px;
 }
 
-/* Rolls stone hosts the legacy #rollsLeft span — strip its yellow pill look inside the stone */
+/* Rolls stone — label + value (same stack as Turn / Total) */
 .felt-stone-rolls .rolls-left {
+    display: none;
+}
+
+.felt-stone-rolls .felt-stone-value {
+    font-size: 25px;
+    font-weight: 800;
+    line-height: 1.05;
+    color: #2f1c10;
+}
+
+/* Legacy #rollsLeft when used as value span */
+.felt-stone-rolls #rollsLeft.felt-stone-value {
     display: block;
     background: transparent;
     border: none;
     padding: 0;
-    font-size: 18px;
-    font-weight: 800;
-    color: #2f1c10;
     box-shadow: none;
 }
 
 /* Stone layout:
-     Outer row (beside the dice): Rolls (left) · Turn (right) at top 355
-     Inner row (pulled diagonally in toward the dice, ~2 die widths): Gold · Ante at top 565 */
-.center-game-area .felt-stone-rolls { top: 355px; left: 140px;  width: 160px; }
-.center-game-area .felt-stone-turn  { top: 355px; left: 1080px; width: 180px; }
-.center-game-area .felt-stone-gold  { top: 589px; left: 251px;  width: 180px; flex-direction: row; gap: 4px; }
-.center-game-area .felt-stone-ante  { top: 589px; left: 969px;  width: 160px; }
+     Below pantheon: Total · Required
+     Outer row: Trial (left) · Gold (right) at top 355
+     Inner row: Rolls (under Total) · Turn (under Required) */
+.center-game-area .felt-stone-trial { top: 355px; left: calc(140px + 0.25 * var(--felt-die-size, 95px)); }
+.center-game-area .felt-stone-gold  { top: 355px; left: 1080px; }
+.center-game-area .felt-stone-rolls { top: var(--felt-inner-row-top); left: var(--felt-col-total-left); }
+.center-game-area .felt-stone-turn  { top: var(--felt-inner-row-top); left: var(--felt-col-required-left); }
 
 /* Gold stone acts as the sell drop target (glow while dragging a consumable) */
 .main-game.consumable-drag-active .felt-stone-gold {
@@ -7671,10 +7808,10 @@ body::after {
 .center-game-area .rolling-controls .roll-button {
     width: 300px;
     height: 180px;
-    font-size: 28px;
+    font-size: 32px;
 }
 .main-game.shop-active .center-game-area .rolling-controls .roll-button {
-    font-size: 28px;
+    font-size: 32px;
 }
 
 .action-cost-badge {
@@ -7688,8 +7825,8 @@ body::after {
     color: #2f1c10;
     border: 2px solid #8b5a2b;
     border-radius: 4px;
-    font-family: 'DisneyHeroic', sans-serif;
-    font-size: 17px;
+    font-family: var(--font-ui), sans-serif;
+    font-size: 19px;
     font-weight: 800;
     text-align: center;
     box-shadow:
@@ -7730,14 +7867,15 @@ body::after {
     bottom: 20px;
 }
 
-/* ── 9. SHOP-ACTIVE STATE — hide felt widgets, keep Gold + Ante ── */
+/* ── 9. SHOP-ACTIVE STATE — hide felt widgets, keep Gold + Trial ── */
 .main-game.shop-active .center-game-area .game-board-bg {
     opacity: 0;
     visibility: hidden;
     pointer-events: none;
 }
 
-.main-game.shop-active .felt-label,
+.main-game.shop-active .felt-stone-total,
+.main-game.shop-active .felt-stone-required,
 .main-game.shop-active .felt-stone-rolls,
 .main-game.shop-active .felt-stone-turn,
 .main-game.shop-active .live-score-display.felt-live {
@@ -7751,17 +7889,21 @@ body::after {
 }
 
 /* ── 10. DRAG ZONES (relative to .center-game-area) ── */
-/* worship → pantheon strip (which is outside center area, so zone extends upward/outward) */
+/* Worship: label only — drop target is pantheon tiles, not this element */
 .center-game-area .consumable-zone-worship {
-    top: -240px;
-    left: -240px;
-    width: 1880px;
-    height: 220px;
+    top: 12px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: auto;
+    height: auto;
+    min-width: 0;
+    min-height: 0;
     right: auto;
     bottom: auto;
-    background: linear-gradient(180deg, rgba(147, 197, 255, 0.3) 0%, rgba(147, 197, 255, 0) 100%);
-    border: 2px dashed rgba(147, 197, 255, 0.55);
-    border-radius: 10px;
+    background: none !important;
+    border: none !important;
+    box-shadow: none !important;
+    pointer-events: none !important;
 }
 
 /* Drink libation → oval above Cast the Bones (.rolling-controls top: 580px) */
@@ -7796,8 +7938,8 @@ body::after {
     transform: translateX(-50%);
     max-width: 720px;
     text-align: center;
-    font-family: 'DisneyHeroic', sans-serif;
-    font-size: 14px;
+    font-family: var(--font-ui), sans-serif;
+    font-size: 16px;
     color: #f0e6d2;
     z-index: 11;
     pointer-events: none;
@@ -7811,7 +7953,7 @@ body::after {
 /* Same typeface as global live row; slightly stronger shadow on dark felt. */
 .center-game-area .live-score-display.felt-live .pips,
 .center-game-area .live-score-display.felt-live .favour {
-    font-family: 'DisneyHeroic', sans-serif;
+    font-family: var(--font-ui), sans-serif;
     text-shadow:
         0 1px 2px rgba(0, 0, 0, 0.35),
         0 2px 6px rgba(0, 0, 0, 0.45);
@@ -7829,39 +7971,17 @@ body::after {
 
 /* --- Drag-first shop & inventory (no buy/sell/use chrome on cards) --- */
 .card-shop-cost {
-    margin-top: 6px;
+    margin-top: 0;
     padding: 4px 8px;
-    font-family: 'DisneyHeroic', sans-serif;
+    font-family: var(--font-ui), sans-serif;
     font-weight: 800;
-    font-size: 15px;
+    font-size: 17px;
     color: #e8ffc4;
     text-align: center;
     text-shadow: 0 1px 2px rgba(0, 0, 0, 0.55);
     border: 2px solid rgba(120, 200, 100, 0.65);
     border-radius: 6px;
     background: rgba(20, 60, 40, 0.55);
-}
-
-.shop-drag-hint-banner {
-    max-height: none;
-    padding: 10px 14px;
-    margin: 8px 0 14px;
-    border-radius: 8px;
-    background: rgba(8, 32, 28, 0.55);
-    border: 1px solid rgba(106, 170, 158, 0.35);
-}
-
-.shop-drag-hint-text {
-    margin: 0;
-    font-size: 0.88rem;
-    line-height: 1.45;
-    color: #e8f4ef;
-    font-family: 'Cormorant Garamond', Georgia, serif;
-}
-
-.shop-drag-hint-text .hint-gold {
-    color: #f7d23b;
-    font-weight: 700;
 }
 
 .pack-drag-hint {
@@ -7889,7 +8009,7 @@ body::after {
     line-height: 1.25;
     color: rgba(232, 244, 239, 0.72);
     text-align: center;
-    font-family: 'DisneyHeroic', sans-serif;
+    font-family: var(--font-ui), sans-serif;
     letter-spacing: 0.02em;
 }
 

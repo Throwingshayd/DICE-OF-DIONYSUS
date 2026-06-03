@@ -2,7 +2,7 @@
 /**
  * RunInfoOverlay - Balatro-style Run Info content for pause menu
  * Balatro: G.UIDEF.run_info() — tabs for Blinds, Hands, Vouchers
- * Dice of Dionysus: Antes & Blinds, Hands Played, Artifacts, Worship Levels
+ * Dice of Dionysus: Trials & Blinds, Hands Played, Artifacts, Worship Levels
  */
 class RunInfoOverlay {
     /**
@@ -15,7 +15,7 @@ class RunInfoOverlay {
         container.className = 'run-info-container';
 
         const tabs = [
-            { id: 'antes', label: 'Antes & Blinds' },
+            { id: 'antes', label: 'Trials & Blinds' },
             { id: 'hands', label: 'Hands Played' },
             { id: 'artifacts', label: 'Artifacts' },
             { id: 'worship', label: 'Worship' }
@@ -98,14 +98,14 @@ class RunInfoOverlay {
             (anteData[anteIndex] || anteData[anteData.length - 1]);
 
         if (!data) {
-            wrap.innerHTML = '<p class="run-info-empty">Ante data unavailable.</p>';
+            wrap.innerHTML = '<p class="run-info-empty">Trial data unavailable.</p>';
             return;
         }
 
         const current = document.createElement('div');
         current.className = 'run-info-ante-card run-info-ante-current';
         current.innerHTML = `
-            <div class="run-info-ante-header">Current Ante ${ante}</div>
+            <div class="run-info-ante-header">Current Trial ${ante}</div>
             <div class="run-info-ante-name">${data.name || 'Unknown'}</div>
             <div class="run-info-ante-blind">${data.blindName || 'No Blind'}</div>
             <div class="run-info-ante-effect">${data.blindEffect || 'No special effect'}</div>
@@ -115,7 +115,7 @@ class RunInfoOverlay {
 
         const upcoming = document.createElement('div');
         upcoming.className = 'run-info-ante-upcoming';
-        upcoming.innerHTML = '<div class="run-info-ante-header">Upcoming Antes</div>';
+        upcoming.innerHTML = '<div class="run-info-ante-header">Upcoming Trials</div>';
         const maxAntes = 11;
         for (let i = ante; i < Math.min(ante + 3, maxAntes); i++) {
             const idx = Math.max(0, i);
@@ -124,7 +124,7 @@ class RunInfoOverlay {
             if (nextData) {
                 const row = document.createElement('div');
                 row.className = 'run-info-ante-row';
-                row.innerHTML = `<span>Ante ${i + 1}:</span> <span>${nextData.name} — ${nextData.blindName}</span>`;
+                row.innerHTML = `<span>Trial ${i + 1}:</span> <span>${nextData.name} — ${nextData.blindName}</span>`;
                 upcoming.appendChild(row);
             }
         }

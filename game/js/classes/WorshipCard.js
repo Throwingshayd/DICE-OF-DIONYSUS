@@ -270,7 +270,7 @@ class WorshipCard extends Card {
             'heracles_3': 'Win instantly upon scoring 12 total sixes',
             'zeus_3': 'Each Yahtzee permanently increases base favour',
             'apollo_3': 'Large Straight reveals all future dice rolls',
-            'nyx_3': 'Chance hand can substitute for any category once per ante'
+            'nyx_3': 'Chance hand can substitute for any category once per trial'
         };
         return descriptions[this.id] || '';
     }

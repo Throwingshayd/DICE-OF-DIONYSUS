@@ -18,6 +18,12 @@ const PACK_SHELF_ART = {
     'pack-chaos': '/ART/chaos pack.png',
 };
 
+/** Compact consumable drag cursors (libation + worship drops). */
+const LIBATION_DROP_ART = '/ART/libation-drag-drop.png';
+const WORSHIP_DROP_ART = '/ART/worship-drag-drop.png';
+const CONSUMABLE_CHIP_BASE_W = 80;
+const CONSUMABLE_CHIP_BASE_H = 106;
+
 const CARD_PAINT_PROPS = [
     'background-image',
     'background-size',
@@ -191,6 +197,87 @@ const CardDragSurface = {
     applyDragFaceScale(el) {
         if (!el) return;
         el.style.setProperty('--drag-face-scale', String(this.getAppScale()));
+    },
+
+    /** Screen px for compact consumable drag chips (scales with app viewport). */
+    getConsumableChipDragMetrics({ grabOffsetY = 0.5 } = {}) {
+        const scale = this.getAppScale();
+        const width = Math.max(24, Math.round(CONSUMABLE_CHIP_BASE_W * scale));
+        const height = Math.max(32, Math.round(CONSUMABLE_CHIP_BASE_H * scale));
+        return {
+            width,
+            height,
+            grabOffsetX: width * 0.5,
+            grabOffsetY: height * grabOffsetY,
+        };
+    },
+
+    getLibationDropDragMetrics() {
+        return this.getConsumableChipDragMetrics({ grabOffsetY: 0.1 });
+    },
+
+    resolveConsumableArtUrl(sourceEl, card) {
+        if (sourceEl) {
+            const bgEl = sourceEl.querySelector('.card-background') || sourceEl;
+            const cs = getComputedStyle(bgEl);
+            const bg = cs.backgroundImage;
+            if (bg && bg !== 'none') {
+                const match = bg.match(/url\(["']?([^"')]+)["']?\)/);
+                if (match?.[1]) return match[1];
+            }
+        }
+        if (typeof AssetMapping !== 'undefined' && card?.id) {
+            const file = AssetMapping.getCardAsset(card.id, card.type || 'worship');
+            if (file) return `/ART/${file}`;
+        }
+        return null;
+    },
+
+    createConsumableChipElement(artUrl, chipClass = 'consumable-drag-chip') {
+        const el = document.createElement('div');
+        el.className = chipClass;
+        el.setAttribute('aria-hidden', 'true');
+        const img = document.createElement('img');
+        img.src = artUrl;
+        img.alt = '';
+        img.draggable = false;
+        el.appendChild(img);
+        el.style.setProperty('background', 'none', 'important');
+        el.style.setProperty('background-color', 'transparent', 'important');
+        el.style.setProperty('border', 'none', 'important');
+        el.style.setProperty('padding', '0', 'important');
+        el.style.setProperty('margin', '0', 'important');
+        el.style.setProperty('box-sizing', 'border-box', 'important');
+        el.style.setProperty('overflow', 'visible', 'important');
+        el.style.setProperty('pointer-events', 'none', 'important');
+        return el;
+    },
+
+    createLibationDropElement() {
+        return this.createConsumableChipElement(LIBATION_DROP_ART, 'libation-drop-drag');
+    },
+
+    createWorshipDropElement() {
+        return this.createConsumableChipElement(WORSHIP_DROP_ART, 'worship-drop-drag');
+    },
+
+    getWorshipDropDragMetrics() {
+        return this.getConsumableChipDragMetrics({ grabOffsetY: 0.1 });
+    },
+
+    pinConsumableChipGhost(el, metrics) {
+        if (!el || !metrics) return;
+        el.style.position = 'fixed';
+        el.style.setProperty('width', `${metrics.width}px`, 'important');
+        el.style.setProperty('height', `${metrics.height}px`, 'important');
+        el.style.setProperty('min-width', '0', 'important');
+        el.style.setProperty('min-height', '0', 'important');
+        el.style.setProperty('max-width', 'none', 'important');
+        el.style.setProperty('max-height', 'none', 'important');
+    },
+
+    pinLibationDropGhost(el, metrics) {
+        this.pinConsumableChipGhost(el, metrics);
     },
 
     /** Shop/inventory card ghost: copy rendered paint from source (scoped CSS does not apply on body). */

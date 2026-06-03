@@ -133,7 +133,6 @@ class Card {
                 <div class="card-name">${this.name}</div>
                 <div class="card-effect">${this.effect}</div>
                 ${this.god ? `<div class="card-god">- ${this.god}</div>` : ''}
-                ${(isShopItem && isDirectSale) ? `<div class="card-shop-cost" aria-label="Price">${this.cost}g</div>` : ''}
             `;
         } else {
             cardContent = `
@@ -165,6 +164,7 @@ class Card {
                 ${typeIndicatorHtml}
                 ${dynamicStatsHtml}
             </div>
+            ${(isShopItem && isDirectSale) ? `<div class="card-shop-cost" aria-label="Price">${this.cost}g</div>` : ''}
         `;
 
         // Add data attributes for easy access

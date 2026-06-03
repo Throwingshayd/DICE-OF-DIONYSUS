@@ -127,30 +127,6 @@ const AssetMapping = {
         'artifactUndecided': 'artifact undecided.png'
     },
 
-    // God-specific Assets (symbol/icon per god)
-    gods: {
-        // Upper Sanctum (1–6)
-        'Artemis': 'artemis bow.png',
-        'Aphrodite': 'persephone pomegranate.png',
-        'Morpheus': 'morpheus poppy.png',
-        'Hera': 'heras peacock.png',
-        'Athena': 'athena owl.png',
-        'Heracles': 'heracles lionskin club.png',
-        // Lower Sanctum (combinations)
-        'Hephaestus': 'hephaestus hammer anvil.png',
-        'Ares': 'ares spear helm.png',
-        'Dionysus': 'dionysus grapevine thyrsus.png',
-        'Hermes': 'hermes caduceus winged sandals.png',
-        'Apollo': 'apollo lyre laurel.png',
-        'Zeus': 'zeus thunderbolt eagle.png',
-        'Nyx': 'nyx starry night cloak.png',
-        // High Sanctum (7–9)
-        'The Pleiades': 'pleiades star cluster.png',
-        'Poseidon': 'poseidon octopus trident.png',
-        'The Nine Muses': 'muses three masks.png',
-        "Pandora's Box": 'pandora pithos jar.png'
-    },
-
     // Helper function to get asset path for a card
     getCardAsset(cardId, cardType) {
         if (cardType === 'boon') {
@@ -190,11 +166,6 @@ const AssetMapping = {
     // Helper function to get UI asset
     getUIAsset(assetName) {
         return this.ui[assetName] || null;
-    },
-
-    // Helper function to get god asset
-    getGodAsset(godName) {
-        return this.gods[godName] || null;
     },
 
     // Helper function to get artifact asset

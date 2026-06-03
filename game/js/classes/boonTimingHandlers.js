@@ -406,10 +406,10 @@ const BoonTimingHandlers = {
                 
                 if (categoriesScored === 0) {
                     result.pips += BOON_EFFECTS.FIRST_BLOOD.FIRST_SCORE_BONUS;
-                    window.game?.showMessage?.("⚔️ First Blood: +50 Pips! (First score of Ante)", 3000);
+                    window.game?.showMessage?.("⚔️ First Blood: +50 Pips! (First score of Trial)", 3000);
                     boon.dynamicStats.other = '✓ USED';
                 } else {
-                    boon.dynamicStats.other = '✗ Next Ante';
+                    boon.dynamicStats.other = '✗ Next Trial';
                 }
                 break;
             

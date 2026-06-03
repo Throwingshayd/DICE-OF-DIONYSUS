@@ -104,7 +104,7 @@ const DiceRenderer = {
         dieEl.style.position = 'relative';
         const dieIdBadge = document.createElement('div');
         dieIdBadge.className = 'die-id-badge';
-        dieIdBadge.style.cssText = 'position:absolute;top:-5px;right:-5px;width:16px;height:16px;background:var(--stone-terracotta-dark);border-radius:50%;font-size:10px;display:flex;align-items:center;justify-content:center;color:white;font-weight:bold;border:1px solid var(--statue-cream);z-index:5;opacity:0.8;';
+        dieIdBadge.style.cssText = 'position:absolute;top:-5px;right:-5px;width:16px;height:16px;background:var(--stone-terracotta-dark);border-radius:50%;font-size:12px;display:flex;align-items:center;justify-content:center;color:white;font-weight:bold;border:1px solid var(--statue-cream);z-index:5;opacity:0.8;';
         dieEl.appendChild(dieIdBadge);
         container.appendChild(dieEl);
         return dieEl;
@@ -116,7 +116,7 @@ const DiceRenderer = {
             if (!modBadge) {
                 modBadge = document.createElement('div');
                 modBadge.className = 'modification-badge';
-                modBadge.style.cssText = 'position:absolute;bottom:-8px;left:50%;transform:translateX(-50%);background:rgba(138,43,226,0.9);color:white;padding:2px 6px;border-radius:8px;font-size:10px;font-weight:bold;white-space:nowrap;z-index:10;border:1px solid white;';
+                modBadge.style.cssText = 'position:absolute;bottom:-8px;left:50%;transform:translateX(-50%);background:rgba(138,43,226,0.9);color:white;padding:2px 6px;border-radius:8px;font-size:12px;font-weight:bold;white-space:nowrap;z-index:10;border:1px solid white;';
                 dieEl.appendChild(modBadge);
             }
             modBadge.textContent = `${die.faces[currentFace].value}→${die.faces[currentFace].modifiedValue}`;
@@ -131,7 +131,7 @@ const DiceRenderer = {
             if (!wildBadge) {
                 wildBadge = document.createElement('div');
                 wildBadge.className = 'wild-badge';
-                wildBadge.style.cssText = 'position:absolute;top:-8px;right:-8px;background:rgba(147,51,234,0.95);color:white;padding:3px 7px;border-radius:50%;font-size:11px;font-weight:bold;z-index:10;border:2px solid white;box-shadow:0 2px 4px rgba(0,0,0,0.3);';
+                wildBadge.style.cssText = 'position:absolute;top:-8px;right:-8px;background:rgba(147,51,234,0.95);color:white;padding:3px 7px;border-radius:50%;font-size:12px;font-weight:bold;z-index:10;border:2px solid white;box-shadow:0 2px 4px rgba(0,0,0,0.3);';
                 dieEl.appendChild(wildBadge);
             }
             wildBadge.textContent = wildModifier > 0 ? `+${wildModifier}` : `${wildModifier}`;
@@ -161,7 +161,7 @@ const DiceRenderer = {
             if (!modifierBadge) {
                 modifierBadge = document.createElement('div');
                 modifierBadge.className = 'die-modifier-badge';
-                modifierBadge.style.cssText = 'position:absolute;bottom:-8px;left:-8px;padding:2px 6px;border-radius:4px;font-size:10px;color:white;font-weight:bold;border:1px solid var(--stone-terracotta-dark);z-index:10;';
+                modifierBadge.style.cssText = 'position:absolute;bottom:-8px;left:-8px;padding:2px 6px;border-radius:4px;font-size:12px;color:white;font-weight:bold;border:1px solid var(--stone-terracotta-dark);z-index:10;';
                 dieEl.appendChild(modifierBadge);
             }
             modifierBadge.textContent = die.tempModifier > 0 ? `+${die.tempModifier}` : `${die.tempModifier}`;

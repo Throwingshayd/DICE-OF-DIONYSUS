@@ -1,6 +1,6 @@
 /**
  * Tooltip system — Balatro-inspired sizing, shape, and typography.
- * Fonts: DisneyHeroic (UI copy), VT323 (numeric die values).
+ * Fonts: --font-ui (IM Fell English SC), --font-numeric (VT323 die values).
  * Loads last; hosts popovers in #tooltip-root.
  */
 
@@ -9,6 +9,8 @@
     inset: 0;
     pointer-events: none;
     z-index: 100000;
+    /* Fixed type scale — not affected by html --font-size-base bump */
+    font-size: 12px;
 }
 
 /* ── Shared shell (Balatro: ~6px radius, tight padding, soft shadow) ── */
@@ -16,7 +18,7 @@
     position: fixed;
     margin: 0;
     padding: 0;
-    font-family: 'DisneyHeroic', 'IM Fell English SC', sans-serif;
+    font-family: var(--font-ui);
     font-size: 12px;
     line-height: 1.32;
     letter-spacing: 0.02em;
@@ -179,13 +181,13 @@
 }
 
 #tooltip-root .tooltip-title {
-    font-family: 'DisneyHeroic', 'IM Fell English SC', sans-serif;
+    font-family: var(--font-ui);
     font-weight: normal;
 }
 
 #tooltip-root .tooltip-effect,
 #tooltip-root .tooltip-god {
-    font-family: 'DisneyHeroic', 'IM Fell English SC', sans-serif;
+    font-family: var(--font-ui);
 }
 
 /* ── Die: narrow column aligned to die (~95px + small pad) ── */
@@ -215,7 +217,7 @@
     margin: 0;
     align-self: stretch;
     text-align: center;
-    font-family: 'DisneyHeroic', sans-serif;
+    font-family: var(--font-ui), sans-serif;
     font-size: 10px;
     letter-spacing: 0.08em;
     text-transform: uppercase;
@@ -242,7 +244,7 @@
 
 #tooltip-root .tip-die-face {
     margin: 0;
-    font-family: 'DisneyHeroic', sans-serif;
+    font-family: var(--font-ui), sans-serif;
     font-size: 11px;
     line-height: 1.3;
     color: #141414;
@@ -253,7 +255,7 @@
 
 #tooltip-root .tip-die-note {
     margin: 0;
-    font-family: 'DisneyHeroic', sans-serif;
+    font-family: var(--font-ui), sans-serif;
     font-size: 9px;
     line-height: 1.3;
     color: #6a5a48;
@@ -269,7 +271,7 @@
 #tooltip-root .tip-die-enh {
     padding: 2px 0 2px 7px;
     border-left: 2px solid var(--enh-color, #5a6d74);
-    font-family: 'DisneyHeroic', sans-serif;
+    font-family: var(--font-ui), sans-serif;
     font-size: 9px;
     line-height: 1.35;
     color: #444;
@@ -294,7 +296,7 @@
 }
 
 #tooltip-root .tip-die-footer {
-    font-family: 'DisneyHeroic', sans-serif;
+    font-family: var(--font-ui), sans-serif;
     font-size: 10px;
     color: #555;
     padding-top: 5px;
@@ -326,7 +328,7 @@
 }
 
 .balatro-enhancement-modal .enhancement-title {
-    font-family: 'DisneyHeroic', 'IM Fell English SC', sans-serif;
+    font-family: var(--font-ui);
     font-size: 1.35rem;
     font-weight: normal;
     color: #ffe566;
@@ -335,7 +337,7 @@
 }
 
 .balatro-enhancement-modal .enhancement-name {
-    font-family: 'DisneyHeroic', 'IM Fell English SC', sans-serif;
+    font-family: var(--font-ui);
     font-size: 1rem;
     color: #c5d4d8;
     font-weight: normal;
@@ -343,14 +345,14 @@
 }
 
 .balatro-enhancement-modal .enhancement-description {
-    font-family: 'DisneyHeroic', 'IM Fell English SC', sans-serif;
+    font-family: var(--font-ui);
     font-size: 0.95rem;
     color: #9eb5bc;
     font-style: normal;
 }
 
 .balatro-enhancement-modal .enhancement-instruction {
-    font-family: 'DisneyHeroic', 'IM Fell English SC', sans-serif;
+    font-family: var(--font-ui);
     font-size: 0.95rem;
     color: #c5d4d8;
     text-shadow: none;

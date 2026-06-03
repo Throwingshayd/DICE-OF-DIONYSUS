@@ -474,7 +474,7 @@ class App {
                 background: rgba(46, 204, 113, 0.9);
                 color: white;
                 border-radius: 4px;
-                font-size: 12px;
+                font-size: 14px;
                 z-index: 9999;
                 opacity: 0;
                 transition: opacity 0.3s;

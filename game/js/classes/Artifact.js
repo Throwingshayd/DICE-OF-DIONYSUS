@@ -58,8 +58,8 @@ class Artifact extends Card {
             <div class="card-content">
                 ${typeIndicatorHtml}
                 <div class="artifact-name" aria-hidden="true">${this.name}</div>
-                ${costChip}
             </div>
+            ${costChip}
         `;
 
         if (this.effect) {

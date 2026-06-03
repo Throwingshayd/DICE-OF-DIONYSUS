@@ -737,7 +737,7 @@ class Boon extends Card {
                     window.game?.showMessage?.(`📜 Message in a Bottle: Solo journey! +${bonus} points (50% of threshold)!`, 5000);
                     Logger.info(`Message in a Bottle: Solo bonus ${bonus} points`);
                 } else {
-                    window.game?.showMessage?.("📜 Message in a Bottle: You had company this ante (no bonus)", 2000);
+                    window.game?.showMessage?.("📜 Message in a Bottle: You had company this trial (no bonus)", 2000);
                 }
                 
                 // Reset tracking for next ante

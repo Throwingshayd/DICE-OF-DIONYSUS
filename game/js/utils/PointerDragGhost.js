@@ -14,11 +14,13 @@ const PointerDragGhost = {
 
      * @param {string} [ghostClass='drag-ghost']
 
+     * @param {{ appearance?: 'libation-drop' | 'worship-drop' | 'consumable-chip', artUrl?: string, chipClass?: string, grabOffsetY?: number }} [options]
+
      * @returns {{ start: (clientX?: number, clientY?: number) => void, move: (dx: number, dy: number) => void, moveAt: (clientX: number, clientY: number) => void, end: () => void }}
 
      */
 
-    attach(sourceEl, ghostClass = 'drag-ghost') {
+    attach(sourceEl, ghostClass = 'drag-ghost', options = {}) {
 
         /** @type {HTMLElement | null} */
 
@@ -90,9 +92,44 @@ const PointerDragGhost = {
 
                 const rect = sourceEl.getBoundingClientRect();
 
-                ghost = sourceEl.cloneNode(true);
+                const useLibationDrop = options.appearance === 'libation-drop'
+                    && typeof CardDragSurface !== 'undefined';
+                const useWorshipDrop = options.appearance === 'worship-drop'
+                    && typeof CardDragSurface !== 'undefined';
+                const useConsumableChip = options.appearance === 'consumable-chip'
+                    && options.artUrl
+                    && typeof CardDragSurface !== 'undefined';
 
-                ghost.classList.add(ghostClass);
+                if (useLibationDrop) {
+                    ghost = CardDragSurface.createLibationDropElement();
+                    ghost.classList.add(ghostClass);
+                    const metrics = CardDragSurface.getLibationDropDragMetrics();
+                    grabOffsetX = metrics.grabOffsetX;
+                    grabOffsetY = metrics.grabOffsetY;
+                    mode = 'cursor';
+                } else if (useWorshipDrop) {
+                    ghost = CardDragSurface.createWorshipDropElement();
+                    ghost.classList.add(ghostClass);
+                    const metrics = CardDragSurface.getWorshipDropDragMetrics();
+                    grabOffsetX = metrics.grabOffsetX;
+                    grabOffsetY = metrics.grabOffsetY;
+                    mode = 'cursor';
+                } else if (useConsumableChip) {
+                    ghost = CardDragSurface.createConsumableChipElement(
+                        options.artUrl,
+                        options.chipClass || 'consumable-drag-chip'
+                    );
+                    ghost.classList.add(ghostClass);
+                    const metrics = CardDragSurface.getConsumableChipDragMetrics({
+                        grabOffsetY: options.grabOffsetY ?? 0.5,
+                    });
+                    grabOffsetX = metrics.grabOffsetX;
+                    grabOffsetY = metrics.grabOffsetY;
+                    mode = 'cursor';
+                } else {
+                    ghost = sourceEl.cloneNode(true);
+                    ghost.classList.add(ghostClass);
+                }
 
 
 
@@ -102,17 +139,25 @@ const PointerDragGhost = {
 
                 const cy = hasPointer ? clientY : rect.top + rect.height / 2;
 
-                grabOffsetX = cx - rect.left;
-
-                grabOffsetY = cy - rect.top;
-
-                mode = hasPointer ? 'cursor' : 'delta';
+                if (!useLibationDrop && !useWorshipDrop && !useConsumableChip) {
+                    grabOffsetX = cx - rect.left;
+                    grabOffsetY = cy - rect.top;
+                    mode = hasPointer ? 'cursor' : 'delta';
+                }
 
 
 
                 document.body.appendChild(ghost);
 
-                if (typeof CardDragSurface !== 'undefined' && sourceEl.classList.contains('card')) {
+                if (useLibationDrop) {
+                    CardDragSurface.pinLibationDropGhost(ghost, CardDragSurface.getLibationDropDragMetrics());
+                } else if (useWorshipDrop) {
+                    CardDragSurface.pinConsumableChipGhost(ghost, CardDragSurface.getWorshipDropDragMetrics());
+                } else if (useConsumableChip) {
+                    CardDragSurface.pinConsumableChipGhost(ghost, CardDragSurface.getConsumableChipDragMetrics({
+                        grabOffsetY: options.grabOffsetY ?? 0.5,
+                    }));
+                } else if (typeof CardDragSurface !== 'undefined' && sourceEl.classList.contains('card')) {
 
                     CardDragSurface.pinToScreenRect(ghost, rect, sourceEl);
 
@@ -207,6 +252,16 @@ const PointerDragGhost = {
 
                 sourceEl.style.removeProperty('transform');
 
+            },
+
+            /** Shrink / hue hint when drag chip hovers a valid drop target. */
+            setDragTargetHot(isOver) {
+                ghost?.classList.toggle('consumable-drag-over-target', !!isOver);
+            },
+
+            /** @deprecated use setDragTargetHot */
+            setLibationOverDie(isOver) {
+                ghost?.classList.toggle('consumable-drag-over-target', !!isOver);
             },
 
         };

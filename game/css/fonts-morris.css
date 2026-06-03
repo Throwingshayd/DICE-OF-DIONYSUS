@@ -1,0 +1,27 @@
+/**
+ * Morris Roman — bundled from user-provided 1001fonts package (FFC license).
+ * See game/public/fonts/MorrisRoman-EULA.txt
+ */
+@font-face {
+    font-family: 'Morris Roman';
+    src: url('/fonts/MorrisRoman-Black.ttf') format('truetype');
+    font-weight: normal;
+    font-style: normal;
+    font-display: swap;
+}
+
+@font-face {
+    font-family: 'Morris Roman';
+    src: url('/fonts/MorrisRoman-Black.ttf') format('truetype');
+    font-weight: 700;
+    font-style: normal;
+    font-display: swap;
+}
+
+@font-face {
+    font-family: 'Morris Roman Alt';
+    src: url('/fonts/MorrisRomanAlternate-Black.ttf') format('truetype');
+    font-weight: normal;
+    font-style: normal;
+    font-display: swap;
+}

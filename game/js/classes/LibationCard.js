@@ -706,7 +706,7 @@ class LibationCard extends Card {
             max-width: 600px;
             text-align: center;
             color: white;
-            font-family: 'DisneyHeroic', sans-serif;
+            font-family: var(--font-ui), sans-serif;
         `;
 
         modal.innerHTML = `
@@ -729,8 +729,8 @@ class LibationCard extends Card {
                 border: none;
                 border-radius: 6px;
                 color: white;
-                font-family: 'DisneyHeroic', sans-serif;
-                font-size: 14px;
+                font-family: var(--font-ui), sans-serif;
+                font-size: 16px;
                 cursor: pointer;
                 transition: all 0.2s ease;
             `;

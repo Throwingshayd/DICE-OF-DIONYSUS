@@ -338,7 +338,7 @@ class GameEngine {
             gnosisMessage: document.getElementById('gnosisMessage'),
             
             // Info displays
-            anteDisplay: document.getElementById('anteDisplay'),
+            trialDisplay: document.getElementById('trialDisplay'),
             turnDisplay: document.getElementById('turnDisplay'),
             rollsLeft: document.getElementById('rollsLeft'),
             goldDisplay: document.getElementById('goldDisplay'),
@@ -616,7 +616,7 @@ class GameEngine {
         
         modal.innerHTML = `
             <div class="ante-header">
-                <div class="ante-number">Ante ${this.state.ante}</div>
+                <div class="ante-number">Trial ${this.state.ante}</div>
                 <div class="ante-boss-name">${anteData.name}</div>
             </div>
             
@@ -633,7 +633,7 @@ class GameEngine {
             
             <div class="ante-actions">
                 <button class="ante-begin-button" id="anteBeginButton">
-                    <span class="button-text">Begin Ante</span>
+                    <span class="button-text">Begin Trial</span>
                     <span class="button-arrow">→</span>
                 </button>
             </div>
@@ -1907,7 +1907,7 @@ class GameEngine {
             
             <div class="game-over-stats">
                 <div class="stat-row">
-                    <span class="stat-label">Ante Reached</span>
+                    <span class="stat-label">Trial Reached</span>
                     <span class="stat-value">${this.state.ante}</span>
                 </div>
                 <div class="stat-row">
@@ -2494,7 +2494,7 @@ class GameEngine {
                 });
             }
             if (window.soundManager) window.soundManager.play('gong', { pitch: 0.9, volume: 0.5 });
-            this.showMessage(`Ante ${this.state.ante} cleared! Score: ${this.state.totalScore}/${this.state.scoreThreshold}`);
+            this.showMessage(`Trial ${this.state.ante} cleared! Score: ${this.state.totalScore}/${this.state.scoreThreshold}`);
             
             if (this.state.ante >= 13 && !this.state.endlessMode) {
                 this.state.endlessMode = true;
@@ -2518,7 +2518,7 @@ class GameEngine {
         } else if (allCategoriesFilled && !scoreThresholdReached) {
             // All categories filled but didn't meet threshold - GAME OVER
             this.state.gameOver = true;
-            this.showMessage(`Ante ${this.state.ante} failed! Score: ${this.state.totalScore}/${this.state.scoreThreshold}`);
+            this.showMessage(`Trial ${this.state.ante} failed! Score: ${this.state.totalScore}/${this.state.scoreThreshold}`);
             
             // Show Balatro-style game over screen
             this.showGameOverScreen(false, { reason: 'ante_threshold_failed' });

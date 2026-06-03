@@ -1,17 +1,17 @@
 /**
- * InfoBarRenderer - Ante, turn, rolls, gold, score displays
+ * InfoBarRenderer - Trial, turn, rolls, gold, score displays
  * @module ui/renderers/InfoBarRenderer
  */
 
 const InfoBarRenderer = {
     updateInfoUI(dom, gameState) {
-        if (!dom.anteDisplay) return;
+        if (!dom.trialDisplay) return;
         const fmt = (n) => (window.NumberFormat ? window.NumberFormat.display(n) : String(n));
-        dom.anteDisplay.textContent = gameState.ante;
+        dom.trialDisplay.textContent = fmt(gameState.ante);
         dom.turnDisplay.textContent = gameState.turn;
         dom.turnDisplay.style.color = '';
         dom.turnDisplay.style.fontWeight = '';
-        dom.rollsLeft.textContent = `Rolls: ${gameState.rollsLeft}`;
+        dom.rollsLeft.textContent = fmt(gameState.rollsLeft);
         dom.goldDisplay.textContent = fmt(gameState.gold);
         dom.totalScore.textContent = fmt(gameState.totalScore);
         if (dom.scoreThresholdDisplay) dom.scoreThresholdDisplay.textContent = fmt(gameState.scoreThreshold);

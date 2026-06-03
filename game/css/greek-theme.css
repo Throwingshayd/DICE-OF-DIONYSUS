@@ -31,14 +31,21 @@
     --gk-ink: #34250f;
     --gk-ink-soft: #6a5230;
     --gk-terracotta: #b5532f;
+    /* Layout — main-game coordinate system (stones, pantheon, felt) */
+    --felt-die-size: 95px;
+    --felt-stone-w: 160px;
+    --felt-stone-h: 64px;
+    --layout-center-game-top: 260px;
+    --layout-pantheon-top: -10px;
+    /* Measured frieze block height (padding + tiers + bottom meander); tune with pantheon edits */
+    --layout-pantheon-frieze-height: 318px;
+    /* Greek-key meander tiles (match pantheon frieze bands) */
+    --gk-meander-h: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='32' height='16' viewBox='0 0 32 16'%3E%3Cpath d='M27 3 V13 H7 V6 H21 V10 H12' fill='none' stroke='%23cda24c' stroke-width='2.4' stroke-linejoin='miter' stroke-linecap='butt'/%3E%3C/svg%3E");
+    --gk-meander-v: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='32' viewBox='0 0 16 32'%3E%3Cg transform='translate(16 0) rotate(90)'%3E%3Cpath d='M27 3 V13 H7 V6 H21 V10 H12' fill='none' stroke='%23cda24c' stroke-width='2.4' stroke-linejoin='miter' stroke-linecap='butt'/%3E%3C/g%3E%3C/svg%3E");
 }
 
 /* Reusable marble surface (light, top-lit) */
 /* Reusable gold double-rule via box-shadow handled inline per element. */
-
-/* Greek-key meander tile (gold key glyph, transparent ground) used as a
-   repeating horizontal band on framed panels. Self-contained glyph → tiles
-   seamlessly with even spacing. */
 
 /* ── 2. IN-GAME STAGE BACKGROUND ───────────────────────────────────────── */
 #gameViewport.game-screen .main-game {
@@ -68,7 +75,7 @@
 .main-game .pantheon-frieze {
     top: -10px;
     min-height: 0;
-    padding: 28px 22px 20px;
+    padding: 24px 16px 18px;
     border-radius: 16px;
     position: absolute;
     background:
@@ -91,7 +98,7 @@
     left: 18px;
     right: 18px;
     height: 16px;
-    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='32' height='16' viewBox='0 0 32 16'%3E%3Cpath d='M27 3 V13 H7 V6 H21 V10 H12' fill='none' stroke='%23cda24c' stroke-width='2.4' stroke-linejoin='miter' stroke-linecap='butt'/%3E%3C/svg%3E");
+    background-image: var(--gk-meander-h);
     background-repeat: repeat-x;
     background-size: auto 16px;
     opacity: 0.92;
@@ -105,13 +112,13 @@
     display: flex;
     flex-wrap: wrap;
     justify-content: center;
-    align-content: flex-start;
-    align-items: stretch;
-    gap: 8px 10px;
+    align-content: center;
+    align-items: flex-start;
+    gap: 6px 7px;
     position: relative;
     width: 100%;
     margin: 0;
-    padding: 24px 14px 12px;
+    padding: 22px 8px 14px;
     overflow: visible;
     z-index: 2;
 }
@@ -119,15 +126,16 @@
 .main-game .pantheon-frieze .pantheon-tier-upper {
     height: auto;
     min-height: 0;
-    margin-bottom: 6px;
-    padding-top: 30px;
+    margin-bottom: 2px;
+    padding-top: 26px;
 }
 
 .main-game .pantheon-frieze .pantheon-tier-lower {
     height: auto;
     min-height: 0;
     margin-top: 0;
-    padding-top: 22px;
+    padding-top: 18px;
+    padding-bottom: 6px;
 }
 
 .main-game .pantheon-frieze .pantheon-tier-upper::before {
@@ -136,10 +144,10 @@
     top: 8px;
     left: 50%;
     transform: translateX(-50%);
-    font-family: "Cinzel", "Cormorant Garamond", serif;
-    font-size: 11px;
-    font-weight: 700;
-    letter-spacing: 0.14em;
+    font-family: var(--font-manuscript);
+    font-size: 14px;
+    font-weight: normal;
+    letter-spacing: 0.1em;
     color: var(--gk-ink-soft);
     opacity: 0.88;
     pointer-events: none;
@@ -153,10 +161,10 @@
     top: 2px;
     left: 50%;
     transform: translateX(-50%);
-    font-family: "Cinzel", "Cormorant Garamond", serif;
-    font-size: 11px;
-    font-weight: 700;
-    letter-spacing: 0.14em;
+    font-family: var(--font-manuscript);
+    font-size: 14px;
+    font-weight: normal;
+    letter-spacing: 0.1em;
     color: var(--gk-ink-soft);
     opacity: 0.88;
     pointer-events: none;
@@ -164,16 +172,17 @@
     white-space: nowrap;
 }
 
-/* Orthogonal rows — override arch absolute seats from styles.css */
+/* Orthogonal rows — larger tablets, deity as gold caption below (no dark pill) */
 .main-game .pantheon-frieze .pantheon-chip {
     position: relative;
     left: auto !important;
     top: auto !important;
-    width: 136px !important;
-    min-width: 136px !important;
-    max-width: 136px !important;
-    padding: 7px 8px;
-    min-height: 54px;
+    width: 148px !important;
+    min-width: 148px !important;
+    max-width: 148px !important;
+    padding: 0 3px 3px !important;
+    min-height: 0 !important;
+    --tablet-h: 66px;
     --chip-bg: #fffdf6;
     --chip-border: #c9b073;
     --chip-rot: 0deg !important;
@@ -181,82 +190,132 @@
     transform: none !important;
     z-index: 4;
     flex: 0 0 auto;
+    row-gap: 4px;
 }
 
 .main-game .pantheon-frieze .pantheon-chip::before {
     border: 1px solid var(--gk-gold-2);
+    border-radius: 12px;
     background: linear-gradient(180deg, #fffdf6 0%, #f4ebd6 55%, #eee0c4 100%);
     box-shadow: inset 0 1px 0 #fffef8, inset 0 0 0 1px rgba(255, 255, 255, 0.5);
     transform: none;
 }
 
-.main-game .pantheon-frieze .pantheon-chip span,
-.main-game .pantheon-frieze .pantheon-chip .pantheon-cat,
-.main-game .pantheon-frieze .pantheon-chip .pantheon-deity {
+.main-game .pantheon-frieze .pantheon-chip .pantheon-cat {
     color: var(--gk-ink);
+    font-family: var(--font-manuscript);
+    font-size: 18px;
+    font-weight: normal;
+    line-height: 1.22;
+    letter-spacing: 0.01em;
+    margin-top: 8px;
+    text-shadow: none;
+    -webkit-font-smoothing: antialiased;
 }
 
-.main-game .pantheon-frieze .pantheon-chip > span:first-child {
-    font-size: 11.5px;
-    line-height: 1.15;
+.main-game .pantheon-frieze .pantheon-chip .pantheon-deity {
+    font-family: var(--font-display), var(--font-ui), serif;
+    font-size: 11px;
+    letter-spacing: 0.05em;
+    color: var(--gk-bronze);
+    background: transparent;
+    border: none;
+    box-shadow: none;
+    text-shadow: none;
+    padding: 3px 2px 0;
+}
+
+.main-game .pantheon-frieze .pantheon-chip .pantheon-deity::before {
+    background: linear-gradient(90deg, transparent, var(--gk-gold-2), transparent);
+    opacity: 0.75;
+}
+
+.main-game .pantheon-frieze .pantheon-chip:hover:not(.used) .pantheon-deity {
+    color: var(--gk-gold-1);
 }
 
 .main-game .pantheon-frieze .pantheon-chip .potential-score {
     color: var(--gk-bronze);
+    font-family: var(--font-manuscript);
+    font-size: 18px;
+    font-weight: normal;
+    line-height: 1.22;
+    letter-spacing: 0.01em;
+    text-shadow: none;
 }
 
 .main-game .pantheon-frieze .pantheon-chip:hover:not(.used) {
-    box-shadow: 0 4px 14px rgba(0, 0, 0, 0.3);
+    box-shadow: none;
     transform: translateY(-2px) !important;
 }
 
+.main-game .pantheon-frieze .pantheon-chip:hover:not(.used)::before {
+    box-shadow:
+        inset 0 1px 0 #fffef8,
+        0 4px 14px rgba(0, 0, 0, 0.28);
+}
+
 .main-game .pantheon-frieze .pantheon-chip.used {
+    filter: none;
+}
+
+.main-game .pantheon-frieze .pantheon-chip.used::before {
     filter: saturate(0.62) brightness(0.96);
 }
 
-/* ── 5. SIDE PANELS — marble stelae (Consumables left, Boons right) ──────── */
+/* ── 5. SIDE PANELS — vertical marble frieze (Consumables left, Boons right) ─ */
 .main-game .left-consumable-bar.inventory-panel-consumables,
 .main-game .right-boon-bar.inventory-panel-boons {
-    padding-top: 48px;
+    padding: 44px 30px 40px;
     z-index: 8;
     position: absolute;
+    box-sizing: border-box;
 }
 
+/* Marble slab + vertical meander bands on left and right edges only */
 .main-game .left-consumable-bar.inventory-panel-consumables::before,
 .main-game .right-boon-bar.inventory-panel-boons::before {
     content: "";
     position: absolute;
-    inset: 6px 4px 18px;
+    inset: 4px 2px 10px;
     z-index: 0;
-    border-radius: 18px;
+    border-radius: 16px;
     border: 2px solid var(--gk-gold-2);
     background-color: var(--gk-marble-2);
     background-image:
-        url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='32' height='16' viewBox='0 0 32 16'%3E%3Cpath d='M27 3 V13 H7 V6 H21 V10 H12' fill='none' stroke='%23cda24c' stroke-width='2.4' stroke-linejoin='miter' stroke-linecap='butt'/%3E%3C/svg%3E"),
-        linear-gradient(150deg, rgba(255, 255, 255, 0.52) 0%, rgba(255, 255, 255, 0) 36%),
-        linear-gradient(180deg, var(--gk-marble-1) 0%, var(--gk-marble-2) 55%, var(--gk-marble-3) 100%);
-    background-repeat: repeat-x, no-repeat, no-repeat;
-    background-size: auto 12px, 100% 100%, 100% 100%;
-    background-position: center 34px, 0 0, 0 0;
+        var(--gk-meander-v),
+        var(--gk-meander-v),
+        linear-gradient(160deg, rgba(255, 255, 255, 0.55) 0%, rgba(255, 255, 255, 0) 38%),
+        linear-gradient(180deg, var(--gk-marble-1) 0%, var(--gk-marble-2) 60%, var(--gk-marble-3) 100%);
+    background-repeat: repeat-y, repeat-y, no-repeat, no-repeat;
+    background-size: 16px auto, 16px auto, 100% 100%, 100% 100%;
+    background-position:
+        left 10px top 14px,
+        right 10px top 14px,
+        0 0,
+        0 0;
     box-shadow:
         inset 0 1px 0 rgba(255, 255, 255, 0.7),
-        inset 0 0 0 1px rgba(154, 119, 48, 0.22),
-        0 10px 26px rgba(0, 0, 0, 0.4);
+        inset 0 0 0 1px rgba(154, 119, 48, 0.25),
+        0 12px 34px rgba(0, 0, 0, 0.42);
     pointer-events: none;
 }
 
+/* Manuscript caption at top of stela */
 .main-game .left-consumable-bar.inventory-panel-consumables::after,
 .main-game .right-boon-bar.inventory-panel-boons::after {
+    content: "";
     position: absolute;
-    top: 14px;
+    top: 16px;
     left: 50%;
     transform: translateX(-50%);
-    font-family: 'Cinzel', 'Cormorant Garamond', serif;
-    font-weight: 700;
+    font-family: var(--font-manuscript);
+    font-weight: normal;
     font-size: 15px;
-    letter-spacing: 0.14em;
-    color: var(--gk-ink);
-    text-shadow: 0 1px 0 rgba(255, 255, 255, 0.6);
+    letter-spacing: 0.1em;
+    color: var(--gk-ink-soft);
+    opacity: 0.92;
+    text-shadow: 0 1px 0 rgba(255, 255, 255, 0.55);
     white-space: nowrap;
     z-index: 2;
     pointer-events: none;
@@ -269,18 +328,33 @@
     color: var(--gk-ink);
     text-shadow: 0 1px 0 rgba(255, 255, 255, 0.5);
     z-index: 2;
+    bottom: 16px;
+    right: 22px;
+}
+
+/* Card names on stelae — manuscript face (readable vs IM Fell) */
+.main-game .left-consumable-bar .card .card-type-indicator,
+.main-game .right-boon-bar .card .card-type-indicator {
+    font-family: var(--font-manuscript) !important;
+    font-weight: normal !important;
+    font-size: 1.12rem !important;
+    line-height: 1.25 !important;
+    letter-spacing: 0.01em !important;
+    -webkit-font-smoothing: antialiased;
 }
 
 .main-game .left-consumable-bar .consumable-slots,
 .main-game .right-boon-bar .boon-slots {
     position: relative;
     z-index: 1;
-    margin-top: 8px;
-    padding: 0;
+    margin-top: 4px;
+    padding: 0 4px;
     border: none;
     background: none;
     box-shadow: none;
     min-height: 0;
+    width: 100%;
+    flex: 1 1 auto;
 }
 
 .main-game .left-consumable-bar .consumable-slots:empty,
@@ -303,6 +377,14 @@
 
 /* ── 6. STONES — carved marble medallions with gold rims ───────────────── */
 .center-game-area .felt-stone {
+    width: var(--felt-stone-w, 160px);
+    min-width: var(--felt-stone-w, 160px);
+    max-width: var(--felt-stone-w, 160px);
+    height: var(--felt-stone-h, 64px);
+    min-height: var(--felt-stone-h, 64px);
+    max-height: var(--felt-stone-h, 64px);
+    box-sizing: border-box;
+    flex-shrink: 0;
     background:
         radial-gradient(120% 120% at 30% 18%, rgba(255, 255, 255, 0.6) 0%, rgba(255, 255, 255, 0) 45%),
         linear-gradient(180deg, var(--gk-marble-1) 0%, var(--gk-marble-2) 60%, var(--gk-marble-3) 100%);
@@ -316,21 +398,11 @@
     color: var(--gk-ink-soft);
 }
 .center-game-area .felt-stone .felt-stone-value,
+.center-game-area .felt-stone-rolls .felt-stone-value,
 .center-game-area .felt-stone-rolls .rolls-left,
-.center-game-area .felt-stone-gold .felt-stone-value,
-.center-game-area .felt-stone-gold .felt-stone-suffix {
+.center-game-area .felt-stone-gold .felt-stone-value {
     color: var(--gk-ink);
     text-shadow: 0 1px 0 rgba(255, 255, 255, 0.45);
-}
-
-/* Felt labels (Required / Total) — gilded text on the dark felt. */
-.center-game-area .felt-label .felt-label-name {
-    color: var(--gk-gold-1);
-    letter-spacing: 0.08em;
-}
-.center-game-area .felt-label .felt-label-value {
-    color: #fff6df;
-    text-shadow: 0 2px 6px rgba(0, 0, 0, 0.55);
 }
 
 /* ============================================================================
@@ -389,13 +461,13 @@
 
 .center-game-area .live-score-display.felt-live .pips {
     color: var(--gk-gold-1);
-    font-family: 'DisneyHeroic', sans-serif;
+    font-family: var(--font-ui), sans-serif;
     text-shadow: 0 1px 2px rgba(0, 0, 0, 0.35), 0 2px 6px rgba(0, 0, 0, 0.45);
 }
 
 .center-game-area .live-score-display.felt-live .favour {
     color: var(--gk-gold-1);
-    font-family: 'DisneyHeroic', sans-serif;
+    font-family: var(--font-ui), sans-serif;
     text-shadow: 0 1px 2px rgba(0, 0, 0, 0.35), 0 2px 6px rgba(0, 0, 0, 0.45);
 }
 
@@ -415,10 +487,10 @@
     box-shadow: 0 2px 8px rgba(0, 0, 0, 0.35);
 }
 
-/* Greek-toned drag zones (labels stay from styles.css). */
+/* Greek-toned drag zones — worship is label-only (tile drop targets). */
 .center-game-area .consumable-zone-worship {
-    background: linear-gradient(180deg, rgba(90, 150, 200, 0.28) 0%, rgba(90, 150, 200, 0.05) 100%) !important;
-    border-color: rgba(205, 162, 76, 0.55) !important;
+    background: none !important;
+    border-color: transparent !important;
 }
 
 .center-game-area .consumable-zone-libation {
@@ -502,7 +574,6 @@
     z-index: 18;
 }
 
-.main-game .center-game-area .felt-label,
 .main-game .center-game-area .felt-stone,
 .main-game .center-game-area .live-score-display.felt-live {
     z-index: 14;
@@ -528,7 +599,7 @@
 
 .main-game.consumable-drag-active.drag-type-worship .consumable-zone-worship {
     opacity: 1;
-    pointer-events: auto;
+    pointer-events: none !important;
 }
 .main-game.consumable-drag-active.drag-type-worship .consumable-zone-libation {
     opacity: 0 !important;
@@ -550,8 +621,8 @@
 }
 
 .center-game-area .consumable-zone::after {
-    font-family: 'DisneyHeroic', 'Cinzel', serif;
-    font-size: 24px;
+    font-family: var(--font-display), var(--font-ui), serif;
+    font-size: 27px;
     font-weight: 800;
     letter-spacing: 0.10em;
     color: #fdfaf2;
@@ -572,9 +643,9 @@
 }
 
 .center-game-area .consumable-zone-worship.zone-hot {
-    background: linear-gradient(180deg, rgba(140, 200, 255, 0.42) 0%, rgba(140, 200, 255, 0.12) 100%) !important;
-    border-color: rgba(200, 230, 255, 0.95) !important;
-    box-shadow: inset 0 0 0 2px rgba(200, 230, 255, 0.5), 0 0 34px rgba(140, 200, 255, 0.5);
+    background: none !important;
+    border-color: transparent !important;
+    box-shadow: none !important;
 }
 .center-game-area .consumable-zone-libation.zone-hot {
     transform: translateX(-50%);
@@ -589,13 +660,69 @@
 }
 
 .main-game.consumable-drag-active.drag-type-libation-enhancer #diceContainer .die {
-    outline: 3px dashed rgba(205, 160, 255, 0.6);
+    outline: 3px dashed rgba(80, 210, 220, 0.65);
     outline-offset: 3px;
     border-radius: 12px;
 }
 .main-game.consumable-drag-active.drag-type-libation-enhancer #diceContainer .die:hover {
-    outline-color: rgba(235, 205, 255, 0.95);
+    outline-color: rgba(120, 235, 245, 0.95);
     transform: translateY(-3px) scale(1.05);
+}
+.main-game.consumable-drag-active.drag-type-libation-enhancer #diceContainer .die.die-libation-drag-hot {
+    outline-color: rgba(120, 235, 245, 0.95);
+    transform: translateY(-3px) scale(1.05);
+    transition: transform 0.14s ease-out, outline-color 0.14s ease-out;
+}
+
+.main-game.consumable-drag-active.drag-type-worship .pantheon-frieze .pantheon-chip.pantheon-worship-target {
+    z-index: 10;
+}
+
+.main-game.consumable-drag-active.drag-type-worship .pantheon-frieze .pantheon-chip.pantheon-worship-target::before {
+    box-shadow:
+        0 0 0 2px rgba(255, 215, 120, 0.55),
+        0 0 16px rgba(255, 200, 80, 0.4),
+        inset 0 0 8px rgba(255, 230, 160, 0.15);
+    animation: worshipTargetPulse 1.4s ease-in-out infinite;
+}
+
+@keyframes worshipTargetPulse {
+    0%, 100% {
+        box-shadow:
+            0 0 0 2px rgba(255, 215, 120, 0.5),
+            0 0 14px rgba(255, 200, 80, 0.35),
+            inset 0 0 8px rgba(255, 230, 160, 0.12);
+    }
+    50% {
+        box-shadow:
+            0 0 0 3px rgba(255, 215, 120, 0.75),
+            0 0 22px rgba(255, 200, 80, 0.55),
+            inset 0 0 12px rgba(255, 230, 160, 0.22);
+    }
+}
+
+.main-game.consumable-drag-active.drag-type-worship .pantheon-frieze .pantheon-chip.pantheon-worship-target .pantheon-cat,
+.main-game.consumable-drag-active.drag-type-worship .pantheon-frieze .pantheon-chip.pantheon-worship-target .potential-score {
+    color: #fff6dc;
+    text-shadow: 0 0 6px rgba(255, 215, 120, 0.45);
+}
+
+.main-game.consumable-drag-active.drag-type-worship .pantheon-frieze .pantheon-chip.pantheon-worship-drag-hot {
+    z-index: 12;
+}
+.main-game.consumable-drag-active.drag-type-worship .pantheon-frieze .pantheon-chip.pantheon-worship-drag-hot::before {
+    box-shadow:
+        0 0 0 3px rgba(255, 215, 120, 0.95),
+        0 0 24px rgba(255, 200, 80, 0.75),
+        inset 0 0 14px rgba(255, 230, 160, 0.28);
+    transform: scale(1.08);
+    transition: box-shadow 0.14s ease-out, transform 0.14s ease-out;
+    animation: none;
+}
+.main-game.consumable-drag-active.drag-type-worship .pantheon-frieze .pantheon-chip.pantheon-worship-drag-hot .pantheon-cat,
+.main-game.consumable-drag-active.drag-type-worship .pantheon-frieze .pantheon-chip.pantheon-worship-drag-hot .potential-score {
+    color: #fff8e8;
+    text-shadow: 0 0 8px rgba(255, 215, 120, 0.65);
 }
 
 .main-game.consumable-drag-active .felt-stone-gold::after {
@@ -604,8 +731,8 @@
     left: 50%;
     top: -32px;
     transform: translateX(-50%);
-    font-family: 'DisneyHeroic', 'Cinzel', serif;
-    font-size: 15px;
+    font-family: var(--font-display), var(--font-ui), serif;
+    font-size: 17px;
     font-weight: 800;
     letter-spacing: 0.12em;
     color: #2a1a06;
@@ -627,31 +754,28 @@
 .main-game .pantheon-frieze .pantheon-chip.category-available-highlight,
 .main-game .pantheon-frieze .pantheon-chip.available-category {
     --chip-border: #4a90e2;
-    animation: pantheon-available-pulse 1.4s ease-in-out infinite;
+    animation: none;
+    box-shadow: none;
 }
 
 .main-game .pantheon-frieze .pantheon-chip.category-available-highlight::before,
 .main-game .pantheon-frieze .pantheon-chip.available-category::before {
     border-color: rgba(74, 144, 226, 0.85);
-    box-shadow:
-        inset 0 1px 0 #fffef8,
-        0 0 12px rgba(74, 144, 226, 0.35);
+    animation: pantheon-tablet-available-pulse 1.4s ease-in-out infinite;
 }
 
 .main-game .pantheon-frieze .pantheon-chip.category-available-highlight .pantheon-cat,
-.main-game .pantheon-frieze .pantheon-chip.category-available-highlight .pantheon-deity,
 .main-game .pantheon-frieze .pantheon-chip.category-available-highlight .potential-score,
 .main-game .pantheon-frieze .pantheon-chip.available-category .pantheon-cat,
-.main-game .pantheon-frieze .pantheon-chip.available-category .pantheon-deity,
 .main-game .pantheon-frieze .pantheon-chip.available-category .potential-score {
     color: #2a6aa6 !important;
-    font-weight: 700;
-    text-shadow: 0 0 8px rgba(74, 144, 226, 0.35), 0 1px 1px rgba(0, 0, 0, 0.18);
+    font-weight: normal;
+    text-shadow: none;
 }
 
-@keyframes pantheon-available-pulse {
-    0%, 100% { box-shadow: 0 0 0 rgba(74, 144, 226, 0.25), inset 0 1px 0 #fffef5; }
-    50%      { box-shadow: 0 0 12px rgba(74, 144, 226, 0.45), inset 0 1px 0 #fff; }
+.main-game .pantheon-frieze .pantheon-chip.used.category-available-highlight::before,
+.main-game .pantheon-frieze .pantheon-chip.used.available-category::before {
+    animation: none;
 }
 
 .main-game .center-game-area .die.held {

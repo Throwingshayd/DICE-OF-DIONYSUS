@@ -71,7 +71,7 @@ class ShopUI {
 
         if (window.GameStateManager) window.GameStateManager.setState(window.GAME_STATES?.SHOP || 'SHOP');
         if (window.soundManager) window.soundManager.setMusicContext('shop');
-        if (this.dom.shopAnte) this.dom.shopAnte.textContent = gameState.ante;
+        if (this.dom.shopTrial) this.dom.shopTrial.textContent = gameState.ante;
         if (this.dom.packOpeningView) this.dom.packOpeningView.classList.add('hidden');
         if (this.dom.shopDefaultView) this.dom.shopDefaultView.classList.remove('hidden');
         this.attachShopEventListeners();

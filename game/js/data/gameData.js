@@ -316,7 +316,7 @@ const CardData = {
             rarity: "rustic", 
             cost: 3, 
             sellValue: 1, 
-            effect: "Each turn gain +2 pips (stacks, resets at end of ante or when worship card is used).",
+            effect: "Each turn gain +2 pips (stacks, resets at end of trial or when worship card is used).",
             description: "Growing stronger without divine intervention.",
             timing: { before_score: true, turn_start: true, ante_end: true }
         },
@@ -387,7 +387,7 @@ const CardData = {
             rarity: "rustic", 
             cost: 3, 
             sellValue: 1, 
-            effect: "Your first score each Ante gives +50 Pips.",
+            effect: "Your first score each Trial gives +50 Pips.",
             description: "Strike first, strike hard.",
             timing: { before_score: true }
         },
@@ -459,7 +459,7 @@ const CardData = {
             rarity: "rustic", 
             cost: 3, 
             sellValue: 1, 
-            effect: "Gives +×1 favour of the most recently scored Worship card, to that score this Ante.",
+            effect: "Gives +×1 favour of the most recently scored Worship card, to that score this Trial.",
             description: "Zealous devotion to the last worshipped god.",
             timing: { before_score: true }
         },
@@ -490,7 +490,7 @@ const CardData = {
             rarity: "vibrant", 
             cost: 5, 
             sellValue: 1, 
-            effect: "At end of Ante, gold ×1.5 (rounded down).",
+            effect: "At end of Trial, gold ×1.5 (rounded down).",
             description: "The horn of plenty - wealth multiplies for the patient.",
             god: "Ploutos",
             timing: { ante_end: true }
@@ -501,7 +501,7 @@ const CardData = {
             rarity: "vibrant", 
             cost: 5, 
             sellValue: 1, 
-            effect: "At end of Ante, if ALL categories filled with NO scratches, gain (total categories)² pips.",
+            effect: "At end of Trial, if ALL categories filled with NO scratches, gain (total categories)² pips.",
             description: "Complete the perfect journey - 13² = 169, 14² = 196, 15² = 225, 16² = 256 pips.",
             god: "Odysseus",
             timing: { ante_end: true }
@@ -512,7 +512,7 @@ const CardData = {
             rarity: "vibrant", 
             cost: 5, 
             sellValue: 1, 
-            effect: "If you complete Ante with no other boons for entire ante gain +50% of score threshold.",
+            effect: "If you complete Trial with no other boons for entire trial gain +50% of score threshold.",
             description: "A solo journey - isolation brings great reward.",
             timing: { ante_end: true }
         },
@@ -522,7 +522,7 @@ const CardData = {
             rarity: "vibrant", 
             cost: 5, 
             sellValue: 1, 
-            effect: "Destroy a random Boon at end of each Ante, gain +10 Gold.",
+            effect: "Destroy a random Boon at end of each Trial, gain +10 Gold.",
             description: "The betrayer of Troy - your boons fear you.",
             god: "Paris",
             timing: { ante_end: true }
@@ -622,33 +622,6 @@ const CardData = {
             description: "The hero's journey - power accumulates with achievement.",
             god: "Perseus",
             timing: { before_score: true }
-        }
-    ],
-
-    consumables: [
-        {
-            id: "ambrosia",
-            name: "Ambrosia",
-            rarity: "vibrant",
-            cost: 3,
-            effect: "Gain +2 Favour for this turn only.",
-            description: "The food of the gods. Provides temporary divine favor."
-        },
-        {
-            id: "nectar",
-            name: "Nectar",
-            rarity: "rustic",
-            cost: 2,
-            effect: "Gain +1 Favour for this turn only.",
-            description: "The drink of the gods. Provides temporary divine favor."
-        },
-        {
-            id: "olive_oil",
-            name: "Olive Oil",
-            rarity: "rustic",
-            cost: 1,
-            effect: "Gain +5 pips for this turn only.",
-            description: "Sacred oil that enhances your dice rolls."
         }
     ],
 

@@ -82,6 +82,7 @@ const ScorecardRenderer = {
             if (gameState.scorecard[category] !== undefined) {
                 row.classList.add('used');
                 row.classList.remove('available-category');
+                row.classList.remove('category-available-highlight');
                 const rounded = Math.round(gameState.scorecard[category]);
                 scoreDisplay.textContent = rounded === 0 ? 'X' : String(rounded);
             } else {
