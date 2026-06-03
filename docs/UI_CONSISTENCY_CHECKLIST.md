@@ -130,7 +130,7 @@ Work **one step at a time**. Do not start the next step until the current step i
 - [x] Removed dead `.consumable-horizon`, `.consumable-shell`, `.consumable-zone-sell-wide`, legacy zone layout
 - [x] Removed duplicate shop-drag-hide / drag-ghost width rules (live in `card-present.css`)
 - [x] `card-sizes.css` uses `.left-consumable-bar` / `.inventory-panel-consumables` (not horizon)
-- [ ] Playtest: quick pass shop, sidebars, drag, anthology, consumable zones (no visual regressions)
+- [x] Playtest: quick pass shop, sidebars, drag, anthology, consumable zones (no visual regressions)
 
 ---
 
@@ -138,9 +138,9 @@ Work **one step at a time**. Do not start the next step until the current step i
 
 **Goal:** One interaction vocabulary; less legacy naming in UI.
 
-- [ ] Remove or gate unused buy/sell label CSS if drag-only is final
-- [ ] Align UI copy (Libations) vs code comments (consumables) in docs only, unless you want a rename pass
-- [ ] Legacy worship ID maps — document only (no behaviour change unless broken saves)
+- [x] Removed dead buy/sell/use label CSS (shop + inventory drag-only)
+- [x] `docs/GAME_TERMINOLOGY.md` — Libation & Worship are player types; `consumables` = code bucket for left bar
+- [x] Legacy worship ID map documented (`worship_persephone` → `worship_aphrodite`)
 
 ---
 
@@ -152,4 +152,4 @@ Work **one step at a time**. Do not start the next step until the current step i
 4. Check boxes in this file; note any “TBD” decisions in *Proposed defaults*.
 5. Ask to continue to the next step.
 
-**Current step:** **Step 8 — playtest consolidation, then Step 9 (interaction cleanup)**
+**Current step:** **Checklist complete on `main` — optional push / delete merged branch**

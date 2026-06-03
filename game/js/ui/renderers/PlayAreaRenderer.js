@@ -1,7 +1,7 @@
 /**
- * PlayAreaRenderer - Boon slots, consumables, artifacts, drag-and-drop
+ * PlayAreaRenderer - Boon bar, left bar (libations + worship), artifacts, drag-and-drop
  * @module ui/renderers/PlayAreaRenderer
- * Uses uiManager.appendInventoryCard, bindBoonSlotDrag, bindConsumableHorizonDrag (drag sell / use / reorder)
+ * `consumables` in state = technical group for LibationCard + WorshipCard (see docs/GAME_TERMINOLOGY.md)
  */
 
 const PlayAreaRenderer = {

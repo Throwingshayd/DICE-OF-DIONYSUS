@@ -47,6 +47,11 @@ const TIMING = {
  * Card layout — single 140×187px footprint (shop, pack, owned, drag)
  * @const {Object}
  */
+/**
+ * Player-facing: Boon | Libation | Worship | Artifact.
+ * Code bucket `gameState.consumables` = libations + worship in the left bar only.
+ * See docs/GAME_TERMINOLOGY.md.
+ */
 /** Where a card is shown — drives face layout (see docs/UI_CONSISTENCY_CHECKLIST.md) */
 const CARD_SURFACE = {
     RACK: 'rack',   // shop, pack, anthology

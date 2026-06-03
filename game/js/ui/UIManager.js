@@ -367,8 +367,8 @@ class UIManager {
     }
 
     /**
-     * One-time pointer delegation: sell → wide left band, worship → right (Pantheon),
-     * libation → die (enhance) or table / roll zone (use).
+     * Left bar drag: worship → pantheon, libation → die or drink chalice, sell → gold.
+     * (State array is `consumables`; cards are Libation or Worship — docs/GAME_TERMINOLOGY.md)
      * @param {HTMLElement} container - #consumableSlots
      */
     bindConsumableHorizonDrag(container) {

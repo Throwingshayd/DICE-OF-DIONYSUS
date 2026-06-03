@@ -9,7 +9,7 @@
      2) In-game stage background
      3) Play arena (felt medallion that frames the dice)
      4) Pantheon — symmetrical, growth-friendly rows on a marble frieze
-     5) Side panels — marble stelae for Libations (left) and Boons (right)
+     5) Side panels — marble stelae for Consumables (left) and Boons (right)
      6) Stones — carved marble/bronze medallions
    ============================================================================ */
 
@@ -214,7 +214,7 @@
     filter: saturate(0.62) brightness(0.96);
 }
 
-/* ── 5. SIDE PANELS — marble stelae (Libations left, Boons right) ──────── */
+/* ── 5. SIDE PANELS — marble stelae (Consumables left, Boons right) ──────── */
 .main-game .left-consumable-bar.inventory-panel-consumables,
 .main-game .right-boon-bar.inventory-panel-boons {
     padding-top: 48px;
@@ -261,7 +261,7 @@
     z-index: 2;
     pointer-events: none;
 }
-.main-game .left-consumable-bar.inventory-panel-consumables::after { content: "LIBATIONS"; }
+.main-game .left-consumable-bar.inventory-panel-consumables::after { content: "CONSUMABLES"; }
 .main-game .right-boon-bar.inventory-panel-boons::after { content: "BOONS"; }
 
 .main-game .left-consumable-bar .consumable-bar-counter,
