@@ -14,6 +14,20 @@ describe('ScoringEngine.validateRun wiring', () => {
         expect(js).not.toMatch(/if\s*\(\s*!fromPipeline\s*\)/);
     });
 
+    it('inventory drag extracted from UIManager', () => {
+        const ui = readFileSync('game/js/ui/UIManager.js', 'utf8');
+        expect(ui).toContain('BoonSlotDrag.bind');
+        expect(ui).toContain('ConsumableDrag.bind');
+        const lines = ui.split(/\r?\n/).length;
+        expect(lines).toBeLessThan(500);
+    });
+
+    it('CollectionManager lives in its own module', () => {
+        const main = readFileSync('game/js/Main.js', 'utf8');
+        expect(main).not.toContain('class CollectionManager');
+        expect(readFileSync('game/js/ui/CollectionManager.js', 'utf8')).toContain('class CollectionManager');
+    });
+
     it('LiveScoreController owns preview and cashout DOM updates', () => {
         const ctrl = readFileSync('game/js/ui/LiveScoreController.js', 'utf8');
         const engine = readFileSync('game/js/game/GameEngine.js', 'utf8');

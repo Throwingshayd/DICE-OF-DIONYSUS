@@ -164,10 +164,10 @@ ScoringEngine.runPipeline(category, state, opts)
 
 1. ~~**Live score canonical breakdown**~~ — **Done** on `refactor/live-score`: `GnosisDisplay.buildPreviewSplit`, removed duplicate `before_score` preview loop and legacy `!fromPipeline` confirm path.  
 2. ~~**Extract `LiveScoreController`**~~ — **Done**: `game/js/ui/LiveScoreController.js`; `GameEngine` delegates preview/cashout.  
-3. **Extract drag controllers** from `UIManager`; shrink file under 900 lines.  
-4. **Extract `CollectionManager.js`**.  
-5. **Thin `calculateScore` wrapper** around `ScoringEngine` only.  
-6. **Extract `ScoringAnimation`** (largest animation block).  
+3. ~~**Extract drag controllers** from `UIManager`~~ — **Done**: `BoonSlotDrag`, `ConsumableDrag`, `PointerGeometry`; `UIManager` ~374 lines.  
+4. ~~**Extract `CollectionManager.js`**~~ — **Done**: `game/js/ui/CollectionManager.js`.  
+5. ~~**Thin `calculateScore` wrapper**~~ — **Done**: `ScoringEngine.validateRun`.  
+6. **Extract `ScoringAnimation`** (largest animation block in `GameEngine`).  
 
 Each step: `npm run test` + targeted e2e (`ui-checklist-playtest`, `playtest:boons` if scoring touched).
 

@@ -6,6 +6,7 @@ describe('UI checklist steps 4–5 wiring', () => {
         const artifact = readFileSync('game/js/classes/Artifact.js', 'utf8');
         const shop = readFileSync('game/js/ui/ShopUI.js', 'utf8');
         const main = readFileSync('game/js/Main.js', 'utf8');
+        const collection = readFileSync('game/js/ui/CollectionManager.js', 'utf8');
 
         expect(artifact).toContain('CARD_SURFACE.RACK');
         expect(artifact).toContain('dataset.cardSurface = surface');
@@ -17,14 +18,15 @@ describe('UI checklist steps 4–5 wiring', () => {
         expect(shop).toContain("ctx.mode === 'artifact'");
         expect(shop).toContain('buyArtifact(ctx.artifactData');
 
-        expect(main).toContain('populateArtifacts(collection)');
-        expect(main).toContain('_renderRackCard(new Artifact(artifactData))');
+        expect(main).toContain('collectionManager.populateCollection');
         expect(main).toContain('ensureAnthologyTooltipsReady');
+        expect(collection).toContain('populateArtifacts(collection)');
+        expect(collection).toContain('_renderRackCard(new Artifact(artifactData))');
     });
 
     it('anthology exposes four tabs, paging, and click-to-pin tooltips on cards', () => {
         const html = readFileSync('game/index.html', 'utf8');
-        const main = readFileSync('game/js/Main.js', 'utf8');
+        const collection = readFileSync('game/js/ui/CollectionManager.js', 'utf8');
         const effects = readFileSync('game/js/ui/BalatroEffects.js', 'utf8');
 
         expect(html).toContain('data-tab="boons"');
@@ -34,10 +36,10 @@ describe('UI checklist steps 4–5 wiring', () => {
         expect(html).toContain('collectionPrevPageBtn');
         expect(html).toContain('collectionNextPageBtn');
 
-        expect(main).toContain('pageByTab = { boons: 0, artifacts: 0, worship: 0, libations: 0 }');
-        expect(main).toContain('pageSize = 9');
-        expect(main).toContain('turnPage(delta)');
-        expect(main).toContain('unlockAllInAnthology = true');
+        expect(collection).toContain('pageByTab = { boons: 0, artifacts: 0, worship: 0, libations: 0 }');
+        expect(collection).toContain('pageSize = 9');
+        expect(collection).toContain('turnPage(delta)');
+        expect(collection).toContain('unlockAllInAnthology = true');
 
         expect(effects).toContain('Click-to-pin on cards only');
         expect(effects).toContain('pinnedTooltips');
