@@ -1,6 +1,6 @@
 # UI consistency checklist
 
-**Branch:** `feat/ui-card-consistency`
+**Branch:** `main` (UI card consistency merged)
 
 **North star:** A card is one object on the table — same size, same face, same pick-up behaviour. Details live in tooltips when the face stays minimal.
 
@@ -82,7 +82,7 @@ Work **one step at a time**. Do not start the next step until the current step i
 - [x] Product decision: rectangular `--card-w/h` (removed shop 120×120 override)
 - [x] `Artifact.render()` — rack indicator (name), gold frame via CSS, tooltip for effect
 - [x] Anthology `CollectionManager.populateArtifacts` uses `Artifact.render()` (shop already did)
-- [ ] Playtest shop artifact drag-to-gold + anthology artifacts tab
+- [x] Playtest shop artifact drag-to-gold + anthology artifacts tab (`tests/e2e/ui-checklist-playtest.spec.js`)
 
 ---
 
@@ -93,7 +93,7 @@ Work **one step at a time**. Do not start the next step until the current step i
 - [x] `CollectionManager._renderRackCard()` → `render(true, false)` for boons, worship, libations, artifacts
 - [x] Locked cards: `_applyLockedCollectionCard()` + `.collection-unlock-meta` CSS (no inline styles)
 - [x] Anthology catalog mode: `unlockAllInAnthology` (all entries + `data-tooltip`); tooltips init in `showCollection()`
-- [ ] Playtest all four tabs + paging (hover + click-pin tooltips)
+- [x] Playtest all four tabs + paging (hover + click-pin tooltips) (`tests/e2e/ui-checklist-playtest.spec.js`)
 
 ---
 
@@ -152,4 +152,4 @@ Work **one step at a time**. Do not start the next step until the current step i
 4. Check boxes in this file; note any “TBD” decisions in *Proposed defaults*.
 5. Ask to continue to the next step.
 
-**Current step:** **Checklist complete on `main` — optional push / delete merged branch**
+**Status:** **Complete on `main`** — Steps 4–5 verified via `tests/unit/ui-checklist-steps-4-5.test.js` and `tests/e2e/ui-checklist-playtest.spec.js`. Feature branch `feat/ui-card-consistency` already removed (local + remote).
