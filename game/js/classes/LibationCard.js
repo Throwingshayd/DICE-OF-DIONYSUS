@@ -226,7 +226,7 @@ class LibationCard extends Card {
         }
         const enhancementNames = {
             'parchment': 'Parchment',
-            'iron': 'Iron',
+            'iron': 'Clockwork',
             'gold': 'Gold',
             'mother_of_pearl': 'Mother of Pearl',
             'mirror': 'Mirror',
@@ -262,7 +262,7 @@ class LibationCard extends Card {
     createDieFaceSelectionUI(gameState, enhancementType, gameEngine = null) {
         const enhancementNames = {
             'parchment': 'Parchment',
-            'iron': 'Iron',
+            'iron': 'Clockwork',
             'gold': 'Gold',
             'mother_of_pearl': 'Mother of Pearl',
             'mirror': 'Mirror',
@@ -456,7 +456,7 @@ class LibationCard extends Card {
                 break;
             case 'iron':
                 if (die.addFaceEnhancement(targetFace, 'iron')) {
-                    message = `Die ${dieNumber} face ${targetFace} enhanced with Iron (+5 Pips when scored).`;
+                    message = `Die ${dieNumber} face ${targetFace} enhanced with Clockwork (+5 Pips when scored).`;
                 } else {
                     message = 'Failed to apply iron enhancement!';
                 }

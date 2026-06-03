@@ -4,6 +4,8 @@
 class BalatroEffects {
     constructor() {
         this.tooltips = new Map();
+        this.pinnedTooltips = new Set();
+        this.hoverTooltipHost = null;
         this.dicePopups = new Map(); // Boon-hover: popups over affected dice
         this.particles = [];
         this.notifications = [];
@@ -52,27 +54,82 @@ class BalatroEffects {
         shake();
     }
 
-    // Tooltip System
+    ensureTooltipRoot() {
+        if (this._tooltipRoot?.isConnected) return this._tooltipRoot;
+        let root = document.getElementById('tooltip-root');
+        if (!root) {
+            root = document.createElement('div');
+            root.id = 'tooltip-root';
+            root.setAttribute('aria-live', 'polite');
+            document.body.appendChild(root);
+        }
+        this._tooltipRoot = root;
+        return root;
+    }
+
+    hideUnpinnedTooltips() {
+        [...this.tooltips.keys()].forEach((host) => {
+            if (!this.pinnedTooltips.has(host)) this.hideTooltip(host);
+        });
+    }
+
+    _tooltipHostFromEvent(relatedTarget) {
+        if (!(relatedTarget instanceof Node)) return null;
+        return relatedTarget.closest?.('[data-tooltip]') ?? null;
+    }
+
+    // Tooltip System — one hover popover at a time, fixed anchor positioning
     setupTooltipSystem() {
+        this.ensureTooltipRoot();
+
         document.addEventListener('mouseover', (e) => {
             const element = e.target.closest('[data-tooltip]');
-            if (element) {
-                this.showTooltip(element, e);
+            if (!element || element.closest('#tooltip-root')) return;
+
+            // Ignore bubbled mouseover when still inside the same host (child → child).
+            if (this._tooltipHostFromEvent(e.relatedTarget) === element) return;
+
+            if (this.hoverTooltipHost !== element) {
+                this.hideUnpinnedTooltips();
+                this.hoverTooltipHost = element;
             }
+            this.showTooltip(element, e);
         });
 
         document.addEventListener('mouseout', (e) => {
             const element = e.target.closest('[data-tooltip]');
-            if (element) {
-                const relatedTarget = e.relatedTarget;
-                const tooltipEl = this.tooltips.get(element);
-                // Don't hide when moving to our tooltip popup (Balatro-style: hover tooltip content)
-                const movingToOurTooltip = tooltipEl && tooltipEl.contains(relatedTarget);
-                if (!element.contains(relatedTarget) && !movingToOurTooltip) {
-                    this.hideTooltip(element);
-                }
-            }
+            if (!element || this.pinnedTooltips.has(element)) return;
+
+            if (this._tooltipHostFromEvent(e.relatedTarget) === element) return;
+
+            const tooltipEl = this.tooltips.get(element);
+            const movingToOurTooltip = tooltipEl && e.relatedTarget instanceof Node && tooltipEl.contains(e.relatedTarget);
+            if (movingToOurTooltip) return;
+
+            if (this.hoverTooltipHost === element) this.hoverTooltipHost = null;
+            this.hideTooltip(element);
         });
+
+        // Click-to-pin on cards only — never intercept dice (hold / libation targeting).
+        document.addEventListener('click', (e) => {
+            const element = e.target.closest('[data-tooltip]');
+            if (!element) return;
+            if (element.classList.contains('die') || element.closest('.die')) return;
+            const isCard = !!element.closest('.card');
+            if (!isCard) return;
+
+            e.stopPropagation();
+            const currentlyPinned = this.pinnedTooltips.has(element);
+            if (currentlyPinned) {
+                this.pinnedTooltips.delete(element);
+                const tip = this.tooltips.get(element);
+                tip?.classList.remove('pinned');
+                this.hideTooltip(element);
+            } else {
+                this.pinnedTooltips.add(element);
+                this.showTooltip(element, e, { forceImmediate: true, pinned: true });
+            }
+        }, { capture: true });
 
         // Also hide tooltips when clicking outside
         document.addEventListener('click', (e) => {
@@ -89,57 +146,97 @@ class BalatroEffects {
         });
     }
 
-    showTooltip(element, _event) {
-        const tooltipData = element.dataset.tooltip;
+    showTooltip(element, _event, opts = {}) {
+        if (!this.isInitialized) this.initialize();
+
+        const tooltipData = element.getAttribute('data-tooltip');
         if (!tooltipData) return;
 
-        // Clear any existing timeout for this element
-        if (this.tooltipTimeouts && this.tooltipTimeouts.has(element)) {
+        if (!opts.forceImmediate && !opts.pinned) {
+            const existing = this.tooltips.get(element);
+            if (existing?.classList.contains('show')) return;
+        }
+
+        if (this.tooltipTimeouts?.has(element)) {
             clearTimeout(this.tooltipTimeouts.get(element));
         }
 
-        // Shorter delay for shop items (snappier), 150ms for shop / 200ms elsewhere
+        const isDie = element.classList.contains('die');
         const isInShop = element.closest('#shopStage');
-        const delayMs = isInShop ? 150 : 200;
+        const dieDelay = typeof TIMING !== 'undefined' ? TIMING.TOOLTIP_DELAY_DIE : 200;
+        const delayMs = opts.forceImmediate ? 0 : (isDie ? dieDelay : (isInShop ? 90 : 110));
+
         const timeoutId = setTimeout(() => {
-            // Abort if element was removed from DOM (e.g. card consumed) — prevents top-left orphan
+            this.tooltipTimeouts?.delete(element);
             if (!element.isConnected) return;
+            if (!opts.pinned && this.hoverTooltipHost !== element) return;
 
-            // Remove existing tooltip
-            this.hideTooltip(element);
+            const stale = this.tooltips.get(element);
+            if (stale?.parentNode) stale.parentNode.removeChild(stale);
+            this.tooltips.delete(element);
 
-            // Create tooltip element
-            const tooltip = document.createElement('div');
-            const parsedHtml = this.parseTooltipData(tooltipData);
-            const isDieTooltip = parsedHtml.includes('tooltip-die');
-            const isCard = element.closest('.card');
-            tooltip.className = 'tooltip' + (isInShop ? ' tooltip-shop' : '') + (isDieTooltip ? ' tooltip-die-popup' : '') + (isCard ? ' tooltip-card' : '');
-            tooltip.innerHTML = parsedHtml;
-            
-            document.body.appendChild(tooltip);
-            
-            // Card tooltips: same width as card (concise, aligned)
-            if (isCard) {
-                const cardEl = element.closest('.card') || element;
-                const w = cardEl.getBoundingClientRect().width;
-                tooltip.style.width = w + 'px';
-                tooltip.style.minWidth = w + 'px';
-                tooltip.style.maxWidth = w + 'px';
-                tooltip.style.boxSizing = 'border-box';
+            let parsed;
+            try {
+                parsed = JSON.parse(tooltipData);
+            } catch (_e) {
+                parsed = null;
             }
-            
-            // Position tooltip - shop items: below (Balatro-style); others: above/below
-            this.positionTooltipStatic(tooltip, element, isInShop);
-            
-            // Show with animation
+            const isDieTooltip = parsed?.tooltipType === 'die';
+            const isCard = element.closest('.card');
+
+            const tooltip = document.createElement('div');
+            tooltip.className = 'tooltip'
+                + (isInShop ? ' tooltip-shop' : '')
+                + (isDieTooltip ? ' tooltip-die-popup' : '')
+                + (isCard ? ' tooltip-card' : '');
+            if (opts.pinned || this.pinnedTooltips.has(element)) tooltip.classList.add('pinned');
+
+            const caret = document.createElement('div');
+            caret.className = 'tip-caret';
+            const inner = document.createElement('div');
+            inner.className = 'tooltip-inner';
+            inner.innerHTML = this.parseTooltipData(tooltipData);
+            tooltip.append(caret, inner);
+
+            const root = this.ensureTooltipRoot();
+            root.appendChild(tooltip);
+
+            if (isDie) {
+                const dieW = Math.round(element.getBoundingClientRect().width);
+                const extra = typeof TIMING !== 'undefined' ? TIMING.TOOLTIP_DIE_EXTRA_W : 14;
+                const w = dieW > 0 ? dieW + extra : 0;
+                if (w > 0) {
+                    tooltip.style.width = `${w}px`;
+                    tooltip.style.minWidth = `${w}px`;
+                    tooltip.style.maxWidth = `${w}px`;
+                }
+            }
+
+            const inPack = !!element.closest('#packOpeningView');
+            if (isCard && (isInShop || inPack)) {
+                const cardEl = element.closest('.card') || element;
+                const cardW = Math.round(cardEl.getBoundingClientRect().width);
+                const minW = typeof TIMING !== 'undefined' ? TIMING.TOOLTIP_SHOP_MIN_W : 124;
+                const w = Math.min(Math.max(cardW, minW), 168);
+                if (w > 0) {
+                    tooltip.style.width = `${w}px`;
+                    tooltip.style.minWidth = `${w}px`;
+                    tooltip.style.maxWidth = `${w}px`;
+                }
+            }
+
+            const preferBelow = isInShop || inPack;
+            tooltip.classList.add('is-measuring');
+            this.positionPopover(tooltip, element, { preferBelow, gap: 10 });
             requestAnimationFrame(() => {
+                if (!tooltip.isConnected) return;
+                this.positionPopover(tooltip, element, { preferBelow, gap: 10 });
+                tooltip.classList.remove('is-measuring');
                 tooltip.classList.add('show');
             });
 
-            // Store reference
             this.tooltips.set(element, tooltip);
 
-            // Boon hover: show popups over affected dice (Pegasus Flight, Cerberus Watch, etc.)
             const boonId = element.dataset?.cardId;
             const isBoonCard = element.dataset?.cardType === 'boon';
             const isPlayArea = !element.closest('#shopStage');
@@ -152,14 +249,58 @@ class BalatroEffects {
             }
         }, delayMs);
 
-        // Store timeout reference
         if (!this.tooltipTimeouts) this.tooltipTimeouts = new Map();
         this.tooltipTimeouts.set(element, timeoutId);
     }
 
+    positionPopover(tooltip, anchorEl, { preferBelow = false, gap = 10 } = {}) {
+        if (!anchorEl?.isConnected || !tooltip) return;
+
+        const pad = 12;
+        const vw = window.innerWidth;
+        const vh = window.innerHeight;
+        const anchor = anchorEl.getBoundingClientRect();
+
+        tooltip.classList.remove('below');
+
+        let placement = preferBelow ? 'below' : 'above';
+        let top;
+        let left;
+
+        const measure = () => tooltip.getBoundingClientRect();
+
+        let tip = measure();
+        left = anchor.left + anchor.width / 2 - tip.width / 2;
+        left = Math.max(pad, Math.min(left, vw - tip.width - pad));
+
+        if (placement === 'above') {
+            top = anchor.top - tip.height - gap;
+            if (top < pad) {
+                placement = 'below';
+                top = anchor.bottom + gap;
+            }
+        } else {
+            top = anchor.bottom + gap;
+            if (top + tip.height > vh - pad) {
+                placement = 'above';
+                top = anchor.top - tip.height - gap;
+            }
+        }
+
+        top = Math.max(pad, Math.min(top, vh - tip.height - pad));
+        tip = measure();
+
+        tooltip.style.left = `${left}px`;
+        tooltip.style.top = `${top}px`;
+        tooltip.dataset.placement = placement;
+        if (placement === 'below') tooltip.classList.add('below');
+
+        const arrowX = anchor.left + anchor.width / 2 - left;
+        tooltip.style.setProperty('--tip-arrow-x', `${Math.max(18, Math.min(arrowX, tip.width - 18))}px`);
+    }
+
     hideTooltip(element) {
-        // Clear any pending timeout for this element
-        if (this.tooltipTimeouts && this.tooltipTimeouts.has(element)) {
+        if (this.tooltipTimeouts?.has(element)) {
             clearTimeout(this.tooltipTimeouts.get(element));
             this.tooltipTimeouts.delete(element);
         }
@@ -182,6 +323,8 @@ class BalatroEffects {
     }
 
     hideAllTooltips() {
+        this.pinnedTooltips.clear();
+        this.hoverTooltipHost = null;
         // Clear all pending timeouts
         if (this.tooltipTimeouts) {
             this.tooltipTimeouts.forEach((timeoutId) => {
@@ -240,73 +383,12 @@ class BalatroEffects {
         }
     }
 
-    updateTooltipPosition(event) {
-        this.tooltips.forEach((tooltip, _element) => {
-            this.positionTooltip(tooltip, event);
+    updateTooltipPosition(_event) {
+        this.tooltips.forEach((tooltip, host) => {
+            if (!host?.isConnected) return;
+            const preferBelow = !!host.closest('#shopStage') || !!host.closest('#packOpeningView');
+            this.positionPopover(tooltip, host, { preferBelow, gap: 10 });
         });
-    }
-
-    positionTooltipStatic(tooltip, element, preferBelow = false) {
-        if (!element.isConnected) return; // Detached element → avoid top-left positioning
-        const elementRect = element.getBoundingClientRect();
-        const tooltipRect = tooltip.getBoundingClientRect();
-        const viewportWidth = window.innerWidth;
-        const viewportHeight = window.innerHeight;
-        
-        let x = elementRect.left + elementRect.width / 2 - tooltipRect.width / 2;
-        let y;
-        // Shop items: always below (Balatro-style)
-        if (preferBelow) {
-            y = elementRect.bottom + 10;
-            tooltip.classList.add('below');
-        } else {
-            y = elementRect.top - tooltipRect.height - 10; // Above
-            if (y < 10) {
-                y = elementRect.bottom + 10;
-                tooltip.classList.add('below');
-            }
-        }
-        
-        if (x < 10) x = 10;
-        else if (x + tooltipRect.width > viewportWidth - 10) x = viewportWidth - tooltipRect.width - 10;
-        if (y + tooltipRect.height > viewportHeight - 10) y = viewportHeight - tooltipRect.height - 10;
-        
-        tooltip.style.left = x + 'px';
-        tooltip.style.top = y + 'px';
-    }
-
-    positionTooltip(tooltip, event) {
-        const element = event.target.closest('[data-tooltip]');
-        if (!element) return;
-        
-        const elementRect = element.getBoundingClientRect();
-        const tooltipRect = tooltip.getBoundingClientRect();
-        const viewportWidth = window.innerWidth;
-        const viewportHeight = window.innerHeight;
-        
-        // Position tooltip relative to the card element
-        let x = elementRect.left + elementRect.width / 2 - tooltipRect.width / 2;
-        let y = elementRect.top - tooltipRect.height - 10; // Above the card
-        
-        // Adjust if tooltip would go off screen
-        if (x < 10) {
-            x = 10; // Keep some margin from left edge
-        } else if (x + tooltipRect.width > viewportWidth - 10) {
-            x = viewportWidth - tooltipRect.width - 10; // Keep some margin from right edge
-        }
-        
-        // If tooltip would go above viewport, position it below the card instead
-        if (y < 10) {
-            y = elementRect.bottom + 10;
-        }
-        
-        // Ensure tooltip doesn't go below viewport
-        if (y + tooltipRect.height > viewportHeight - 10) {
-            y = viewportHeight - tooltipRect.height - 10;
-        }
-        
-        tooltip.style.left = x + 'px';
-        tooltip.style.top = y + 'px';
     }
 
     parseTooltipData(data) {
@@ -317,59 +399,80 @@ class BalatroEffects {
                 return this.parseDieTooltip(parsed);
             }
 
-            // Concise: title, effect, god. Cost/sell handled by Buy/Sell labels.
             let html = '';
-            if (parsed.title) html += `<div class="tooltip-title">${parsed.title}</div>`;
-            if (parsed.effect) html += `<div class="tooltip-effect">${parsed.effect}</div>`;
-            if (parsed.god) html += `<div class="tooltip-god">${parsed.god}</div>`;
+            if (parsed.title) html += `<div class="tooltip-title">${this.escapeHtml(parsed.title)}</div>`;
+            if (parsed.effect) html += `<div class="tooltip-effect">${this.escapeHtml(parsed.effect)}</div>`;
+            if (parsed.god) html += `<div class="tooltip-god">${this.escapeHtml(parsed.god)}</div>`;
             return html;
         } catch (e) {
-            return `<div class="tooltip-effect">${data}</div>`;
+            return `<div class="tooltip-effect">${this.escapeHtml(data)}</div>`;
         }
     }
 
-    /**
-     * Balatro-style die tooltip (from UI_definitions.lua create_popup_UIBox_tooltip pattern)
-     * Clean white box with face, value, enhancements
-     */
     parseDieTooltip(parsed) {
-        let html = `<div class="tooltip-die">`;
-        if (parsed.title) {
-            html += `<div class="tooltip-title tooltip-die-title">${parsed.title}</div>`;
+        const statusClass = parsed.held ? 'is-held' : 'is-free';
+        const statusLabel = parsed.held ? 'Held' : 'Free';
+
+        let html = `<article class="tip-die">`;
+        html += `<p class="tip-die-status ${statusClass}">${statusLabel}</p>`;
+
+        if (!parsed.rolled || !parsed.face) {
+            html += `<p class="tip-die-face">Roll to reveal</p>`;
+        } else {
+            html += `<p class="tip-die-face">Face ${this.escapeHtml(parsed.face)}</p>`;
+            const notes = [];
+            if (parsed.modified) {
+                notes.push(`Modified ${parsed.modified.from}→${parsed.modified.to}`);
+            }
+            if (parsed.wildMod !== null && parsed.wildMod !== undefined) {
+                const sign = parsed.wildMod > 0 ? '+' : '';
+                notes.push(`Wild ${sign}${parsed.wildMod}`);
+            }
+            if (notes.length > 0) {
+                html += `<p class="tip-die-note">${this.escapeHtml(notes.join(' · '))}</p>`;
+            }
         }
-        if (parsed.rows && parsed.rows.length > 0) {
-            html += `<div class="tooltip-die-rows">`;
-            parsed.rows.forEach(row => {
-                if (typeof row === 'string') {
-                    html += `<div class="tooltip-die-row">${row}</div>`;
-                } else if (row.type === 'enhancements' && row.list) {
-                    html += `<div class="tooltip-die-label">Enhancements</div>`;
-                    row.list.forEach((name, i) => {
-                        const desc = row.descriptions && row.descriptions[i] ? row.descriptions[i] : '';
-                        const subTooltip = desc ? JSON.stringify({ title: name, effect: desc }).replace(/'/g, '&#39;') : '';
-                        const dataAttr = subTooltip ? ` data-tooltip='${subTooltip}'` : '';
-                        html += `<div class="tooltip-die-enh tooltip-enhancement-hover"${dataAttr}>• ${name}</div>`;
-                    });
-                } else if (row.type === 'otherFaces' && row.faces) {
-                    html += `<div class="tooltip-die-label">Other Faces</div>`;
-                    row.faces.forEach(f => {
-                        const enhStr = f.enhancements.map(e => this.getEnhDisplayName(e)).join(', ');
-                        html += `<div class="tooltip-die-row">Face ${f.face}: ${enhStr}</div>`;
-                    });
-                } else if (row.type === 'tempMod') {
-                    const v = row.value;
-                    html += `<div class="tooltip-die-row tooltip-die-mod">Temp: ${v > 0 ? '+' : ''}${v}</div>`;
-                }
+
+        if (parsed.rolled && parsed.enhancements?.length > 0) {
+            html += `<ul class="tip-die-enhs">`;
+            parsed.enhancements.forEach((enh) => {
+                const color = this.escapeAttr(enh.color || '');
+                const style = color ? ` style="--enh-color:${color}"` : '';
+                html += `<li class="tip-die-enh"${style}>
+                    <span class="tip-die-enh-name">${this.escapeHtml(enh.name)}</span>
+                    <span class="tip-die-enh-desc">${this.escapeHtml(enh.desc)}</span>
+                </li>`;
             });
-            html += `</div>`;
+            html += `</ul>`;
         }
-        html += `</div>`;
+
+        const footerLines = [];
+        if (parsed.tempMod) {
+            const sign = parsed.tempMod > 0 ? '+' : '';
+            footerLines.push(`<span class="tip-die-mod">Temp modifier ${sign}${parsed.tempMod}</span>`);
+        }
+        if (footerLines.length > 0) {
+            html += `<footer class="tip-die-footer">`;
+            footerLines.forEach((line) => {
+                html += `<div class="tip-die-footer-line">${line}</div>`;
+            });
+            html += `</footer>`;
+        }
+
+        html += `</article>`;
         return html;
     }
 
+    escapeHtml(s) {
+        return String(s)
+            .replace(/&/g, '&amp;')
+            .replace(/</g, '&lt;')
+            .replace(/>/g, '&gt;')
+            .replace(/"/g, '&quot;');
+    }
+
     getEnhDisplayName(enh) {
-        const names = { parchment: 'Parchment', iron: 'Iron', gold: 'Gold', mother_of_pearl: 'Pearl', mirror: 'Mirror', wild: 'Wild', lucky: 'Lucky', cursed: 'Cursed', divine: 'Divine', chaos: 'Chaos' };
-        return names[enh] || enh;
+        return window.EnhancementRegistry?.displayName?.(enh) || enh;
     }
 
     escapeAttr(s) {

@@ -185,6 +185,7 @@ class Card {
             god: this.god,
             type: this.type
         };
+
         el.setAttribute('data-tooltip', JSON.stringify(tooltipData));
 
         return el;

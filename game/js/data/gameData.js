@@ -676,10 +676,10 @@ const CardData = {
     libations: [
         // Libations from CSV database only
         { id: "kyphi_mead", name: "Kyphi Mead", rarity: "libation", cost: 2, sellValue: 0, effect: "Enhance a die face to Parchment.", type: "instant" },
-        { id: "tisane_hephaestus", name: "Tisane of Hephaestus", rarity: "libation", cost: 2, sellValue: 0, effect: "Enhance a die face to Steel.", type: "instant" },
+        { id: "tisane_hephaestus", name: "Tisane of Hephaestus", rarity: "libation", cost: 2, sellValue: 0, effect: "Enhance a die face to Clockwork.", type: "instant" },
         { id: "ambrosial_krasi", name: "Ambrosial Krasi", rarity: "libation", cost: 2, sellValue: 0, effect: "Enhance a die face to Gold.", type: "instant" },
         { id: "retsina_echoes", name: "Retsina of Echoes", rarity: "libation", cost: 2, sellValue: 0, effect: "Enhance a die face to Mother of Pearl (adds left/right die).", type: "instant" },
-        { id: "soma_wild", name: "Soma of the Wild", rarity: "libation", cost: 2, sellValue: 0, effect: "Enhance a die face to Wild (becomes -1/0/+1 when rolled).", type: "instant" },
+        { id: "soma_wild", name: "Soma of the Wild", rarity: "libation", cost: 2, sellValue: 0, effect: "Add Wild to one die face. On roll: −1, 0, or +1.", type: "instant" },
         { id: "kylix_hermit", name: "Kylix of the Hermit", rarity: "libation", cost: 3, sellValue: 0, effect: "Double your gold (max gain 20).", type: "instant" },
         { id: "elixir_lethe", name: "Elixir of Lethe", rarity: "libation", cost: 2, sellValue: 0, effect: "Reduce a die face by 1.", type: "instant" },
         { id: "chalice_helios", name: "Chalice of Helios", rarity: "libation", cost: 2, sellValue: 0, effect: "Increase a die face by 1.", type: "instant" },

@@ -331,19 +331,9 @@ class Die {
 
     // Get enhancement description (Balatro-style: used in nested tooltips)
     getEnhancementDescription(enhancement) {
-        const descriptions = {
-            'parchment': '25% chance for +1 Favour, 15% chance for +5 Gold when scored',
-            'iron': '+5 Pips when scored',
-            'gold': '+1 Gold when scored',
-            'mother_of_pearl': 'Adds value of left or right adjacent die (50/50)',
-            'wild': 'Randomly becomes -1, 0, or +1 of rolled value',
-            'mirror': 'Scores twice (like Balatro Red Seal), including enhancements',
-            'lucky': 'Has a 20% chance to count as 6',
-            'cursed': 'Subtracts 1 from its value (minimum 1)',
-            'divine': 'Always counts as 6',
-            'chaos': 'Random effect each roll (-1 to +2)'
-        };
-        return descriptions[enhancement] || 'Unknown enhancement';
+        const def = window.EnhancementRegistry?.get?.(enhancement);
+        if (!def) return 'Unknown enhancement';
+        return def.tooltipDesc || [def.oneLiner, def.triggerLine].filter(Boolean).join(' — ');
     }
 
     // Lock/unlock the die

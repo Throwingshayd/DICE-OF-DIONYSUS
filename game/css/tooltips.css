@@ -1,0 +1,311 @@
+/**
+ * Tooltip system — Balatro-inspired sizing, shape, and typography.
+ * Fonts: DisneyHeroic (UI copy), VT323 (numeric die values).
+ * Loads last; hosts popovers in #tooltip-root.
+ */
+
+#tooltip-root {
+    position: fixed;
+    inset: 0;
+    pointer-events: none;
+    z-index: 100000;
+}
+
+/* ── Shared shell (Balatro: ~6px radius, tight padding, soft shadow) ── */
+#tooltip-root .tooltip {
+    position: fixed;
+    margin: 0;
+    padding: 0;
+    font-family: 'DisneyHeroic', 'IM Fell English SC', sans-serif;
+    font-size: 12px;
+    line-height: 1.32;
+    letter-spacing: 0.02em;
+    border-radius: 6px;
+    box-shadow: 0 5px 18px rgba(0, 0, 0, 0.28);
+    opacity: 0;
+    visibility: hidden;
+    transform: translateY(4px) scale(0.98);
+    transition:
+        opacity 0.14s cubic-bezier(0.22, 1, 0.36, 1),
+        transform 0.14s cubic-bezier(0.22, 1, 0.36, 1),
+        visibility 0.14s;
+    pointer-events: none;
+    box-sizing: border-box;
+    z-index: 1;
+}
+
+#tooltip-root .tooltip.is-measuring {
+    visibility: visible;
+    opacity: 0;
+    pointer-events: none;
+    transition: none;
+}
+
+#tooltip-root .tooltip.show {
+    opacity: 1;
+    visibility: visible;
+    transform: translateY(0) scale(1);
+}
+
+#tooltip-root .tooltip.pinned {
+    pointer-events: auto;
+    box-shadow: 0 6px 22px rgba(0, 0, 0, 0.35), 0 0 0 2px rgba(255, 224, 102, 0.45);
+}
+
+#tooltip-root .tooltip::before,
+#tooltip-root .tooltip::after {
+    display: none !important;
+    content: none !important;
+}
+
+#tooltip-root .tip-caret {
+    position: absolute;
+    width: 10px;
+    height: 10px;
+    transform: rotate(45deg);
+    left: var(--tip-arrow-x, 50%);
+    margin-left: -5px;
+    pointer-events: none;
+    box-sizing: border-box;
+}
+
+#tooltip-root .tooltip-inner {
+    padding: 7px 9px 8px;
+}
+
+/* ── Shop / pack: white popup under card (Balatro shop hover) ── */
+#tooltip-root .tooltip.tooltip-shop {
+    background: #f2f5f6 !important;
+    color: #2f1c10 !important;
+    border: 1px solid rgba(0, 0, 0, 0.14) !important;
+    box-shadow: 0 4px 14px rgba(0, 0, 0, 0.22) !important;
+    z-index: 2;
+}
+
+#tooltip-root .tooltip.tooltip-shop .tip-caret {
+    background: #f2f5f6;
+    border: 1px solid rgba(0, 0, 0, 0.14);
+}
+
+#tooltip-root .tooltip.tooltip-shop .tooltip-title {
+    font-size: 13px;
+    font-weight: normal;
+    color: #141414 !important;
+    margin: 0 0 4px;
+    line-height: 1.2;
+    text-shadow: none;
+}
+
+#tooltip-root .tooltip.tooltip-shop .tooltip-effect {
+    font-size: 11px;
+    line-height: 1.35;
+    color: #4a4a4a !important;
+    overflow-wrap: break-word;
+    word-break: normal;
+    hyphens: none;
+}
+
+#tooltip-root .tooltip.tooltip-shop .tooltip-god {
+    margin-top: 5px;
+    padding-top: 5px;
+    border-top: 1px solid rgba(0, 0, 0, 0.08);
+    font-size: 10px;
+    font-style: normal;
+    color: #6a5a48 !important;
+}
+
+/* ── In-play cards: dark slate panel (Balatro run tooltip) ── */
+#tooltip-root .tooltip.tooltip-card:not(.tooltip-shop) {
+    min-width: 148px;
+    max-width: min(220px, calc(100vw - 24px));
+    background: linear-gradient(180deg, #3d4f56 0%, #2e3d42 100%);
+    color: #e8eef0;
+    border: 2px solid #5a6d74;
+    box-shadow:
+        0 6px 20px rgba(0, 0, 0, 0.45),
+        inset 0 1px 0 rgba(255, 255, 255, 0.08);
+}
+
+#tooltip-root .tooltip.tooltip-card:not(.tooltip-shop) .tip-caret {
+    background: #35484f;
+    border: 2px solid #5a6d74;
+}
+
+#tooltip-root .tooltip.tooltip-card:not(.tooltip-shop) .tooltip-title {
+    font-size: 14px;
+    color: #ffe566;
+    margin: 0 0 5px;
+    text-shadow: 0 1px 2px rgba(0, 0, 0, 0.5);
+}
+
+#tooltip-root .tooltip.tooltip-card:not(.tooltip-shop) .tooltip-effect {
+    font-size: 11px;
+    color: #c5d4d8;
+    line-height: 1.38;
+}
+
+#tooltip-root .tooltip.tooltip-card:not(.tooltip-shop) .tooltip-god {
+    margin-top: 6px;
+    padding-top: 6px;
+    border-top: 1px solid rgba(255, 255, 255, 0.12);
+    font-size: 10px;
+    color: #9eb5bc;
+    font-style: normal;
+}
+
+/* Generic (artifacts etc.) — same dark panel */
+#tooltip-root .tooltip:not(.tooltip-shop):not(.tooltip-card):not(.tooltip-die-popup) {
+    min-width: 148px;
+    max-width: min(220px, calc(100vw - 24px));
+    background: linear-gradient(180deg, #3d4f56 0%, #2e3d42 100%);
+    color: #e8eef0;
+    border: 2px solid #5a6d74;
+}
+
+#tooltip-root .tooltip:not(.tooltip-shop):not(.tooltip-card):not(.tooltip-die-popup) .tip-caret {
+    background: #35484f;
+    border: 2px solid #5a6d74;
+}
+
+#tooltip-root .tooltip:not(.tooltip-shop):not(.tooltip-card):not(.tooltip-die-popup) .tooltip-title {
+    font-size: 14px;
+    color: #ffe566;
+    margin: 0 0 5px;
+}
+
+#tooltip-root .tooltip:not(.tooltip-shop):not(.tooltip-card):not(.tooltip-die-popup) .tooltip-effect {
+    font-size: 11px;
+    color: #c5d4d8;
+}
+
+#tooltip-root .tooltip-title {
+    font-family: 'DisneyHeroic', 'IM Fell English SC', sans-serif;
+    font-weight: normal;
+}
+
+#tooltip-root .tooltip-effect,
+#tooltip-root .tooltip-god {
+    font-family: 'DisneyHeroic', 'IM Fell English SC', sans-serif;
+}
+
+/* ── Die: narrow column aligned to die (~95px + small pad) ── */
+#tooltip-root .tooltip-die-popup {
+    background: #f0f4f5;
+    color: #2f1c10;
+    border: 1px solid rgba(0, 0, 0, 0.14);
+    box-shadow: 0 4px 14px rgba(0, 0, 0, 0.2);
+}
+
+#tooltip-root .tooltip-die-popup .tip-caret {
+    background: #f0f4f5;
+    border: 1px solid rgba(0, 0, 0, 0.14);
+}
+
+#tooltip-root .tooltip-die-popup .tooltip-inner {
+    padding: 6px 8px 7px;
+}
+
+#tooltip-root .tip-die {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+}
+
+#tooltip-root .tip-die-status {
+    margin: 0;
+    align-self: stretch;
+    text-align: center;
+    font-family: 'DisneyHeroic', sans-serif;
+    font-size: 10px;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    line-height: 1.2;
+    padding: 4px 6px;
+    border-radius: 4px;
+    border: 1px solid rgba(0, 0, 0, 0.12);
+    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.35);
+}
+
+#tooltip-root .tip-die-status.is-held {
+    color: #e8fff4;
+    background: linear-gradient(180deg, #3d9a6e 0%, #2a7a55 100%);
+    border-color: #1f5c40;
+    text-shadow: 0 1px 1px rgba(0, 0, 0, 0.35);
+}
+
+#tooltip-root .tip-die-status.is-free {
+    color: #fff5f2;
+    background: linear-gradient(180deg, #c45a4a 0%, #9e3d32 100%);
+    border-color: #7a2e26;
+    text-shadow: 0 1px 1px rgba(0, 0, 0, 0.35);
+}
+
+#tooltip-root .tip-die-face {
+    margin: 0;
+    font-family: 'DisneyHeroic', sans-serif;
+    font-size: 11px;
+    line-height: 1.3;
+    color: #141414;
+    text-align: center;
+    overflow-wrap: break-word;
+    word-break: normal;
+}
+
+#tooltip-root .tip-die-note {
+    margin: 0;
+    font-family: 'DisneyHeroic', sans-serif;
+    font-size: 9px;
+    line-height: 1.3;
+    color: #6a5a48;
+}
+
+#tooltip-root .tip-die-enhs {
+    list-style: none;
+    margin: 2px 0 0;
+    padding: 5px 0 0;
+    border-top: 1px solid rgba(0, 0, 0, 0.08);
+}
+
+#tooltip-root .tip-die-enh {
+    padding: 2px 0 2px 7px;
+    border-left: 2px solid var(--enh-color, #5a6d74);
+    font-family: 'DisneyHeroic', sans-serif;
+    font-size: 9px;
+    line-height: 1.35;
+    color: #444;
+    overflow-wrap: break-word;
+    word-break: normal;
+}
+
+#tooltip-root .tip-die-enh + .tip-die-enh {
+    margin-top: 3px;
+}
+
+#tooltip-root .tip-die-enh-name {
+    display: block;
+    color: #141414;
+    font-size: 10px;
+}
+
+#tooltip-root .tip-die-enh-desc {
+    display: block;
+    color: #555;
+    margin-top: 1px;
+}
+
+#tooltip-root .tip-die-footer {
+    font-family: 'DisneyHeroic', sans-serif;
+    font-size: 10px;
+    color: #555;
+    padding-top: 5px;
+    border-top: 1px solid rgba(0, 0, 0, 0.08);
+    line-height: 1.35;
+}
+
+#tooltip-root .tip-die-footer-line + .tip-die-footer-line {
+    margin-top: 3px;
+}
+
+#tooltip-root .tip-die-mod {
+    color: #b5532f;
+}

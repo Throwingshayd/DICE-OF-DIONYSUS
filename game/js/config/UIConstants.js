@@ -22,6 +22,12 @@ const TIMING = {
     LIVE_SCORE_DEBOUNCE_MS: 70,    // Debounce Gnosis preview on score row hover (smoothness)
     SAVE_INDICATOR_DURATION: 2000,
     TOOLTIP_DELAY: 500,
+    /** Hover delay before die popover (cards/shop use shorter delays in BalatroEffects) */
+    TOOLTIP_DELAY_DIE: 200,
+    /** Shop/pack popover min width (card art is ~71px; text needs slightly more) */
+    TOOLTIP_SHOP_MIN_W: 124,
+    /** Extra px added to die width for die tooltips */
+    TOOLTIP_DIE_EXTRA_W: 14,
     
     // Auto-save
     AUTO_SAVE_INTERVAL: 30000,  // 30 seconds

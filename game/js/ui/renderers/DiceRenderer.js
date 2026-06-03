@@ -5,40 +5,64 @@
 
 const DiceRenderer = {
     getEnhancementDisplayName(enh) {
-        const names = { parchment: 'Parchment', iron: 'Iron', gold: 'Gold', mother_of_pearl: 'Mother of Pearl', mirror: 'Mirror', wild: 'Wild', lucky: 'Lucky', cursed: 'Cursed', divine: 'Divine', chaos: 'Chaos' };
-        return names[enh] || enh;
+        return window.EnhancementRegistry?.displayName?.(enh) || enh;
+    },
+
+    _syncEnhancementTexture(dieEl, enhancementId) {
+        const classes = window.EnhancementRegistry?.textureClasses?.() || [];
+        classes.forEach((c) => dieEl.classList.remove(c));
+        const textureClass = window.EnhancementRegistry?.ui?.(enhancementId)?.textureClass;
+        if (textureClass) dieEl.classList.add(textureClass);
     },
 
     buildDieTooltipData(die, index, gameState, currentFace, hasModifiedValue) {
-        const dieNum = index + 1;
-        const held = gameState.held && gameState.held[index];
-        const title = held ? `Die ${dieNum} — HELD` : `Die ${dieNum}`;
-        const rows = [];
-        if (currentFace > 0) {
-            const effectiveFace = die.getEffectiveFace();
-            let valueText = `Face ${currentFace} → Value ${effectiveFace}`;
-            if (hasModifiedValue) valueText += ` (Modified: ${die.faces[currentFace].value}→${die.faces[currentFace].modifiedValue})`;
+        const slot = index + 1;
+        const held = !!(gameState.held && gameState.held[index]);
+        const rolled = !!gameState.hasRolled;
+        const payload = {
+            tooltipType: 'die',
+            slot,
+            held,
+            rolled,
+            face: currentFace > 0 ? currentFace : null,
+            effective: null,
+            modified: null,
+            wildMod: null,
+            enhancements: [],
+            tempMod: null,
+        };
+
+        // Only expose face/enhancement detail after roll — dice shuffle across slots on first roll.
+        if (rolled && currentFace > 0) {
+            payload.effective = die.getEffectiveFace();
+            if (hasModifiedValue && die.faces[currentFace]) {
+                payload.modified = {
+                    from: die.faces[currentFace].value,
+                    to: die.faces[currentFace].modifiedValue,
+                };
+            }
             if (die.wildValue !== undefined && die.hasEnhancementForCurrentFace('wild')) {
-                const wildMod = die.wildValue - currentFace;
-                valueText += ` • Wild ${wildMod > 0 ? '+' : ''}${wildMod}`;
+                payload.wildMod = die.wildValue - currentFace;
             }
-            rows.push(valueText);
-        } else rows.push('Not yet rolled');
-        const currentEnhancements = currentFace > 0 && die.faces[currentFace] ? Array.from(die.faces[currentFace].enhancements) : [];
-        if (currentEnhancements.length > 0) {
-            const enhNames = currentEnhancements.map(e => this.getEnhancementDisplayName(e));
-            const enhDescriptions = currentEnhancements.map(e => die.getEnhancementDescription(e));
-            rows.push({ type: 'enhancements', list: enhNames, descriptions: enhDescriptions, keys: currentEnhancements });
+            const currentEnh = die.faces[currentFace]
+                ? Array.from(die.faces[currentFace].enhancements)
+                : [];
+            payload.enhancements = currentEnh.map((id) => {
+                const def = window.EnhancementRegistry?.get?.(id);
+                return {
+                    id,
+                    name: def?.displayName || this.getEnhancementDisplayName(id),
+                    desc: die.getEnhancementDescription(id),
+                    color: def?.ui?.chipColor || '',
+                };
+            });
         }
-        const allFacesEnh = [];
-        Object.entries(die.faces).forEach(([faceNum, faceData]) => {
-            if (faceData.enhancements.size > 0 && parseInt(faceNum, 10) !== currentFace) {
-                allFacesEnh.push({ face: parseInt(faceNum, 10), enhancements: Array.from(faceData.enhancements) });
-            }
-        });
-        if (allFacesEnh.length > 0) rows.push({ type: 'otherFaces', faces: allFacesEnh });
-        if (die.tempModifier !== 0 && gameState.hasRolled) rows.push({ type: 'tempMod', value: die.tempModifier });
-        return { tooltipType: 'die', title, rows, dieId: die.dieId || dieNum };
+
+        if (die.tempModifier !== 0 && rolled) {
+            payload.tempMod = die.tempModifier;
+        }
+
+        return payload;
     },
 
     bindDiceClick(container) {
@@ -101,7 +125,7 @@ const DiceRenderer = {
         }
 
         let wildBadge = dieEl.querySelector('.wild-badge');
-        const showWild = currentFace > 0 && die.hasEnhancementForCurrentFace('wild') && die.wildValue !== undefined;
+        const showWild = gameState.hasRolled && currentFace > 0 && die.hasEnhancementForCurrentFace('wild') && die.wildValue !== undefined;
         const wildModifier = showWild ? die.wildValue - currentFace : 0;
         if (showWild && wildModifier !== 0) {
             if (!wildBadge) {
@@ -119,13 +143,12 @@ const DiceRenderer = {
         if (dieIdBadge) dieIdBadge.textContent = die.dieId || (index + 1);
 
         dieEl.querySelectorAll('.die-enhancement-overlay').forEach((n) => n.remove());
-        if (hasEnhancementsOnCurrentFace && currentFace > 0 && die.faces[currentFace]) {
+        const showEnhOnDie = gameState.hasRolled && hasEnhancementsOnCurrentFace && currentFace > 0 && die.faces[currentFace];
+        if (showEnhOnDie) {
             const firstEnh = Array.from(die.faces[currentFace].enhancements)[0];
-            if (firstEnh) {
-                const overlay = document.createElement('div');
-                overlay.className = `die-enhancement-overlay enh-${firstEnh}`;
-                dieEl.appendChild(overlay);
-            }
+            if (firstEnh) this._syncEnhancementTexture(dieEl, firstEnh);
+        } else {
+            this._syncEnhancementTexture(dieEl, null);
         }
         if (currentFace > 0 && currentFace >= 7) {
             const faceOverlay = document.createElement('div');
@@ -152,7 +175,9 @@ const DiceRenderer = {
         dieEl.classList.toggle('held', !!gameState.held[index]);
         const currentFace = die.currentFace;
         const hasEnhancementsOnCurrentFace = currentFace > 0 && die.faces[currentFace] && die.faces[currentFace].enhancements.size > 0;
-        const hasModifiedValue = currentFace > 0 && die.faces[currentFace] && die.faces[currentFace].modifiedValue && die.faces[currentFace].modifiedValue !== die.faces[currentFace].value;
+        const hasModifiedValue = gameState.hasRolled && currentFace > 0 && die.faces[currentFace]
+            && die.faces[currentFace].modifiedValue
+            && die.faces[currentFace].modifiedValue !== die.faces[currentFace].value;
 
         dieEl.style.boxShadow = '';
         dieEl.style.border = '';
@@ -162,9 +187,7 @@ const DiceRenderer = {
             dieEl.style.boxShadow = '0 0 15px rgba(138, 43, 226, 0.8)';
             dieEl.style.border = '3px solid rgba(138, 43, 226, 1)';
             dieEl.setAttribute('data-modified', 'true');
-        } else if (hasEnhancementsOnCurrentFace) {
-            dieEl.style.boxShadow = '0 0 10px rgba(255, 215, 0, 0.6)';
-            dieEl.style.border = '2px solid rgba(255, 215, 0, 0.8)';
+        } else if (gameState.hasRolled && hasEnhancementsOnCurrentFace) {
             dieEl.setAttribute('data-enhanced', 'true');
         }
 

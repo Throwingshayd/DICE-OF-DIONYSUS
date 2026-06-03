@@ -2,14 +2,16 @@ import { readFileSync } from 'node:fs';
 import { describe, expect, it } from 'vitest';
 
 describe('Greek theme wiring', () => {
-    it('index.html loads greek-theme.css after styles.css and as the last local stylesheet', () => {
+    it('index.html loads greek-theme.css after styles.css; tooltips.css loads last', () => {
         const html = readFileSync('game/index.html', 'utf8');
         const stylesIdx = html.indexOf('href="css/styles.css"');
         const greekIdx = html.indexOf('href="css/greek-theme.css"');
+        const tooltipsIdx = html.indexOf('href="css/tooltips.css"');
         const visualIdx = html.indexOf('href="css/visual-tokens.css"');
         expect(stylesIdx).toBeGreaterThan(-1);
         expect(greekIdx).toBeGreaterThan(stylesIdx);
         expect(greekIdx).toBeGreaterThan(visualIdx);
+        expect(tooltipsIdx).toBeGreaterThan(greekIdx);
     });
 
     it('greek-theme.css defines marble pantheon frieze and side stelae', () => {
