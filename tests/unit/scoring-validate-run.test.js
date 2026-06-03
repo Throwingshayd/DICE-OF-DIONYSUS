@@ -36,4 +36,17 @@ describe('ScoringEngine.validateRun wiring', () => {
         expect(engine).toContain('new LiveScoreController(this)');
         expect(engine).toContain('ensureLiveScore()?.schedulePreview');
     });
+
+    it('ScoringAnimation extracted from GameEngine', () => {
+        const engine = readFileSync('game/js/game/GameEngine.js', 'utf8');
+        const anim = readFileSync('game/js/ui/ScoringAnimation.js', 'utf8');
+        const html = readFileSync('game/index.html', 'utf8');
+        expect(engine).toContain('ensureScoringAnimation');
+        expect(engine).toContain('playReveal(category');
+        expect(engine).not.toContain('animateSequentialScoring(');
+        expect(engine).not.toContain('createScoreParticles(');
+        expect(anim).toContain('class ScoringAnimation');
+        expect(anim).toContain('playSequential(');
+        expect(html.indexOf('ScoringAnimation.js')).toBeLessThan(html.indexOf('GameEngine.js'));
+    });
 });
